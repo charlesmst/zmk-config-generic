@@ -17,11 +17,11 @@ config ROBA_DESKHOP_LAYER_SYNC_LED_MASK
 
 config ROBA_DESKHOP_LAYER_WHEN_LED_ON
     int "Layer to select when sync indicator is ON"
-    default 0
+    default 1
 
 config ROBA_DESKHOP_LAYER_WHEN_LED_OFF
     int "Layer to select when sync indicator is OFF"
-    default 1
+    default 0
 
 endif
 

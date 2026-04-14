@@ -1,0 +1,28 @@
+menu "roBa Features"
+
+config ROBA_DESKHOP_LAYER_SYNC
+    bool "Sync layers from DeskHop output changes"
+    default y
+    help
+      Switch between two base layers whenever host HID indicator bits change.
+
+if ROBA_DESKHOP_LAYER_SYNC
+
+config ROBA_DESKHOP_LAYER_SYNC_LED_MASK
+    hex "HID indicator mask used as sync signal"
+    default 0x01
+    help
+      USB HID indicator bitmask used as DeskHop signal.
+      0x01 corresponds to Num Lock.
+
+config ROBA_DESKHOP_LAYER_WHEN_LED_ON
+    int "Layer to select when sync indicator is ON"
+    default 0
+
+config ROBA_DESKHOP_LAYER_WHEN_LED_OFF
+    int "Layer to select when sync indicator is OFF"
+    default 1
+
+endif
+
+endmenu

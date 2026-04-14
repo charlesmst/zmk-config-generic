@@ -1,10 +1,13 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/sys/util.h>
 #include <zmk/event_manager.h>
 #include <zmk/events/hid_indicators_changed.h>
 #include <zmk/keymap.h>
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+
+#if IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
 
 static int deskhop_layer_sync_listener(const zmk_event_t *eh) {
     const struct zmk_hid_indicators_changed *ev = as_zmk_hid_indicators_changed(eh);
@@ -31,3 +34,5 @@ static int deskhop_layer_sync_listener(const zmk_event_t *eh) {
 
 ZMK_LISTENER(roba_deskhop_layer_sync, deskhop_layer_sync_listener);
 ZMK_SUBSCRIPTION(roba_deskhop_layer_sync, zmk_hid_indicators_changed);
+
+#endif

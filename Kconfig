@@ -2,6 +2,7 @@ menu "roBa Features"
 
 config ROBA_DESKHOP_LAYER_SYNC
     bool "Sync layers from DeskHop output changes"
+    depends on ZMK_HID_INDICATORS
     default y
     help
       Switch between two base layers whenever host HID indicator bits change.

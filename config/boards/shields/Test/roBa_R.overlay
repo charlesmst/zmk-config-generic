@@ -15,6 +15,11 @@
 };
 
 / {
+    chosen {
+        zephyr,console = &snippet_studio_rpc_usb_uart;
+        zephyr,shell-uart = &snippet_studio_rpc_usb_uart;
+    };
+
     trackball_listener {
         compatible = "zmk,input-listener";
         device = <&trackball>;
@@ -60,5 +65,4 @@
         scroll-layers = <10>;
     };
 };
-
 

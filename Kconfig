@@ -24,6 +24,18 @@ config ROBA_DESKHOP_LAYER_WHEN_LED_OFF
     int "Layer to select when sync indicator is OFF"
     default 0
 
+config ROBA_DESKHOP_LAYER_SYNC_DEBUG_KEY
+    bool "Type debug key on sync event"
+    default n
+    help
+      Sends a key tap to the host whenever a HID indicator sync event is received.
+
+config ROBA_DESKHOP_LAYER_SYNC_DEBUG_KEY_USAGE
+    hex "Debug key HID usage id"
+    default 0x1d
+    help
+      HID usage id for the debug key. 0x1d is KEYBOARD_Z.
+
 endif
 
 endmenu

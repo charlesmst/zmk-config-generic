@@ -23,7 +23,10 @@ static int deskhop_layer_sync_listener(const zmk_event_t *eh) {
     const uint8_t target_layer =
         sync_on ? CONFIG_ROBA_DESKHOP_LAYER_WHEN_LED_ON : CONFIG_ROBA_DESKHOP_LAYER_WHEN_LED_OFF;
 
-    if (!zmk_keymap_layer_active(target_layer)) {
+    LOG_INF("DeskHop sync event indicators=0x%02x target=%d highest=%d", ev->indicators,
+            target_layer, zmk_keymap_highest_layer_active());
+
+    if (zmk_keymap_highest_layer_active() != target_layer) {
         zmk_keymap_layer_to(target_layer);
         LOG_DBG("DeskHop sync indicators=0x%02x -> layer=%d", ev->indicators, target_layer);
     }

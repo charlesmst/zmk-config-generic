@@ -1,7 +1,7 @@
 manifest:
   defaults:
     remote: urob
-    revision: v0.1 # Pin everything to v0.1
+    revision: v0.3.0
   remotes:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
@@ -22,15 +22,12 @@ manifest:
     - name: zmk-tri-state
       path: modules/zmk/tri-state
       remote: urob
-      revision: v0.1 # Pin everything to v0.1
-    # Temporarily overload Zephyr until
-    # https://github.com/zmkfirmware/zephyr/pull/40 is merged.
+      revision: v0.3.0
     - name: zephyr
+      remote: zmkfirmware
       revision: v3.5.0+zmk-fixes
       clone-depth: 1
       import:
-        # Only enable most commonly used boards. For less common hardware one
-        # may need to enable additional modules.
         name-allowlist:
           - cmsis
           - hal_nordic

@@ -259,6 +259,22 @@
             tap-ms = <0>;
             bindings = <&kp RC(RA(N2))>, <&to DEFAU>;
         };
+        deskhop_gaming: deskhop_gaming {
+            label = "deskhop_gaming";
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            wait-ms = <0>;
+            tap-ms = <0>;
+            bindings = <&kp LC(RS(Y))>;
+        };
+        deskhop_normal: deskhop_normal {
+            label = "deskhop_normal";
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            wait-ms = <0>;
+            tap-ms = <0>;
+            bindings = <&kp LC(RS(N))>;
+        };
     };
 
     combos {
@@ -277,9 +293,9 @@
             label = "PC";
             bindings = <
  &kp Q                &kp W                &kp E                &kp R                &kp T                &kp Y                &kp U                &kp I                &kp O                &kp P               
- &lt TILIN A          &hm LCTRL S          &hm LALT D           &hm LGUI F           &kp G                &kp LG(LS(N4))       &kp H                &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILIN SEMI       
- &kp Z                &kp X                &kp C                &kp V                &kp B                &kp LA(SPACE)       &kp N                &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH       
- &trans               &trans               &kp LG(LC(SPACE))    MO_TOG(MOUSE)       &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)       
+ &lt TILIN A          &hm LCTRL S          &hm LALT D           &hm LGUI F           &kp G                &kp LG(LS(N4))       &deskhop_gaming      &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILIN SEMI       
+ &kp Z                &kp X                &kp C                &kp V                &kp B                &kp LA(SPACE)        &deskhop_normal      &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH       
+ &trans               &trans               &kp LG(LC(SPACE))    MO_TOG(MOUSE)        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)       
             >;
 
             sensor-bindings = <&mouse_wheel>;
@@ -289,9 +305,9 @@
             label = "Win";
             bindings = <
  &kp Q                &kp W                &kp E                &kp R                &kp T                &kp Y                &kp U                &kp I                &kp O                &kp P               
- &lt TILWI A          &hm LCTRL S          &hm LALT D           &hm LGUI F           &kp G                &kp PSCRN            &kp H                &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILWI SEMI       
- &kp Z                &kp X                &kp C                &kp V                &kp B                &tog GAMIN           &kp N                &kp N                &kp M                &kp COMMA            &kp DOT              &kp FSLH             
- &trans               &trans               &kp LG(DOT)         MO_TOG(MOUSE)       &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)       
+ &lt TILWI A          &hm LCTRL S          &hm LALT D           &hm LGUI F           &kp G                &kp PSCRN            &deskhop_gaming      &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILWI SEMI       
+ &kp Z                &kp X                &kp C                &kp V                &kp B                &tog GAMIN           &deskhop_normal      &kp N                &kp M                &kp COMMA            &kp DOT              &kp FSLH             
+ &trans               &trans               &kp LG(DOT)          MO_TOG(MOUSE)        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)       
             >;
             sensor-bindings = <&mouse_wheel>;
         };

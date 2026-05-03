@@ -291,8 +291,8 @@
             label = "PC";
             bindings = <
  &kp Q    &kp W        &kp E       &kp R       &kp T                                          &kp Y          &kp U       &kp I       &kp O        &kp P          
- &lt TILIN A  &hm LCTRL S  &hm LALT D  &hm LGUI F  &kp G   &kp LG(LS(N4))  &kp LS(LA(K))  &kp H          &hm LGUI J  &hm RALT K  &hm RCTRL L  &lt TILIN SEMI
- &kp Z    &kp X        &kp C       &kp V       &kp B       &kp LA(SPACE)     &deskhop1                  &kp N          &kp M       &kp COMMA   &hm RALT DOT  &hm RCTRL FSLH  
+ &lt TILIN A  &hm LCTRL S  &hm LALT D  &hm LGUI F  &kp G   &kp LG(LS(N4))  &kp H  &kp H          &hm LGUI J  &hm RALT K  &hm RCTRL L  &lt TILIN SEMI
+ &kp Z    &kp X        &kp C       &kp V       &kp B       &kp LA(SPACE)     &kp N                  &kp N          &kp M       &kp COMMA   &hm RALT DOT  &hm RCTRL FSLH  
  &trans   &trans  &kp LG(LC(SPACE))      MO_TOG(MOUSE)    &mo NUMBE       &hm LSHFT SPACE    &hk RSHFT RET  &mo SYMBO                         MO_TOG(MOUSE)
             >;
 
@@ -303,8 +303,8 @@
             label = "Win";
             bindings = <
 &kp Q    &kp W        &kp E       &kp R       &kp T                                 &kp Y          &kp U       &kp I       &kp O         &kp P              
-&lt TILWI A  &hm LCTRL S  &hm LALT D  &hm LGUI F  &kp G     &kp PSCRN   &deskhop2   &kp H          &hm LGUI J  &hm RALT K  &hm RCTRL L   &lt TILWI SEMI    
-&kp Z    &kp X        &kp C       &kp V       &kp B         &tog GAMIN  &deskhop1   &kp N          &kp M       &kp COMMA   &kp DOT       &kp FSLH    
+&lt TILWI A  &hm LCTRL S  &hm LALT D  &hm LGUI F  &kp G     &kp PSCRN   &kp H       &kp H          &hm LGUI J  &hm RALT K  &hm RCTRL L   &lt TILWI SEMI    
+&kp Z    &kp X        &kp C       &kp V       &kp B         &tog GAMIN  &kp N       &kp N          &kp M       &kp COMMA   &kp DOT       &kp FSLH    
   &trans  &trans  &kp LG(DOT)     MO_TOG(MOUSE)    &mo NUMBE       &hm LSHFT SPACE    &hk RSHFT RET  &mo SYMBO                                MO_TOG(MOUSE)
             >;
             sensor-bindings = <&mouse_wheel>;

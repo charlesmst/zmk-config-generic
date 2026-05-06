@@ -1,0 +1,32 @@
+#include "roBa.dtsi"
+
+/ {
+    chosen {
+        zmk,kscan = &mock_kscan;
+        zephyr,console = &snippet_studio_rpc_usb_uart;
+        zephyr,shell-uart = &snippet_studio_rpc_usb_uart;
+    };
+
+    mock_kscan: mock_kscan_0 {
+        compatible = "zmk,kscan-mock";
+        columns = <0>;
+        rows = <0>;
+        events = <0>;
+    };
+};
+
+&kscan0 {
+    status = "disabled";
+};
+
+&roba_physical_layout {
+    kscan = <&mock_kscan>;
+};
+
+&trackball_split {
+    status = "okay";
+};
+
+&trackball_listener {
+    status = "okay";
+};

@@ -5,6 +5,23 @@
     chosen {
         zmk,physical-layout = &roba_physical_layout;
     };
+
+    split_inputs {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        trackball_split: trackball_split@0 {
+            compatible = "zmk,input-split";
+            status = "disabled";
+            reg = <0>;
+        };
+    };
+
+    trackball_listener: trackball_listener {
+        compatible = "zmk,input-listener";
+        status = "disabled";
+        device = <&trackball_split>;
+    };
     
     roba_physical_layout: roba_physical_layout {
         compatible = "zmk,physical-layout";

@@ -24,4 +24,15 @@ include:
  - board: seeeduino_xiao_ble
    shield: roBa_L
  - board: seeeduino_xiao_ble
+   shield: roBa_dongle
+   snippet: studio-rpc-usb-uart
+   artifact-name: roBa_dongle
+ - board: seeeduino_xiao_ble
+   shield: roBa_R_peripheral
+   artifact-name: roBa_R_dongle_peripheral
+ - board: seeeduino_xiao_ble
+   shield: roBa_L
+   cmake-args: -DCONFIG_ZMK_SPLIT=y -DCONFIG_ZMK_SPLIT_ROLE_CENTRAL=n
+   artifact-name: roBa_L_dongle_peripheral
+ - board: seeeduino_xiao_ble
    shield: settings_reset

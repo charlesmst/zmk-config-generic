@@ -38,4 +38,14 @@ config ROBA_DESKHOP_LAYER_SYNC_DEBUG_KEY_USAGE
 
 endif
 
+config ROBA_PMW3610_PERIPHERAL_KEYMAP_COMPAT
+    bool "PMW3610 split peripheral keymap compatibility"
+    depends on ZMK_SPLIT && !ZMK_SPLIT_ROLE_CENTRAL
+    default n
+    help
+      Let the PMW3610 driver link on split peripherals by returning the
+      default layer for its layer-mode query. Split peripherals do not own
+      ZMK keymap state, so layer-based PMW3610 modes cannot be evaluated
+      there; the central still processes the shared keymap.
+
 endmenu

@@ -1,3 +1,4 @@
 zephyr_library()
 
 zephyr_library_sources_ifdef(CONFIG_ROBA_DESKHOP_LAYER_SYNC src/deskhop_layer_sync.c)
+zephyr_library_sources_ifdef(CONFIG_ROBA_PMW3610_PERIPHERAL_KEYMAP_COMPAT src/pmw3610_peripheral_keymap_compat.c)

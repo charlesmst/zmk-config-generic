@@ -9,3 +9,6 @@ config SHIELD_ROBA_R_PERIPHERAL
 
 config SHIELD_ROBA_DONGLE
     def_bool $(shields_list_contains,roBa_dongle)
+
+config SHIELD_ROBA_DONGLE_MDK
+    def_bool $(shields_list_contains,roBa_dongle_mdk)

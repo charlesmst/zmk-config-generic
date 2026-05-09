@@ -1,0 +1,30 @@
+#include "roBa.dtsi"
+
+/ {
+    chosen {
+        zmk,kscan = &mock_kscan;
+    };
+
+    mock_kscan: mock_kscan_0 {
+        compatible = "zmk,kscan-mock";
+        columns = <0>;
+        rows = <0>;
+        events = <0>;
+    };
+};
+
+&kscan0 {
+    status = "disabled";
+};
+
+&roba_physical_layout {
+    kscan = <&mock_kscan>;
+};
+
+&trackball_split {
+    status = "okay";
+};
+
+&trackball_listener {
+    status = "okay";
+};

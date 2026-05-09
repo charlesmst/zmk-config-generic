@@ -30,6 +30,8 @@ include:
  - board: nrf52840_mdk_dongle
    shield: roBa_dongle_mdk
    artifact-name: roBa_dongle_mdk
+ - board: nice_nano_v2
+   shield: roBa_dongle_mdk
  - board: nrf52840_mdk_dongle
    shield: settings_reset
    artifact-name: mdk_settings_reset 
@@ -41,4 +43,6 @@ include:
    cmake-args: -DCONFIG_ZMK_SPLIT=y -DCONFIG_ZMK_SPLIT_ROLE_CENTRAL=n
    artifact-name: roBa_L_dongle_peripheral
  - board: seeeduino_xiao_ble
+   shield: settings_reset
+ - board: nice_nano_v2
    shield: settings_reset

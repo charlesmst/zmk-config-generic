@@ -30,6 +30,9 @@ include:
  - board: nrf52840_mdk_dongle
    shield: roBa_dongle_mdk
    artifact-name: roBa_dongle_mdk
+ - board: nrf52840_mdk_dongle
+   shield: settings_reset
+   artifact-name: mdk_settings_reset 
  - board: seeeduino_xiao_ble
    shield: roBa_R_peripheral
    artifact-name: roBa_R_dongle_peripheral

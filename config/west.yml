@@ -19,7 +19,7 @@ manifest:
       revision: deskhop-sync-feature-report-v030
       import: app/west.yml
     - name: zmk-pmw3610-driver
-      remote: charlesmst
+      remote: badjeff
       revision: main
     - name: zmk-input-processor-report-rate-limit
       remote: badjeff

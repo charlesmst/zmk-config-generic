@@ -20,6 +20,3 @@
     device = <&trackball>;
 };
 
-&trackball {
-    /delete-property/ scroll-layers;
-};

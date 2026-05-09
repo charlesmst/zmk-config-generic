@@ -12,3 +12,6 @@ config SHIELD_ROBA_DONGLE
 
 config SHIELD_ROBA_DONGLE_MDK
     def_bool $(shields_list_contains,roBa_dongle_mdk)
+
+config SHIELD_ROBA_NICE_NANO_DONGLE
+    def_bool $(shields_list_contains,roBa_nice_nano_dongle)

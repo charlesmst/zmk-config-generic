@@ -29,12 +29,13 @@ include:
    artifact-name: roBa_dongle
 # - board: nrf52840_mdk_dongle
 #   shield: roBa_dongle_mdk
-   artifact-name: roBa_dongle_mdk
+#   artifact-name: roBa_dongle_mdk
  - board: nice_nano_v2
    shield: roBa_nice_nano_dongle
+   artifact-name: roBa_nice_nano_dongle
 # - board: nrf52840_mdk_dongle
 #   shield: settings_reset
-   artifact-name: mdk_settings_reset 
+#   artifact-name: mdk_settings_reset
  - board: seeeduino_xiao_ble
    shield: roBa_R_peripheral
    artifact-name: roBa_R_dongle_peripheral

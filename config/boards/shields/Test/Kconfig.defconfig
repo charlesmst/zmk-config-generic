@@ -46,7 +46,7 @@ endif
 if SHIELD_ROBA_NICE_NANO_DONGLE
 
 config ZMK_KEYBOARD_NAME
-    default "roBa Nice Nano Dongle"
+    default "roBa NN Dongle"
 
 config ZMK_SPLIT
     default y

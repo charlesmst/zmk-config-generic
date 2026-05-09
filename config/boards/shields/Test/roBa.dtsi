@@ -1,5 +1,6 @@
 #include <dt-bindings/zmk/matrix_transform.h>
 #include <physical_layouts.dtsi>
+#include <input/processors.dtsi>
 
 / {
     chosen {
@@ -21,6 +22,16 @@
         compatible = "zmk,input-listener";
         status = "disabled";
         device = <&trackball_split>;
+
+        scroll {
+            layers = <10>;
+            input-processors = <&zip_xy_to_scroll_mapper>;
+        };
+
+        snipe {
+            layers = <11>;
+            input-processors = <&zip_xy_scaler 1 3>;
+        };
     };
     
     roba_physical_layout: roba_physical_layout {

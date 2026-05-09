@@ -3,6 +3,7 @@
 xiao_d: &pro_micro {};
 
 #include "roBa.dtsi"
+#include <input/processors/report_rate_limit.dtsi>
 
 / {
     chosen {
@@ -31,4 +32,5 @@ xiao_d: &pro_micro {};
 
 &trackball_listener {
     status = "okay";
+    input-processors = <&zip_report_rate_limit 8>;
 };

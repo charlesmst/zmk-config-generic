@@ -24,6 +24,9 @@ manifest:
     - name: zmk-input-processor-report-rate-limit
       remote: badjeff
       revision: f43f37aae7aaa7bf0ec4d432683b873a7e3a8efa
+    - name: zmk-input-processor-xyz
+      remote: badjeff
+      revision: main
     - name: zmk-tri-state
       path: modules/zmk/tri-state
       remote: urob

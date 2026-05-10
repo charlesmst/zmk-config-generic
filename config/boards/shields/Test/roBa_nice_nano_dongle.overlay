@@ -3,6 +3,7 @@
 xiao_d: &pro_micro {};
 
 #include "roBa.dtsi"
+#include <input/processors/xyz.dtsi>
 
 / {
     chosen {
@@ -27,6 +28,7 @@ xiao_d: &pro_micro {};
 
 &trackball_split {
     status = "okay";
+    input-processors = <&zip_zxy>;
 };
 
 &trackball_listener {

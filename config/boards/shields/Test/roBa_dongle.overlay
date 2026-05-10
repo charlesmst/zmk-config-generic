@@ -27,7 +27,6 @@
 
 &trackball_split {
     status = "okay";
-    input-processors = <&zip_zxy>;
 };
 
 &trackball_listener {

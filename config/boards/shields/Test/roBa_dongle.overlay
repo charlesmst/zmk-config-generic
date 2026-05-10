@@ -33,3 +33,9 @@
     status = "okay";
     input-processors = <&sigmoid_accel>;
 };
+&sigmoid_accel {
+      min-scale = <50>;   // 1.0x slow
+      max-scale = <200>;   // 4.0x fast
+      threshold = <35>;    // kick in earlier
+      steepness = <20>;    // sharper transition
+};

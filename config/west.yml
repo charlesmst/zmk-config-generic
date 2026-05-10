@@ -13,6 +13,8 @@ manifest:
       url-base: https://github.com/urob
     - name: badjeff
       url-base: https://github.com/badjeff
+    - name: xinyun2020
+      url-base: https://github.com/xinyun2020
   projects:
     - name: zmk
       remote: charlesmst
@@ -26,6 +28,9 @@ manifest:
       revision: f43f37aae7aaa7bf0ec4d432683b873a7e3a8efa
     - name: zmk-input-processor-xyz
       remote: badjeff
+      revision: main
+    - name: zmk-input-processor-accel
+      remote: xinyun2020
       revision: main
     - name: zmk-tri-state
       path: modules/zmk/tri-state

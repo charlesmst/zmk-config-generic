@@ -4,6 +4,7 @@ xiao_d: &pro_micro {};
 
 #include "roBa.dtsi"
 #include <input/processors/xyz.dtsi>
+#include <behaviors/input_processor_sigmoid_accel.dtsi>
 
 / {
     chosen {
@@ -33,4 +34,5 @@ xiao_d: &pro_micro {};
 
 &trackball_listener {
     status = "okay";
+    input-processors = <&sigmoid_accel>;
 };

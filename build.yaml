@@ -31,7 +31,7 @@ include:
 #   shield: roBa_dongle_mdk
 #   artifact-name: roBa_dongle_mdk
  - board: nice_nano_v2
-   shield: roBa_nice_nano_dongle
+   shield: roBa_nice_nano_dongle nice_oled
    artifact-name: roBa_nice_nano_dongle
 # - board: nrf52840_mdk_dongle
 #   shield: settings_reset

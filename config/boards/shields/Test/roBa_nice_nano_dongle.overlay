@@ -32,7 +32,7 @@ xiao_d: &pro_micro {};
 };
 
 &sigmoid_accel {
-    cpi = <3200>;
+    cpi = <2600>;
 };
 
 &trackball_listener {

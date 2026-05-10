@@ -29,9 +29,19 @@ xiao_d: &pro_micro {};
 
 &trackball_split {
     status = "okay";
-    input-processors = <&zip_zxy>;
 };
 
 &trackball_listener {
     status = "okay";
+    input-processors = <&zip_zxy>;
+
+    scroll {
+        layers = <10>;
+        input-processors = <&zip_zxy>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>;
+    };
+
+    snipe {
+        layers = <11>;
+        input-processors = <&zip_zxy>, <&zip_xy_scaler 1 3>;
+    };
 };

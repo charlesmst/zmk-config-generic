@@ -1,5 +1,4 @@
 #include "roBa.dtsi"
-#include <input/processors/report_rate_limit.dtsi>
 
 / {
     chosen {
@@ -30,5 +29,4 @@
 
 &trackball_listener {
     status = "okay";
-    input-processors = <&zip_report_rate_limit 8>;
 };

@@ -44,8 +44,5 @@
     };
 };
 &sigmoid_accel {
-      min-scale = <100>;   // 1.0x slow
-      max-scale = <200>;   // 4.0x fast
-      threshold = <100>;    // kick in earlier
-      steepness = <20>;    // sharper transition
+    cpi = <3200>;
 };

@@ -31,9 +31,13 @@ xiao_d: &pro_micro {};
     status = "okay";
 };
 
+&sigmoid_accel {
+    cpi = <3200>;
+};
+
 &trackball_listener {
     status = "okay";
-    input-processors = <&zip_zxy>;
+    input-processors = <&zip_zxy>, <&sigmoid_accel>;
 
     scroll {
         layers = <10>;

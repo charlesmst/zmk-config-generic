@@ -30,7 +30,7 @@ manifest:
       remote: badjeff
       revision: main
     - name: zmk-input-processor-accel
-      remote: xinyun2020
+      remote: charlesmst
       revision: main
     - name: zmk-tri-state
       path: modules/zmk/tri-state

@@ -290,7 +290,7 @@
         compatible = "zmk,keymap";
 
         default_layer {
-            label = "PC";
+            label = "Mac";
             bindings = <
  &kp Q                &kp W                &kp E                &kp R                &kp T                &kp Y                &kp U                &kp I                &kp O                &kp P               
  &lt TILIN A          &hm LCTRL S          &hm LALT D           &hm LGUI F           &kp G                &kp LG(LS(N4))       &deskhop_gaming      &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILIN SEMI       

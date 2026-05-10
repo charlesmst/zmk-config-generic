@@ -34,8 +34,8 @@
     input-processors = <&sigmoid_accel>;
 };
 &sigmoid_accel {
-      min-scale = <50>;   // 1.0x slow
+      min-scale = <100>;   // 1.0x slow
       max-scale = <200>;   // 4.0x fast
-      threshold = <35>;    // kick in earlier
+      threshold = <100>;    // kick in earlier
       steepness = <20>;    // sharper transition
 };

@@ -2,6 +2,26 @@
  * All nodes that reference xiao_d (kscan0, encoders) are disabled below. */
 xiao_d: &pro_micro {};
 
+/* SSD1306 OLED on the default nice!nano v2 I2C0 bus (SCL=P0.08, SDA=P0.17).
+ * Default I2C address 0x3c; change to 0x3d if your module has SA0 pulled high.
+ * Change height to 64 for a 128x64 display (and multiplex-ratio to 63). */
+&i2c0 {
+    status = "okay";
+
+    oled: ssd1306@3c {
+        compatible = "solomon,ssd1306fb";
+        reg = <0x3c>;
+        width = <128>;
+        height = <32>;
+        segment-offset = <0>;
+        page-offset = <0>;
+        display-offset = <0>;
+        multiplex-ratio = <31>;
+        com-invdir;
+        prechargep = <0x22>;
+    };
+};
+
 #include "roBa.dtsi"
 #include <input/processors/xyz.dtsi>
 #include <behaviors/input_processor_sigmoid_accel.dtsi>
@@ -9,6 +29,7 @@ xiao_d: &pro_micro {};
 / {
     chosen {
         zmk,kscan = &mock_kscan;
+        zephyr,display = &oled;
     };
 
     mock_kscan: mock_kscan_0 {

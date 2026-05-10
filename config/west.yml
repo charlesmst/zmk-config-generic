@@ -35,8 +35,8 @@ manifest:
       remote: charlesmst
       revision: main
     - name: zmk-dongle-display
-      remote: englmaxi
-      revision: v0.3
+      remote: charlesmst
+      revision: v0.3-peripheral-connected
     - name: zmk-tri-state
       path: modules/zmk/tri-state
       remote: urob

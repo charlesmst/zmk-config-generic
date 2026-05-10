@@ -15,8 +15,8 @@ manifest:
       url-base: https://github.com/badjeff
     - name: xinyun2020
       url-base: https://github.com/xinyun2020
-    - name: mctechnology17
-      url-base: https://github.com/mctechnology17
+    - name: englmaxi
+      url-base: https://github.com/englmaxi
   projects:
     - name: zmk
       remote: charlesmst
@@ -34,9 +34,9 @@ manifest:
     - name: zmk-input-processor-accel
       remote: charlesmst
       revision: main
-    - name: zmk-nice-oled
-      remote: mctechnology17
-      revision: main
+    - name: zmk-dongle-display
+      remote: englmaxi
+      revision: v0.3
     - name: zmk-tri-state
       path: modules/zmk/tri-state
       remote: urob

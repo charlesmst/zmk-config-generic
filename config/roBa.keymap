@@ -1,4 +1,4 @@
-#define ZMK_POINTING_DEFAULT_SCRL_VAL 400
+#define ZMK_POINTING_DEFAULT_SCRL_VAL 200
 
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>

@@ -1,11 +1,4 @@
-#include "charybdis.dtsi"
-#include "charybdis_trackball.dtsi"
-#include <input/processors/report_rate_limit.dtsi>
-#include <input/processors/xyz.dtsi>
-
-&default_transform {
-    col-offset = <5>;
-};
+#include "../charybdis/charybdis.dtsi"
 
 &kscan0 {
     col-gpios
@@ -15,10 +8,4 @@
         , <&pro_micro 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
         , <&pro_micro 8 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
         ;
-};
-
-&trackball_split {
-    status = "okay";
-    device = <&trackball>;
-    input-processors = <&zip_report_rate_limit 8>, <&zip_xyz>;
 };

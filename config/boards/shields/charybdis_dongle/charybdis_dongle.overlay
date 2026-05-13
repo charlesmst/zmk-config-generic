@@ -37,7 +37,7 @@
     };
 };
 
-#include "charybdis.dtsi"
+#include "../charybdis/charybdis.dtsi"
 #include <input/processors/xyz.dtsi>
 #include <behaviors/input_processor_sigmoid_accel.dtsi>
 

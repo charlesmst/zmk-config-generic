@@ -1,0 +1,13 @@
+file_format: "1"
+id: charybdis_esb
+name: Charybdis ESB
+type: shield
+url: https://github.com/Bastardkb/Charybdis/
+requires: [pro_micro]
+features:
+  - keys
+  - pointer
+siblings:
+  - charybdis_esb
+  - charybdis_esb_left
+  - charybdis_esb_right

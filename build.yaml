@@ -18,51 +18,12 @@
 #
 ---
 include:
- - board: seeeduino_xiao_ble
-   shield: roBa_R
-   snippet: studio-rpc-usb-uart
- - board: seeeduino_xiao_ble
-   shield: roBa_L
- - board: seeeduino_xiao_ble
-   shield: roBa_dongle
-   snippet: studio-rpc-usb-uart
-   artifact-name: roBa_dongle
-# - board: nrf52840_mdk_dongle
-#   shield: roBa_dongle_mdk
-#   artifact-name: roBa_dongle_mdk
- - board: nice_nano_v2
-   shield: roBa_nice_nano_dongle dongle_display
-   artifact-name: roBa_nice_nano_dongle
-# - board: nrf52840_mdk_dongle
-#   shield: settings_reset
-#   artifact-name: mdk_settings_reset
- - board: seeeduino_xiao_ble
-   shield: roBa_R_peripheral
-   artifact-name: roBa_R_dongle_peripheral
- - board: seeeduino_xiao_ble
-   shield: roBa_L
-   cmake-args: -DCONFIG_ZMK_SPLIT=y -DCONFIG_ZMK_SPLIT_ROLE_CENTRAL=n
-   artifact-name: roBa_L_dongle_peripheral
- - board: seeeduino_xiao_ble
-   shield: settings_reset
- - board: nice_nano_v2
-   shield: settings_reset
-
- # Charybdis (nice_nano_v2, right-master setup)
- - board: nice_nano_v2
-   shield: charybdis_right
-   artifact-name: charybdis_right
- - board: nice_nano_v2
-   shield: charybdis_left
-   artifact-name: charybdis_left
-
- # Charybdis (nice_nano_v2 dongle setup)
- - board: nice_nano_v2
-   shield: charybdis_dongle dongle_display
-   artifact-name: charybdis_dongle
- - board: nice_nano_v2
-   shield: charybdis_dongle_right
-   artifact-name: charybdis_dongle_right
- - board: nice_nano_v2
-   shield: charybdis_dongle_left
-   artifact-name: charybdis_dongle_left
+ - board: nice_nano@2.0.0
+   shield: charybdis_esb
+   artifact-name: charybdis_esb_dongle
+ - board: nice_nano@2.0.0
+   shield: charybdis_esb_right
+   artifact-name: charybdis_esb_right
+ - board: nice_nano@2.0.0
+   shield: charybdis_esb_left
+   artifact-name: charybdis_esb_left

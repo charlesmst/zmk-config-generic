@@ -1,0 +1,4 @@
+name: roBa
+build:
+  cmake: ..
+  kconfig: ../Kconfig

@@ -3,6 +3,8 @@ modules
 nrf
 nrfxlib
 zephyr
+!config/zephyr/
+!config/zephyr/module.yml
 zmk
 zmk-dongle-display
 zmk-feature-split-esb

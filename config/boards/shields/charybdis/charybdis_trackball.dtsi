@@ -47,7 +47,6 @@
     x-input-code = <INPUT_REL_X>;
     y-input-code = <INPUT_REL_Y>;
     /* original config used ORIENTATION_90 + INVERT_X; adjust if cursor direction feels wrong */
-    x-invert;
     y-invert;
     force-awake;
     force-high-performance;

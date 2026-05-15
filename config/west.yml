@@ -18,8 +18,8 @@ manifest:
       import: app/west.yml
 
     - name: zmk-feature-split-esb
-      remote: badjeff
-      revision: main
+      remote: charlesmst
+      revision: fix/flush-tx-on-failed
 
     - name: sdk-nrf
       remote: badjeff

@@ -4,6 +4,19 @@
 #include <input/processors/report_rate_limit.dtsi>
 #include <input/processors/xyz.dtsi>
 
+/ {
+    chosen {
+        zephyr,console = &snippet_zmk_usb_logging_uart;
+        zephyr,shell-uart = &snippet_zmk_usb_logging_uart;
+    };
+};
+
+&zephyr_udc0 {
+    snippet_zmk_usb_logging_uart: snippet_zmk_usb_logging_uart {
+        compatible = "zephyr,cdc-acm-uart";
+    };
+};
+
 &default_transform {
     col-offset = <5>;
 };

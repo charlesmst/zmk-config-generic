@@ -46,6 +46,8 @@
     chosen {
         zmk,kscan = &mock_kscan;
         zephyr,display = &oled;
+        zephyr,console = &snippet_zmk_usb_logging_uart;
+        zephyr,shell-uart = &snippet_zmk_usb_logging_uart;
     };
 
     mock_kscan: mock_kscan_0 {
@@ -53,6 +55,12 @@
         columns = <0>;
         rows = <0>;
         events = <0>;
+    };
+};
+
+&zephyr_udc0 {
+    snippet_zmk_usb_logging_uart: snippet_zmk_usb_logging_uart {
+        compatible = "zephyr,cdc-acm-uart";
     };
 };
 

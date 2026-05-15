@@ -22,7 +22,7 @@
     status = "disabled";
 
     trackball: trackball@0 {
-        compatible = "pixart,pmw3610-alt";
+        compatible = "pixart,pmw3610-efogtech";
         status = "disabled";
         reg = <0>;
         spi-max-frequency = <2000000>;
@@ -47,6 +47,6 @@
     x-input-code = <INPUT_REL_X>;
     y-input-code = <INPUT_REL_Y>;
     /* original config used ORIENTATION_90 + INVERT_X; adjust if cursor direction feels wrong */
-    invert-x;
+    x-invert;
     force-awake;
 };

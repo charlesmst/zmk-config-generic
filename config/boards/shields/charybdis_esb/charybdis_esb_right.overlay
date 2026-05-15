@@ -34,5 +34,5 @@
 &trackball_split {
     status = "okay";
     device = <&trackball>;
-    input-processors = <&zip_report_rate_limit 2>, <&zip_xyz>;
+    input-processors = <&zip_xyz>;
 };

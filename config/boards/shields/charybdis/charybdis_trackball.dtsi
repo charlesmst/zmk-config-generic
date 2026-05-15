@@ -50,4 +50,5 @@
     x-invert;
     y-invert;
     force-awake;
+    force-high-performance;
 };

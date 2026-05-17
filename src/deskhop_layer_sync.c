@@ -37,7 +37,7 @@ static int deskhop_layer_sync_listener(const zmk_event_t *eh) {
 #endif
 
     if (zmk_keymap_highest_layer_active() != target_layer) {
-        zmk_keymap_layer_to(target_layer, false);
+        zmk_keymap_layer_to(target_layer);
         LOG_DBG("DeskHop sync indicators=0x%02x -> layer=%d", ev->indicators, target_layer);
     }
 

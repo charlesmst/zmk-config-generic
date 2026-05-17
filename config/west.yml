@@ -52,10 +52,6 @@ manifest:
       remote: charlesmst
       revision: main
 
-    - name: zmk-hid-io
-      url: /home/charlesstein/personal/zmk-hid-io
-      revision: deskhop-support
-
     - name: zmk-tri-state
       path: modules/zmk/tri-state
       remote: urob

@@ -39,6 +39,7 @@
 };
 
 #include "../charybdis/charybdis.dtsi"
+#include "../charybdis/charybdis_trackball_cpi.dtsi"
 #include "charybdis_esb_addr.dtsi"
 #include <input/processors/xyz.dtsi>
 #include <behaviors/input_processor_sigmoid_accel.dtsi>
@@ -74,7 +75,7 @@
 };
 
 &sigmoid_accel {
-    cpi = <2600>;
+    cpi = <CHARYBDIS_TRACKBALL_CPI>;
 };
 
 &trackball_listener {
@@ -83,7 +84,7 @@
 
     scroll {
         layers = <10>;
-        input-processors = <&zip_zxy>, <&sigmoid_accel>, <&zip_xy_scaler 1 40>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>;
+        input-processors = <&zip_zxy>, <&zip_xy_scaler 1 10>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>, <&sigmoid_accel>;
     };
 
     snipe {

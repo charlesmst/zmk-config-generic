@@ -27,3 +27,12 @@ include:
  - board: nice_nano@2.0.0
    shield: charybdis_esb_left
    artifact-name: charybdis_esb_left
+ - board: nice_nano@2.0.0
+   shield: roBaesb
+   artifact-name: roBaesb_dongle
+ - board: seeeduino_xiao_ble
+   shield: roBaesb_right
+   artifact-name: roBaesb_right
+ - board: seeeduino_xiao_ble
+   shield: roBaesb_left
+   artifact-name: roBaesb_left

@@ -38,6 +38,22 @@ config ROBA_DESKHOP_LAYER_SYNC_DEBUG_KEY_USAGE
 
 endif
 
+config ROBA_PERIPHERAL_BATTERY_LED
+    bool "Peripheral battery low indicator LED"
+    depends on ZMK_SPLIT_ROLE_CENTRAL && ZMK_SPLIT_BLE_CENTRAL_BATTERY_LEVEL_FETCHING
+    help
+      Blink the red LED when a peripheral reports a low battery level.
+
+if ROBA_PERIPHERAL_BATTERY_LED
+
+config ROBA_PERIPHERAL_BATTERY_LED_THRESHOLD
+    int "Battery percentage threshold for low indicator"
+    default 20
+    help
+      Blink the LED when a peripheral's battery is at or below this percentage.
+
+endif
+
 config ROBA_PMW3610_PERIPHERAL_KEYMAP_COMPAT
     bool "PMW3610 split peripheral keymap compatibility"
     depends on ZMK_SPLIT && !ZMK_SPLIT_ROLE_CENTRAL

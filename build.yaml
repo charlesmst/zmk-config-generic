@@ -21,6 +21,9 @@ include:
  - board: nice_nano@2.0.0
    shield: charybdis_esb
    artifact-name: charybdis_esb_dongle
+ - board: holyiot_dongle_1k
+   shield: charybdis_esb
+   artifact-name: charybdis_esb_dongle_holyiot
  - board: nice_nano@2.0.0
    shield: charybdis_esb_right
    artifact-name: charybdis_esb_right

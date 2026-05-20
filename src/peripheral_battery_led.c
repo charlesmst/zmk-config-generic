@@ -4,6 +4,10 @@
 #include <zephyr/logging/log.h>
 #include <zmk/event_manager.h>
 #include <zmk/events/battery_state_changed.h>
+#if IS_ENABLED(CONFIG_ROBA_LAYER_LED)
+#include <zmk/events/layer_state_changed.h>
+#include <zmk/keymap.h>
+#endif
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -35,6 +39,7 @@ static struct k_work_delayable boot_green_off_work;
 static int blinks_remaining;
 /* Per-peripheral low state; index = ev->source */
 static bool peripheral_low[CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS];
+static uint8_t last_battery_level[CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS];
 
 static bool any_low(void) {
     for (int i = 0; i < CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS; i++) {
@@ -45,8 +50,33 @@ static bool any_low(void) {
     return false;
 }
 
+#if IS_ENABLED(CONFIG_ROBA_LAYER_LED)
+/* Apply layer color only when no peripheral battery is low. */
+static void update_layer_leds(void) {
+    if (any_low()) {
+        return;
+    }
+    gpio_pin_set_dt(&led_red, 0);
+    gpio_pin_set_dt(&led_green, 0);
+    gpio_pin_set_dt(&led_blue, 0);
+    if (zmk_keymap_layer_active(CONFIG_ROBA_LAYER_LED_GAME_LAYER)) {
+        gpio_pin_set_dt(&led_red, 1);                          /* red  = gaming */
+    } else if (zmk_keymap_layer_active(CONFIG_ROBA_LAYER_LED_WIN_LAYER)) {
+        gpio_pin_set_dt(&led_blue, 1);                         /* blue = windows */
+    } else if (zmk_keymap_layer_active(CONFIG_ROBA_LAYER_LED_MAC_LAYER)) {
+        gpio_pin_set_dt(&led_red, 1);
+        gpio_pin_set_dt(&led_green, 1);                        /* yellow = mac */
+    }
+}
+#endif
+
 static void boot_green_off_cb(struct k_work *work) {
     gpio_pin_set_dt(&led_green, 0);
+#if IS_ENABLED(CONFIG_ROBA_LAYER_LED)
+    gpio_pin_set_dt(&led_red, 0);
+    gpio_pin_set_dt(&led_blue, 0);
+    update_layer_leds();
+#endif
 }
 
 static void blink_work_cb(struct k_work *work) {
@@ -54,6 +84,10 @@ static void blink_work_cb(struct k_work *work) {
         for (int i = 0; i < CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS; i++) {
             gpio_pin_set_dt(peripheral_led[i], 0);
         }
+#if IS_ENABLED(CONFIG_ROBA_LAYER_LED)
+        /* Restore layer color during the pause between blink cycles. */
+        update_layer_leds();
+#endif
         return;
     }
     for (int i = 0; i < CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS; i++) {
@@ -71,9 +105,20 @@ static void repeat_work_cb(struct k_work *work) {
         for (int i = 0; i < CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS; i++) {
             gpio_pin_set_dt(peripheral_led[i], 0);
         }
+#if IS_ENABLED(CONFIG_ROBA_LAYER_LED)
+        update_layer_leds();
+#endif
         return;
     }
-    LOG_WRN("Battery still low, blinking");
+    /* Clear all LEDs to start blink from a known-off state. */
+    gpio_pin_set_dt(&led_red, 0);
+    gpio_pin_set_dt(&led_green, 0);
+    gpio_pin_set_dt(&led_blue, 0);
+    for (int i = 0; i < CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS; i++) {
+        if (peripheral_low[i]) {
+            LOG_WRN("Peripheral %d battery LOW: last reported %d%%", i, last_battery_level[i]);
+        }
+    }
     blinks_remaining = BLINK_COUNT * 2;
     k_work_reschedule(&blink_work, K_NO_WAIT);
     k_work_reschedule(&repeat_work, K_SECONDS(REPEAT_INTERVAL_S));
@@ -88,6 +133,7 @@ static int peripheral_battery_led_listener(const zmk_event_t *eh) {
 
     bool was_any_low = any_low();
 
+    last_battery_level[ev->source] = ev->state_of_charge;
     LOG_WRN("Peripheral %d battery report: %d%% (low=%d)", ev->source, ev->state_of_charge, peripheral_low[ev->source]);
     if (ev->state_of_charge > 0 && ev->state_of_charge <= LOW_BATTERY_THRESHOLD) {
         peripheral_low[ev->source] = true;
@@ -106,6 +152,16 @@ static int peripheral_battery_led_listener(const zmk_event_t *eh) {
 
 ZMK_LISTENER(peripheral_battery_led, peripheral_battery_led_listener);
 ZMK_SUBSCRIPTION(peripheral_battery_led, zmk_peripheral_battery_state_changed);
+
+#if IS_ENABLED(CONFIG_ROBA_LAYER_LED)
+static int layer_led_listener(const zmk_event_t *eh) {
+    update_layer_leds();
+    return ZMK_EV_EVENT_BUBBLE;
+}
+
+ZMK_LISTENER(layer_led, layer_led_listener);
+ZMK_SUBSCRIPTION(layer_led, zmk_layer_state_changed);
+#endif
 
 static int peripheral_battery_led_init(void) {
     if (!gpio_is_ready_dt(&led_red) || !gpio_is_ready_dt(&led_green) || !gpio_is_ready_dt(&led_blue)) {

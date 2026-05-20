@@ -33,6 +33,9 @@ include:
  - board: nice_nano@2.0.0
    shield: roBaesb
    artifact-name: roBaesb_dongle
+ - board: holyiot_dongle_1k
+   shield: roBaesb
+   artifact-name: roBaesb_dongle_holyiot
  - board: seeeduino_xiao_ble
    shield: roBaesb_right
    artifact-name: roBaesb_right

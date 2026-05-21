@@ -274,6 +274,16 @@
             tap-ms = <0>;
             bindings = <&kp LC(RS(N))>;
         };
+        flush_mods: flush_mods {
+            label = "flush_mods";
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            wait-ms = <0>;
+            tap-ms = <0>;
+            bindings
+                = <&kp LCTRL>, <&kp LSHFT>, <&kp LALT>, <&kp LGUI>
+                , <&kp RCTRL>, <&kp RSHFT>, <&kp RALT>, <&kp RGUI>;
+        };
     };
 
     combos {
@@ -294,7 +304,7 @@
  &kp Q                &kp W                &kp E                &kp R                &kp T                &kp Y                &kp U                &kp I                &kp O                &kp P               
  &lt TILIN A          &hm LCTRL S          &hm LALT D           &hm LGUI F           &kp G                &kp LG(LS(N4))       &deskhop_gaming      &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILIN SEMI       
  &kp Z                &kp X                &kp C                &kp V                &kp B                &kp LA(SPACE)        &deskhop_normal      &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH       
- &trans               &trans               &kp LG(LC(SPACE))    MO_TOG(MOUSE)        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)       
+ &flush_mods          &trans               &kp LG(LC(SPACE))    MO_TOG(MOUSE)        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)       
             >;
 
             sensor-bindings = <&mouse_wheel>;
@@ -306,7 +316,7 @@
  &kp Q                &kp W                &kp E                &kp R                &kp T                &kp Y                &kp U                &kp I                &kp O                &kp P               
  &lt TILWI A          &hm LCTRL S          &hm LALT D           &hm LGUI F           &kp G                &kp PSCRN            &deskhop_gaming      &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILWI SEMI       
  &kp Z                &kp X                &kp C                &kp V                &kp B                &tog GAMIN           &deskhop_normal      &kp N                &kp M                &kp COMMA            &kp DOT              &kp FSLH             
- &trans               &trans               &kp LG(DOT)          MO_TOG(MOUSE)        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)       
+ &flush_mods          &trans               &kp LG(DOT)          MO_TOG(MOUSE)        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)       
             >;
             sensor-bindings = <&mouse_wheel>;
         };
@@ -317,7 +327,7 @@ gaming_layer {
  &kp TAB               &kp Q                &kp W                &kp E                &kp R                &kp Y                &kp U                &kp I                &kp O                &kp P               
  &kp LCTRL            &kp A                &kp S                &kp D                &kp F                &kp PSCRN            &trans               &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILIN SEMI       
  &kp LSHFT            &kp Z                &kp X                &kp C                &kp V                &kp B                &trans               &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH       
- &trans               &tog GAMIN           &trans               &kp LALT             &mo LOGAM            &kp SPACE            &to WINDO            &mo SYMBO            &trans               
+ &flush_mods          &tog GAMIN           &trans               &kp LALT             &mo LOGAM            &kp SPACE            &to WINDO            &mo SYMBO            &trans               
             >;
             sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN>;
         };

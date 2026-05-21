@@ -18,8 +18,8 @@ manifest:
       import: app/west.yml
 
     - name: zmk-feature-split-esb
-      remote: badjeff
-      revision: zmk-0.3
+      remote: charlesmst
+      revision: feature/key-state-bitmap
 
     - name: sdk-nrf
       remote: nrfconnect

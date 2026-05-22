@@ -1,0 +1,8 @@
+config SHIELD_ROBAESB
+    def_bool $(shields_list_contains,roBaesb)
+
+config SHIELD_ROBAESB_LEFT
+    def_bool $(shields_list_contains,roBaesb_left)
+
+config SHIELD_ROBAESB_RIGHT
+    def_bool $(shields_list_contains,roBaesb_right)

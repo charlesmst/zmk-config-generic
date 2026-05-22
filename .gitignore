@@ -1,0 +1,15 @@
+build
+modules
+nrf
+nrfxlib
+zephyr
+!config/zephyr/
+!config/zephyr/module.yml
+zmk
+zmk-dongle-display
+zmk-feature-split-esb
+zmk-input-processor-accel
+zmk-input-processor-report-rate-limit
+zmk-input-processor-xyz
+zmk-pmw3610-driver
+.west

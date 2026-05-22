@@ -1,0 +1,62 @@
+/* Alias xiao_d to pro_micro so roBa.dtsi resolves on any board with a
+ * pro_micro connector. All nodes that reference xiao_d (kscan0, encoders)
+ * are disabled below. */
+xiao_d: &pro_micro {};
+
+#include "../roBa/roBa.dtsi"
+#include "roBaesb_addr.dtsi"
+#include <input/processors/xyz.dtsi>
+#include <behaviors/input_processor_sigmoid_accel.dtsi>
+
+/ {
+    chosen {
+        zmk,kscan = &mock_kscan;
+        zmk,physical-layout = &roba_physical_layout;
+        zephyr,console = &snippet_zmk_usb_logging_uart;
+        zephyr,shell-uart = &snippet_zmk_usb_logging_uart;
+    };
+
+    mock_kscan: mock_kscan_0 {
+        compatible = "zmk,kscan-mock";
+        columns = <0>;
+        rows = <0>;
+        events = <0>;
+    };
+};
+
+&zephyr_udc0 {
+    snippet_zmk_usb_logging_uart: snippet_zmk_usb_logging_uart {
+        compatible = "zephyr,cdc-acm-uart";
+    };
+};
+
+&kscan0 {
+    status = "disabled";
+};
+
+&roba_physical_layout {
+    kscan = <&mock_kscan>;
+};
+
+&trackball_split {
+    status = "okay";
+};
+
+&sigmoid_accel {
+    cpi = <2600>;
+};
+
+&trackball_listener {
+    status = "okay";
+    input-processors = <&zip_zxy>, <&sigmoid_accel>;
+
+    scroll {
+        layers = <10>;
+        input-processors = <&zip_zxy>, <&zip_xy_scaler 1 10>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>, <&sigmoid_accel>;
+    };
+
+    snipe {
+        layers = <11>;
+        input-processors = <&zip_zxy>, <&zip_xy_scaler 1 3>;
+    };
+};

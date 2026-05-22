@@ -1,3 +1,5 @@
+#include "charybdis_trackball_cpi.dtsi"
+
 &pinctrl {
     spi0_default: spi0_default {
         group1 {
@@ -22,7 +24,7 @@
     status = "disabled";
 
     trackball: trackball@0 {
-        compatible = "pixart,pmw3610-alt";
+        compatible = "pixart,pmw3610";
         status = "disabled";
         reg = <0>;
         spi-max-frequency = <2000000>;
@@ -42,11 +44,11 @@
 &trackball {
     status = "okay";
     irq-gpios = <&gpio0 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-    cpi = <2600>;
+    cpi = <CHARYBDIS_TRACKBALL_CPI>;
     evt-type = <INPUT_EV_REL>;
     x-input-code = <INPUT_REL_X>;
     y-input-code = <INPUT_REL_Y>;
-    /* original config used ORIENTATION_90 + INVERT_X; adjust if cursor direction feels wrong */
-    invert-x;
+    y-invert;
     force-awake;
+    force-high-performance;
 };

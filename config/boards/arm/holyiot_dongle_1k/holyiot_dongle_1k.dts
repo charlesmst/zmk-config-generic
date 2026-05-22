@@ -1,0 +1,111 @@
+/dts-v1/;
+#include <nordic/nrf52840_qiaa.dtsi>
+#include <dt-bindings/led/led.h>
+
+/ {
+	model = "Dongle 1k";
+	compatible = "holyiot,dongle";
+
+	chosen {
+		zephyr,code-partition = &code_partition;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zephyr,console = &cdc_acm_console_uart;
+	};
+
+	aliases {
+		led-red = &led0_red;
+		led-green = &led0_green;
+		led-blue = &led0_blue;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		status = "okay";
+		led0_red: led_0 {
+			gpios = <&gpio0 8 GPIO_ACTIVE_LOW>;
+		};
+		led0_green: led_1 {
+			gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
+		};
+		led0_blue: led_2 {
+			gpios = <&gpio0 12 GPIO_ACTIVE_LOW>;
+		};
+	};
+
+	/*
+	 * Dummy pro_micro connector so charybdis.dtsi's kscan0 compiles.
+	 * kscan0 is disabled in the charybdis_esb overlay; these pins are never
+	 * actually configured at runtime.
+	 */
+	pro_micro: connector {
+		compatible = "arduino-pro-micro";
+		#gpio-cells = <2>;
+		gpio-map-mask = <0xffffffff 0xffffffc0>;
+		gpio-map-pass-thru = <0 0x3f>;
+		gpio-map
+			= <0  0 &gpio0 2  0>
+			, <1  0 &gpio0 3  0>
+			, <2  0 &gpio0 4  0>
+			, <3  0 &gpio0 5  0>
+			, <4  0 &gpio0 6  0>
+			, <5  0 &gpio0 7  0>
+			, <6  0 &gpio0 8  0>
+			, <7  0 &gpio0 9  0>
+			, <8  0 &gpio0 10 0>
+			, <9  0 &gpio0 11 0>
+			, <10 0 &gpio0 12 0>
+			, <14 0 &gpio0 14 0>
+			, <15 0 &gpio0 15 0>
+			, <16 0 &gpio0 16 0>
+			, <18 0 &gpio0 19 0>
+			, <19 0 &gpio0 20 0>
+			, <20 0 &gpio0 21 0>
+			, <21 0 &gpio0 22 0>
+			;
+	};
+};
+
+&adc {
+	status = "okay";
+};
+
+&gpiote {
+	status = "okay";
+};
+
+&gpio0 {
+	status = "okay";
+};
+
+zephyr_udc0: &usbd {
+	status = "okay";
+
+	cdc_acm_console_uart: cdc_acm_console_uart {
+		compatible = "zephyr,cdc-acm-uart";
+	};
+};
+
+&radio {
+	status = "okay";
+};
+
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		sd_partition: partition@0 {
+			reg = <0x0 DT_SIZE_K(4)>;
+		};
+
+		code_partition: partition@1000 {
+			reg = <DT_SIZE_K(4) DT_SIZE_K(876)>;
+		};
+
+		storage_partition: partition@dc000 {
+			reg = <0x000dc000 DT_SIZE_K(16)>;
+		};
+	};
+};

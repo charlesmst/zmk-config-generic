@@ -24,7 +24,7 @@
     status = "disabled";
 
     trackball: trackball@0 {
-        compatible = "pixart,pmw3610-alt";
+        compatible = "pixart,pmw3610";
         status = "disabled";
         reg = <0>;
         spi-max-frequency = <4000000>;
@@ -48,6 +48,6 @@
     evt-type = <INPUT_EV_REL>;
     x-input-code = <INPUT_REL_X>;
     y-input-code = <INPUT_REL_Y>;
-    invert-y;
+    y-invert;
     force-awake;
 };

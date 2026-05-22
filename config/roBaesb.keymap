@@ -61,6 +61,14 @@
     };
 
     behaviors {
+        sk_forever: sk_forever {
+            compatible = "zmk,behavior-sticky-key";
+            #binding-cells = <1>;
+            bindings = <&kp>;
+            ignore-modifiers;
+            release-after-ms = <600000>;
+        };
+
         hm: homerow_mods {
             compatible = "zmk,behavior-hold-tap";
             label = "HOMEROW_MODS";
@@ -330,7 +338,7 @@ gaming_layer {
  &kp LSHFT            &kp Z                &kp X                &kp C                &kp V                &kp B                &trans               &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH       
  &flush_mods          &tog GAMIN           &mo GAMFN               &kp LALT             &mo LOGAM            &kp SPACE            &to WINDO            &mo SYMBO            &trans               
             >;
-            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN>;
+            sensor-bindings = <&rot_kp PG_UP PG_DN>;
         };
 
 lower_layer {
@@ -364,6 +372,7 @@ raise_layer {
  &trans               &trans               &trans               &kp LALT             &trans               &trans               &trans               &trans               &trans               
             >;
 
+            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN>;
         };
 
         super_layer {
@@ -433,7 +442,7 @@ game_fn_layer {
  &kp F1               &kp F2               &kp F3               &kp F4               &kp F5               &trans               &trans               &trans               &trans               &trans
  &kp F6               &kp F7               &kp F8               &kp F9               &kp F10              &trans               &trans               &trans               &trans               &trans               &trans               &trans
  &kp F11              &kp F12              &kp Y                &kp H                &kp N                &trans               &trans               &trans               &trans               &trans               &trans               &trans
- &sk LCTRL            &kp EQUAL            &trans               &trans               &trans               &trans               &trans               &trans               &trans
+ &sk_forever LCTRL    &kp EQUAL            &trans               &trans               &trans               &trans               &trans               &trans               &trans
             >;
         };
     };

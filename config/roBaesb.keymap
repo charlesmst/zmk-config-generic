@@ -23,6 +23,7 @@
 #define TILWI 9
 #define SCROL 10
 #define SNIPE 11
+#define GAMFN 12 
 
 / {
     cursor_move: cursor_move {
@@ -327,7 +328,7 @@ gaming_layer {
  &kp TAB               &kp Q                &kp W                &kp E                &kp R                &kp Y                &kp U                &kp I                &kp O                &kp P               
  &kp LCTRL            &kp A                &kp S                &kp D                &kp F                &kp PSCRN            &trans               &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILIN SEMI       
  &kp LSHFT            &kp Z                &kp X                &kp C                &kp V                &kp B                &trans               &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH       
- &flush_mods          &tog GAMIN           &trans               &kp LALT             &mo LOGAM            &kp SPACE            &to WINDO            &mo SYMBO            &trans               
+ &flush_mods          &tog GAMIN           &mo GAMFN               &kp LALT             &mo LOGAM            &kp SPACE            &to WINDO            &mo SYMBO            &trans               
             >;
             sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN>;
         };
@@ -336,8 +337,8 @@ lower_layer {
             label = "Number";
             bindings = <
  &kp N1               &kp N2               &kp N3               &kp N4               &kp N5               &kp N6               &kp N7               &kp N8               &kp N9               &kp N0               
- &kp LALT             &kp RCTRL            &kp TAB              &kp ESC              &kp LC(B)           &trans               &trans               &kp LEFT             &kp DOWN             &kp UP              &kp RIGHT            &kp BSPC            
- &mo SNIPE            &mo SCROL            &mkp MB2             &mkp MB1             &mkp MB3             &trans               &trans               &kp HOME             &kp PG_DN           &kp PG_UP           &kp END             &kp DEL             
+ &kp LALT             &kp RCTRL            &kp TAB              &kp ESC              &kp LC(B)            &trans               &trans               &kp LEFT             &kp DOWN             &kp UP              &kp RIGHT            &kp BSPC            
+ &mo SNIPE            &mo SCROL            &mkp MB2             &mkp MB1             &mkp MB3             &mo GAMIN            &trans               &kp HOME             &kp PG_DN           &kp PG_UP           &kp END             &kp DEL             
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               
             >;
 
@@ -347,9 +348,9 @@ lower_layer {
 raise_layer {
             label = "Symbol";
             bindings = <
- &kp EXCL              &kp AT                &kp HASH             &kp DLLR             &kp PRCNT            &kp CARET            &kp AMPS             &kp KP_MULTIPLY     &kp PIPE            &kp BSLH             
+ &kp EXCL             &kp AT               &kp HASH             &kp DLLR             &kp PRCNT            &kp CARET            &kp AMPS             &kp KP_MULTIPLY     &kp PIPE            &kp BSLH             
  &kp LBRC             &kp RBRC             &kp PLUS             &kp EQUAL            &kp MINUS            &trans               &trans               &kp UNDER            &kp LPAR            &kp RPAR            &kp DQT             &kp COLON           
- &kp GRAVE            &kp TILDE            &kp LBKT             &kp RBKT            &trans               &trans               &trans               &trans              &kp SQT             &kp LT              &kp GT             &kp QMARK           
+ &kp GRAVE            &kp TILDE            &kp LBKT             &kp RBKT             &trans               &trans               &trans               &trans              &kp SQT             &kp LT              &kp GT             &kp QMARK           
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               
             >;
             sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN>;
@@ -359,7 +360,7 @@ raise_layer {
             bindings = <
  &kp GRAVE            &kp N1               &kp N2               &kp N3               &kp N4               &kp N6               &kp N7               &kp N8               &kp N9               &kp N0               
  &kp ESC              &trans               &trans               &trans               &kp G                &trans               &trans               &kp LEFT             &kp DOWN             &kp UP              &kp RIGHT            &kp BSPC            
- &trans              &kp M                &kp N5               &kp T                &kp B                &trans               &trans               &kp HOME             &kp PG_DN           &kp PG_UP           &kp END             &kp DEL             
+ &trans               &kp M                &kp N5               &kp T                &kp B                &tog GAMIN           &trans               &kp HOME             &kp PG_DN           &kp PG_UP           &kp END             &kp DEL             
  &trans               &trans               &trans               &kp LALT             &trans               &trans               &trans               &trans               &trans               
             >;
 
@@ -423,6 +424,16 @@ snipe {
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               
+            >;
+        };
+
+game_fn_layer {
+            label = "GameFn";
+            bindings = <
+ &kp F1               &kp F2               &kp F3               &kp F4               &kp F5               &trans               &trans               &trans               &trans               &trans
+ &kp F6               &kp F7               &kp F8               &kp F9               &kp F10              &trans               &trans               &trans               &trans               &trans               &trans               &trans
+ &kp F11              &kp F12              &kp Y                &kp H                &kp N                &trans               &trans               &trans               &trans               &trans               &trans               &trans
+ &sk LCTRL            &kp EQUAL            &trans               &trans               &trans               &trans               &trans               &trans               &trans
             >;
         };
     };

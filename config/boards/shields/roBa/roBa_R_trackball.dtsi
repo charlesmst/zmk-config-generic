@@ -24,7 +24,7 @@
     status = "disabled";
 
     trackball: trackball@0 {
-        compatible = "pixart,pmw3610-alt";
+        compatible = "pixart,pmw3610";
         status = "disabled";
         reg = <0>;
         spi-max-frequency = <4000000>;

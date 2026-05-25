@@ -19,7 +19,7 @@ manifest:
 
     - name: zmk-feature-split-esb
       remote: charlesmst
-      revision: feature/key-state-bitmap
+      revision: fix/esb-jitter-hfxo
 
     - name: sdk-nrf
       remote: nrfconnect

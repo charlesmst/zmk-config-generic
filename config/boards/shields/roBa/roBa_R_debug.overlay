@@ -1,20 +1,5 @@
-#include "../roBa/roBa.dtsi"
-#include "../roBa/roBa_R_trackball.dtsi"
-#include "roBaesb_addr.dtsi"
-#include <input/processors/xyz.dtsi>
-
-/ {
-    chosen {
-        zephyr,console = &snippet_zmk_usb_logging_uart;
-        zephyr,shell-uart = &snippet_zmk_usb_logging_uart;
-    };
-};
-
-&zephyr_udc0 {
-    snippet_zmk_usb_logging_uart: snippet_zmk_usb_logging_uart {
-        compatible = "zephyr,cdc-acm-uart";
-    };
-};
+#include "roBa.dtsi"
+#include "roBa_R_trackball.dtsi"
 
 &default_transform {
     col-offset = <6>;
@@ -30,10 +15,22 @@
         ;
 };
 
-&trackball_split {
+/ {
+    chosen {
+        zephyr,console = &usb_cdc_acm_uart;
+        zephyr,shell-uart = &usb_cdc_acm_uart;
+    };
+};
+
+&zephyr_udc0 {
+    usb_cdc_acm_uart: usb_cdc_acm_uart {
+        compatible = "zephyr,cdc-acm-uart";
+    };
+};
+
+&trackball_listener {
     status = "okay";
     device = <&trackball>;
-    input-processors = <&zip_xyz>;
 };
 
 &trackball {

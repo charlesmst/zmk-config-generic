@@ -36,3 +36,13 @@ config ZMK_SPLIT
     default y
 
 endif
+
+if SHIELD_ROBAESB_LEFT_ENC_INV
+
+config ZMK_KEYBOARD_NAME
+    default "roBa ESB L"
+
+config ZMK_SPLIT
+    default y
+
+endif

@@ -96,3 +96,20 @@ config ZMK_SPLIT
     default y
 
 endif
+
+if SHIELD_ROBA_R_DEBUG
+
+config ZMK_KEYBOARD_NAME
+    default "roBa R Debug"
+
+endif
+
+if SHIELD_ROBA_L_ENC_INV
+
+config ZMK_KEYBOARD_NAME
+    default "roBa_L"
+
+config ZMK_SPLIT
+    default y
+
+endif

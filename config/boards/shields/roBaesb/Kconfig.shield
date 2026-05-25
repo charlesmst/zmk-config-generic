@@ -6,3 +6,6 @@ config SHIELD_ROBAESB_LEFT
 
 config SHIELD_ROBAESB_RIGHT
     def_bool $(shields_list_contains,roBaesb_right)
+
+config SHIELD_ROBAESB_LEFT_ENC_INV
+    def_bool $(shields_list_contains,roBaesb_left_enc_inv)

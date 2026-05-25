@@ -1,0 +1,28 @@
+description: BLE-only relative input report rate limiter.
+
+compatible: "roba,input-processor-ble-report-rate-limit"
+
+include: base.yaml
+
+properties:
+  "#input-processor-cells":
+    type: int
+    required: true
+    const: 1
+
+  type:
+    type: int
+    default: 2
+    description: Input event type to limit.
+
+  codes:
+    type: array
+    required: true
+    description: Input event codes to limit.
+
+  track-remainders:
+    type: boolean
+    description: Processor handles sub-pixel carry internally.
+
+input-processor-cells:
+  - delay-ms

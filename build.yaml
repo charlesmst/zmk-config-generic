@@ -49,6 +49,17 @@ include:
    shield: roBaesb_left_enc_inv
    artifact-name: roBaesb_left_enc_inv
 
+ # roBa ESB right-central + BLE host experiment
+ - board: seeeduino_xiao_ble
+   shield: roBaesb_ble_right
+   artifact-name: roBaesb_ble_right_central
+ - board: seeeduino_xiao_ble
+   shield: roBaesb_ble_left
+   artifact-name: roBaesb_ble_left
+ - board: seeeduino_xiao_ble
+   shield: roBaesb_ble_left_enc_inv
+   artifact-name: roBaesb_ble_left_enc_inv
+
  # roBa BLE
  - board: seeeduino_xiao_ble
    shield: roBa_R

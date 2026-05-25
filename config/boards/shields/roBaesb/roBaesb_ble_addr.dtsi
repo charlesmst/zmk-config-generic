@@ -1,0 +1,15 @@
+/*
+ * Separate ESB address set for roBa right-central + BLE-host experiments.
+ *
+ * Keep this distinct from roBaesb_addr.dtsi so this topology can be tested
+ * near the existing ESB dongle build without cross-talk.
+ */
+
+/ {
+    esb_split {
+        compatible = "zmk,esb-split";
+        base-addr-0 = <0x4B 0x8C 0x2E 0xF1>;
+        base-addr-1 = <0x95 0x37 0xD6 0xA8>;
+        addr-prefix = <0xC1 0x5D 0xE2 0x7A 0x09 0xB4 0x6F 0x38>;
+    };
+};

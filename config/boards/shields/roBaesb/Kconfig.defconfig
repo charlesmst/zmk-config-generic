@@ -46,3 +46,42 @@ config ZMK_SPLIT
     default y
 
 endif
+
+if SHIELD_ROBAESB_BLE_RIGHT
+
+config ZMK_KEYBOARD_NAME
+    default "roBa ESB BLE R"
+
+config ZMK_SPLIT
+    default y
+
+config ZMK_SPLIT_ROLE_CENTRAL
+    default y
+
+config ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS
+    default 1
+
+config BT_MAX_PAIRED
+    default 2
+
+endif
+
+if SHIELD_ROBAESB_BLE_LEFT
+
+config ZMK_KEYBOARD_NAME
+    default "roBa ESB BLE L"
+
+config ZMK_SPLIT
+    default y
+
+endif
+
+if SHIELD_ROBAESB_BLE_LEFT_ENC_INV
+
+config ZMK_KEYBOARD_NAME
+    default "roBa ESB BLE L"
+
+config ZMK_SPLIT
+    default y
+
+endif

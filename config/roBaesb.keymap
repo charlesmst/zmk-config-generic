@@ -340,7 +340,7 @@
  &kp Z                &kp X                &kp C                &kp V                &kp B                &tog GAMIN           &deskhop_normal      &kp N                &kp M                &kp COMMA            &kp DOT              &kp FSLH
  &flush_mods          &trans               &kp LG(DOT)          MO_TOG(MOUSE)        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)
             >;
-            sensor-bindings = <&alt_tab_encoder>;
+            sensor-bindings = <&mouse_wheel>;
         };
 
 gaming_layer {
@@ -421,11 +421,12 @@ raise_layer {
         tiling_win_layer {
             label = "TWin";
             bindings = <
- &w1                  &w2                  &w3                  &w4                  &w5                  &w6                  &w7                  &w8                  &w9                  &trans               
- &trans               &swap               &hs LC(LA(LS(E))) LA(LS(E)) &hs LC(LA(LS(R))) LA(LS(R)) &hs LC(LA(LS(T))) LA(LS(T))  &trans  &trans    &trans       &trans      &trans      &trans                         &trans  
- &kp LA(LS(D))        &kp LS(TAB)         &kp LA(LS(D))               &trans                      &trans                       &trans  &trans    &trans       &trans      &trans                      &trans                      &trans  
- &trans               &trans               &trans               &trans                      &trans                         &kp LGUI     &trans                         &trans                         &trans              
+ &w1                  &w2                  &w3                  &w4                  &w5                  &w6                  &w7                  &w8                  &w9                  &trans
+ &trans               &swap               &hs LC(LA(LS(E))) LA(LS(E)) &hs LC(LA(LS(R))) LA(LS(R)) &hs LC(LA(LS(T))) LA(LS(T))  &trans  &trans    &trans       &trans      &trans      &trans                         &trans
+ &kp LA(LS(D))        &kp LS(TAB)         &kp LA(LS(D))               &trans                      &trans                       &trans  &trans    &trans       &trans      &trans                      &trans                      &trans
+ &trans               &trans               &trans               &trans                      &trans                         &kp LGUI     &trans                         &trans                         &trans
             >;
+            sensor-bindings = <&alt_tab_encoder>;
         };
 
 

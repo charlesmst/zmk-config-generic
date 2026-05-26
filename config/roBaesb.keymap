@@ -416,6 +416,7 @@ raise_layer {
  &kp LS(TAB)                    &kp LS(LC(F4))                 &swapmac                       &trans                         &trans                         &trans  &trans     &trans                         &trans                         &trans                         &trans                         &trans
  &trans                         &trans                         &trans                       &trans                       &trans                         &kp LG(SPACE)        &trans                         &trans                         &trans
             >;
+            sensor-bindings = <&rot_kp LC(RIGHT) LC(LEFT)>;
         };
 
         tiling_win_layer {

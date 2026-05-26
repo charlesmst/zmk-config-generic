@@ -2,7 +2,6 @@
 #include "../roBa/roBa_R_trackball.dtsi"
 #include "roBaesb_ble_addr.dtsi"
 #include <input/processors/xyz.dtsi>
-#include <input/processors/ble_report_rate_limit.dtsi>
 #include <behaviors/input_processor_sigmoid_accel.dtsi>
 
 / {
@@ -35,7 +34,7 @@
 &trackball_listener {
     status = "okay";
     device = <&trackball>;
-    input-processors = <&sigmoid_accel>, <&roba_ble_report_rate_limit 8>;
+    input-processors = <&sigmoid_accel>;
 
     scroll {
         layers = <10>;

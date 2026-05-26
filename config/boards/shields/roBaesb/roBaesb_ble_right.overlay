@@ -35,7 +35,7 @@
 &trackball_listener {
     status = "okay";
     device = <&trackball>;
-    input-processors = <&sigmoid_accel>, <&roba_ble_report_rate_limit 4>;
+    input-processors = <&sigmoid_accel>, <&roba_ble_report_rate_limit 8>;
 
     scroll {
         layers = <10>;

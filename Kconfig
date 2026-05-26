@@ -87,12 +87,4 @@ config ROBA_PMW3610_PERIPHERAL_KEYMAP_COMPAT
       ZMK keymap state, so layer-based PMW3610 modes cannot be evaluated
       there; the central still processes the shared keymap.
 
-config ROBA_INPUT_PROCESSOR_BLE_REPORT_RATE_LIMIT
-    bool "BLE-only input report rate limiter"
-    depends on ZMK_POINTING
-    depends on DT_HAS_ROBA_INPUT_PROCESSOR_BLE_REPORT_RATE_LIMIT_ENABLED
-    default y
-    help
-      Limits selected relative input reports only while the active endpoint is BLE.
-
 endmenu

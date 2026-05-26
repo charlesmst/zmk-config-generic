@@ -2,20 +2,9 @@
 #include "../roBa/roBa_R_trackball.dtsi"
 #include "roBaesb_ble_addr.dtsi"
 #include <input/processors/xyz.dtsi>
+#include <input/processors/report_rate_limit.dtsi>
 #include <behaviors/input_processor_sigmoid_accel.dtsi>
 
-/ {
-    chosen {
-        zephyr,console = &snippet_zmk_usb_logging_uart;
-        zephyr,shell-uart = &snippet_zmk_usb_logging_uart;
-    };
-};
-
-&zephyr_udc0 {
-    snippet_zmk_usb_logging_uart: snippet_zmk_usb_logging_uart {
-        compatible = "zephyr,cdc-acm-uart";
-    };
-};
 
 &default_transform {
     col-offset = <6>;
@@ -34,11 +23,11 @@
 &trackball_listener {
     status = "okay";
     device = <&trackball>;
-    input-processors = <&sigmoid_accel>;
+    input-processors = <&sigmoid_accel>, <&zip_ble_report_rate_limit 8>;
 
     scroll {
         layers = <10>;
-        input-processors = <&zip_xy_scaler 1 10>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>, <&sigmoid_accel>;
+        input-processors = <&zip_ble_report_rate_limit 8>, <&zip_xy_scaler 1 10>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>, <&sigmoid_accel>;
     };
 
     snipe {

@@ -329,7 +329,7 @@
  &flush_mods          &trans               &kp LC(UP)           MO_TOG(MOUSE)        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)
             >;
 
-            sensor-bindings = <&rot_kp LC(RIGHT) LC(LEFT)>;
+            sensor-bindings = <&mouse_wheel>;
         };
 
         windows {

@@ -22,7 +22,7 @@ include:
  - board: nice_nano@2.0.0
    shield: charybdis_esb
    artifact-name: charybdis_esb_dongle
- - board: holyiot_dongle_1k
+- board: holyiot_dongle_1k
    shield: charybdis_esb
    artifact-name: charybdis_esb_dongle_holyiot
  - board: nice_nano@2.0.0
@@ -36,6 +36,9 @@ include:
  - board: nice_nano@2.0.0
    shield: roBaesb
    artifact-name: roBaesb_dongle
+ - board: nice_nano@2.0.0
+   shield: roBaesb_display dongle_display
+   artifact-name: roBaesb_dongle_display
  - board: holyiot_dongle_1k
    shield: roBaesb
    artifact-name: roBaesb_dongle_holyiot

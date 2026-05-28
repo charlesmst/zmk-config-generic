@@ -2,9 +2,8 @@
  * All nodes that reference xiao_d (kscan0, encoders) are disabled below. */
 xiao_d: &pro_micro {};
 
-/* SSD1306 OLED on the default nice!nano v2 I2C0 bus (SDA=P0.17/D2, SCL=P0.20/D3).
- * Default I2C address 0x3c; change to 0x3d if your module has SA0 pulled high.
- * Change height to 64 for a 128x64 display (and multiplex-ratio to 63). */
+/* SSD1306 OLED 128x64 on nice!nano v2 I2C0 bus (SDA=P0.17/D2, SCL=P0.20/D3).
+ * Settings match englmaxi cosmo_dongle (same hardware). */
 &i2c0 {
     status = "okay";
 
@@ -12,17 +11,15 @@ xiao_d: &pro_micro {};
         compatible = "solomon,ssd1306fb";
         reg = <0x3c>;
         width = <128>;
-        height = <32>;
+        height = <64>;
         segment-offset = <0>;
         page-offset = <0>;
         display-offset = <0>;
-        multiplex-ratio = <31>;
+        multiplex-ratio = <63>;
         segment-remap;
         com-invdir;
-        com-sequential;
         inversion-on;
         prechargep = <0x22>;
-        ready-time-ms = <2000>;
     };
 };
 

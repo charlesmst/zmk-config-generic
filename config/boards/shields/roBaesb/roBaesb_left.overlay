@@ -1,5 +1,9 @@
 #include "../roBa/roBa.dtsi"
+#ifdef ZMK_ESB_ADDR_B
+#include "roBaesb_addr_b.dtsi"
+#else
 #include "roBaesb_addr.dtsi"
+#endif
 
 / {
     chosen {

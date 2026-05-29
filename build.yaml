@@ -39,6 +39,9 @@ include:
  - board: nice_nano@2.0.0
    shield: roBaesb_display dongle_display
    artifact-name: roBaesb_dongle_display
+ - board: nice_nano@2.0.0
+   shield: roBaesb_display_ble dongle_display
+   artifact-name: roBaesb_dongle_display_ble
  - board: holyiot_dongle_1k
    shield: roBaesb
    artifact-name: roBaesb_dongle_holyiot
@@ -51,6 +54,20 @@ include:
  - board: seeeduino_xiao_ble
    shield: roBaesb_left_enc_inv
    artifact-name: roBaesb_left_enc_inv
+
+ # roBa ESB keyboard B (second unit, separate ESB address)
+ - board: nice_nano@2.0.0
+   shield: roBaesb_display dongle_display
+   cmake-args: -DDTS_EXTRA_CPPFLAGS="-DZMK_ESB_ADDR_B"
+   artifact-name: roBaesb_dongle_display_b
+ - board: seeeduino_xiao_ble
+   shield: roBaesb_right
+   cmake-args: -DDTS_EXTRA_CPPFLAGS="-DZMK_ESB_ADDR_B"
+   artifact-name: roBaesb_right_b
+ - board: seeeduino_xiao_ble
+   shield: roBaesb_left
+   cmake-args: -DDTS_EXTRA_CPPFLAGS="-DZMK_ESB_ADDR_B"
+   artifact-name: roBaesb_left_b
 
  # roBa ESB right-central + BLE host experiment
  - board: seeeduino_xiao_ble

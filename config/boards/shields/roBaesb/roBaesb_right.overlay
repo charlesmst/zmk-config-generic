@@ -1,6 +1,10 @@
 #include "../roBa/roBa.dtsi"
 #include "../roBa/roBa_R_trackball.dtsi"
+#ifdef ZMK_ESB_ADDR_B
+#include "roBaesb_addr_b.dtsi"
+#else
 #include "roBaesb_addr.dtsi"
+#endif
 #include <input/processors/xyz.dtsi>
 
 / {

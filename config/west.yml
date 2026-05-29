@@ -38,7 +38,7 @@ manifest:
 
     - name: zmk-input-processor-report-rate-limit
       remote: badjeff
-      revision: main
+      revision: f43f37a
 
     - name: zmk-input-processor-xyz
       remote: badjeff

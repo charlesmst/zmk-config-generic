@@ -63,14 +63,15 @@
             bindings = <&msc SCRL_UP>, <&msc SCRL_DOWN>;
     };
     /* Dedicated scroll behavior for the lariska encoder.
-     * 3ms tick period + 65ms tap window = ~21 reliable ticks per detent. */
+     * 1ms tick period + 65ms tap window keeps the same movement amount but
+     * emits it with lower scheduling latency. */
     lariska_ec_s: lariska_ec_s {
             compatible = "zmk,behavior-input-two-axis";
             #binding-cells = <1>;
-            trigger-period-ms = <3>;
+            trigger-period-ms = <1>;
             x-input-code = <INPUT_REL_HWHEEL>;
             y-input-code = <INPUT_REL_WHEEL>;
-            time-to-max-speed-ms = <100>;
+            time-to-max-speed-ms = <0>;
             acceleration-exponent = <0>;
     };
     lariska_ec_s_il: lariska_ec_s_il {

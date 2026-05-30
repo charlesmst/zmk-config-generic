@@ -77,6 +77,20 @@ endif # ROBA_LAYER_LED
 
 endif
 
+config ROBA_DONGLE_BATTERY_DISPLAY
+    bool "Dongle OLED battery display for all peripherals"
+    depends on ZMK_SPLIT_ROLE_CENTRAL && ZMK_DISPLAY && ZMK_BATTERY_REPORTING
+    depends on ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
+    select LV_USE_LABEL
+    select LV_USE_THEME_MONO
+    help
+      Custom OLED status screen showing battery % for the dongle and each
+      peripheral (Left, Right, and optionally Mouse when PERIPHERAL_COUNT=3).
+      Replaces the default built-in ZMK status screen.
+
+if ROBA_DONGLE_BATTERY_DISPLAY
+endif # ROBA_DONGLE_BATTERY_DISPLAY
+
 config ROBA_PMW3610_PERIPHERAL_KEYMAP_COMPAT
     bool "PMW3610 split peripheral keymap compatibility"
     depends on ZMK_SPLIT && !ZMK_SPLIT_ROLE_CENTRAL

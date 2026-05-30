@@ -101,17 +101,21 @@ include:
    artifact-name: lariska_esb_b_logging
  - board: seeeduino_xiao_ble
    shield: roBaesb_right
-   cmake-args: -DDTS_EXTRA_CPPFLAGS="-DZMK_ESB_ADDR_B"
+   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_ADDR_B
    artifact-name: roBaesb_right_b
  - board: seeeduino_xiao_ble
    shield: roBaesb_left
-   cmake-args: -DDTS_EXTRA_CPPFLAGS="-DZMK_ESB_ADDR_B"
+   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_ADDR_B
    artifact-name: roBaesb_left_b
 
  # roBa ESB right-central + BLE host experiment
  - board: seeeduino_xiao_ble
    shield: roBaesb_ble_right
    artifact-name: roBaesb_ble_right_central
+ - board: seeeduino_xiao_ble
+   shield: roBaesb_ble_right
+   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_ADDR_B
+   artifact-name: roBaesb_ble_right_central_b
  - board: seeeduino_xiao_ble
    shield: roBaesb_ble_left
    artifact-name: roBaesb_ble_left

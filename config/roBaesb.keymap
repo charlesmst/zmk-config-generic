@@ -17,7 +17,7 @@
  */
 #ifdef ZMK_ESB_MOUSE
 #define LARISKA_BTNS &mkp LCLK &mkp RCLK &mkp MCLK &mkp MB4 &mkp MB5
-#define SB_WHEEL <&mouse_wheel &mouse_wheel &lariska_wheel>
+#define SB_WHEEL <&mouse_wheel &mouse_wheel &lariska_mouse_wheel>
 #define SB_VOL   <&rot_kp C_VOL_UP C_VOL_DN &rot_kp C_VOL_UP C_VOL_DN &lariska_wheel>
 #define SB_PG    <&rot_kp PG_UP PG_DN &rot_kp PG_UP PG_DN &lariska_wheel>
 #define SB_ALT   <&alt_tab_encoder &alt_tab_encoder &lariska_wheel>
@@ -62,16 +62,20 @@
             tap-ms = <20>;
             bindings = <&msc SCRL_UP>, <&msc SCRL_DOWN>;
     };
-    /* Dedicated scroll behavior for the lariska encoder.
-     * 1ms tick period + 65ms tap window keeps the same movement amount but
-     * emits it with lower scheduling latency. */
+    lariska_mouse_wheel: lariska_mouse_wheel {
+            compatible = "zmk,behavior-sensor-rotate";
+            #sensor-binding-cells = <0>;
+            tap-ms = <20>;
+            bindings = <&msc SCRL_DOWN>, <&msc SCRL_UP>;
+    };
+    /* Dedicated scroll behavior for the lariska encoder. */
     lariska_ec_s: lariska_ec_s {
             compatible = "zmk,behavior-input-two-axis";
             #binding-cells = <1>;
-            trigger-period-ms = <1>;
+            trigger-period-ms = <3>;
             x-input-code = <INPUT_REL_HWHEEL>;
             y-input-code = <INPUT_REL_WHEEL>;
-            time-to-max-speed-ms = <0>;
+            time-to-max-speed-ms = <100>;
             acceleration-exponent = <0>;
     };
     lariska_ec_s_il: lariska_ec_s_il {

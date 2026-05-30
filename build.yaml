@@ -83,11 +83,11 @@ include:
  # roBa ESB B + lariska mouse (peripheral ID 2)
  - board: nice_nano@2.0.0
    shield: roBaesb_display dongle_display
-   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_ADDR_B;-DZMK_ESB_MOUSE -DCONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS=3
+   cmake-args: -DDTS_EXTRA_CPPFLAGS="-DZMK_ESB_ADDR_B;-DZMK_ESB_MOUSE" -DCONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS=3
    artifact-name: roBaesb_dongle_display_mouse_b
  - board: nice_nano@2.0.0
    shield: roBaesb_display dongle_display
-   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_ADDR_B;-DZMK_ESB_MOUSE -DCONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS=3
+   cmake-args: -DDTS_EXTRA_CPPFLAGS="-DZMK_ESB_ADDR_B;-DZMK_ESB_MOUSE" -DCONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS=3
    snippet: zmk-usb-logging
    artifact-name: roBaesb_dongle_display_mouse_b_logging
  - board: nice_nano@2.0.0

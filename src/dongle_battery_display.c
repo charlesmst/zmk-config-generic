@@ -47,14 +47,19 @@ static void update_display(struct k_work *work) {
     struct display_state s = dstate;
     k_mutex_unlock(&state_mutex);
 
-    char buf[8];
+    char buf[24];
 
-    /* Connection label: "USB" or "BT N+" / "BT N-" / "BT N?" */
+    /* Connection label: USB symbol or WiFi symbol with profile + status */
     if (s.transport == ZMK_TRANSPORT_USB) {
-        snprintf(buf, sizeof(buf), "USB");
+        strncpy(buf, LV_SYMBOL_USB, sizeof(buf));
+    } else if (s.ble_bonded) {
+        if (s.ble_connected) {
+            snprintf(buf, sizeof(buf), LV_SYMBOL_WIFI " %d " LV_SYMBOL_OK, s.ble_profile + 1);
+        } else {
+            snprintf(buf, sizeof(buf), LV_SYMBOL_WIFI " %d " LV_SYMBOL_CLOSE, s.ble_profile + 1);
+        }
     } else {
-        char status = s.ble_connected ? '+' : (s.ble_bonded ? '-' : '?');
-        snprintf(buf, sizeof(buf), "BT %d%c", s.ble_profile + 1, status);
+        snprintf(buf, sizeof(buf), LV_SYMBOL_WIFI " %d " LV_SYMBOL_SETTINGS, s.ble_profile + 1);
     }
     if (strcmp(lv_label_get_text(conn_label), buf) != 0) {
         lv_label_set_text(conn_label, buf);
@@ -172,7 +177,7 @@ lv_obj_t *zmk_display_status_screen(void) {
 
     conn_label = lv_label_create(screen);
     lv_obj_set_pos(conn_label, 0, 0);
-    lv_label_set_text(conn_label, "USB");
+    lv_label_set_text(conn_label, LV_SYMBOL_USB);
 
     layer_label = lv_label_create(screen);
     lv_obj_set_pos(layer_label, 0, 48);

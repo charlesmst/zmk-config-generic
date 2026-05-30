@@ -10,6 +10,8 @@ manifest:
       url-base: https://github.com/charlesmst
     - name: urob
       url-base: https://github.com/urob
+    - name: ggrocer
+      url-base: https://github.com/greengrocer98
 
   projects:
     - name: zmk
@@ -50,6 +52,14 @@ manifest:
 
     - name: zmk-input-processor-accel
       remote: charlesmst
+      revision: main
+
+    - name: zmk-paw3395-driver
+      remote: ggrocer
+      revision: main
+
+    - name: zmk-vfx-rgbled-indicator
+      remote: ggrocer
       revision: main
 
     - name: zmk-tri-state

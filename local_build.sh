@@ -102,9 +102,9 @@ build_target() {
         rm -rf "$build_dir"
         local snippet_args=()
         if [[ -n "$snippet" ]]; then
-            for s in $snippet; do
-                snippet_args+=(-S "$s")
-            done
+            local snippet_list
+            snippet_list=$(echo "$snippet" | tr ' ' ';')
+            snippet_args+=(-DSNIPPET="$snippet_list")
         fi
         # shellcheck disable=SC2086
         cmake -B "$build_dir" -S "$ZMK_APP" \
@@ -122,6 +122,7 @@ build_target() {
     cmake --build "$build_dir"
 
     local uf2="$build_dir/zephyr/zmk.uf2"
+    local bin="$build_dir/zephyr/zmk.bin"
     if [[ -f "$uf2" ]]; then
         cp "$uf2" "$OUTPUT_DIR/$name.uf2"
         echo "✓ $OUTPUT_DIR/$name.uf2"
@@ -129,8 +130,23 @@ build_target() {
             cp "$uf2" "$DOWNLOADS/$name.uf2"
             echo "✓ $DOWNLOADS/$name.uf2"
         fi
+    elif [[ -f "$build_dir/zephyr/zmk.hex" ]]; then
+        local hex="$build_dir/zephyr/zmk.hex"
+        cp "$hex" "$OUTPUT_DIR/$name.hex"
+        echo "✓ $OUTPUT_DIR/$name.hex"
+        if [[ -d "$DOWNLOADS" ]]; then
+            cp "$hex" "$DOWNLOADS/$name.hex"
+            echo "✓ $DOWNLOADS/$name.hex"
+        fi
+    elif [[ -f "$bin" ]]; then
+        cp "$bin" "$OUTPUT_DIR/$name.bin"
+        echo "✓ $OUTPUT_DIR/$name.bin"
+        if [[ -d "$DOWNLOADS" ]]; then
+            cp "$bin" "$DOWNLOADS/$name.bin"
+            echo "✓ $DOWNLOADS/$name.bin"
+        fi
     else
-        echo "✗ No .uf2 found at $uf2"
+        echo "✗ No .uf2, .hex, or .bin found at $build_dir/zephyr/"
         return 1
     fi
 }

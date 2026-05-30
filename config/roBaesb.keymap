@@ -5,10 +5,31 @@
 #include <dt-bindings/zmk/ext_power.h>
 #include <dt-bindings/zmk/mouse.h>
 #include <dt-bindings/zmk/outputs.h>
+#include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/pointing.h>
 #include <behaviors/mouse_keys.dtsi>
 
 #define MO_TOG(layer) &mo_tog layer layer   // Macro to apply momentary-layer-on-hold/toggle-layer-on-tap to a specific layer
+
+/* When ZMK_ESB_MOUSE is defined (lariska mouse peripheral build):
+ *  - 5 extra mouse-button bindings are appended to every layer (positions 43-47)
+ *  - sensor-bindings expands to 3 entries: [left_enc, right_enc(unused), mouse_enc]
+ */
+#ifdef ZMK_ESB_MOUSE
+#define LARISKA_BTNS &mkp LCLK &mkp RCLK &mkp MCLK &mkp MB4 &mkp MB5
+#define SB_WHEEL <&mouse_wheel &mouse_wheel &lariska_wheel>
+#define SB_VOL   <&rot_kp C_VOL_UP C_VOL_DN &rot_kp C_VOL_UP C_VOL_DN &lariska_wheel>
+#define SB_PG    <&rot_kp PG_UP PG_DN &rot_kp PG_UP PG_DN &lariska_wheel>
+#define SB_ALT   <&alt_tab_encoder &alt_tab_encoder &lariska_wheel>
+#define SB_TILING <&rot_kp LC(RIGHT) LC(LEFT) &rot_kp LC(RIGHT) LC(LEFT) &lariska_wheel>
+#else
+#define LARISKA_BTNS
+#define SB_WHEEL <&mouse_wheel>
+#define SB_VOL   <&rot_kp C_VOL_UP C_VOL_DN>
+#define SB_PG    <&rot_kp PG_UP PG_DN>
+#define SB_ALT   <&alt_tab_encoder>
+#define SB_TILING <&rot_kp LC(RIGHT) LC(LEFT)>
+#endif
 
 
 #define DEFAU 0
@@ -40,6 +61,27 @@
             #sensor-binding-cells = <0>;
             tap-ms = <20>;
             bindings = <&msc SCRL_UP>, <&msc SCRL_DOWN>;
+    };
+    /* Dedicated scroll behavior for the lariska encoder.
+     * 3ms tick period + 65ms tap window = ~21 reliable ticks per detent. */
+    lariska_ec_s: lariska_ec_s {
+            compatible = "zmk,behavior-input-two-axis";
+            #binding-cells = <1>;
+            trigger-period-ms = <3>;
+            x-input-code = <INPUT_REL_HWHEEL>;
+            y-input-code = <INPUT_REL_WHEEL>;
+            time-to-max-speed-ms = <100>;
+            acceleration-exponent = <0>;
+    };
+    lariska_ec_s_il: lariska_ec_s_il {
+            compatible = "zmk,input-listener";
+            device = <&lariska_ec_s>;
+    };
+    lariska_wheel: lariska_wheel {
+            compatible = "zmk,behavior-sensor-rotate";
+            #sensor-binding-cells = <0>;
+            tap-ms = <65>;
+            bindings = <&lariska_ec_s MOVE_Y(-37)>, <&lariska_ec_s MOVE_Y(37)>;
     };
     alt_tab_encoder: alt_tab_encoder {
             compatible = "zmk,behavior-sensor-rotate";
@@ -323,13 +365,14 @@
         default_layer {
             label = "Mac";
             bindings = <
- &kp Q                &kp W                &kp E                &kp R                &kp T                &kp Y                &kp U                &kp I                &kp O                &kp P               
- &lt TILIN A          &hm LCTRL S          &hm LALT D           &hm LGUI F           &kp G                &kp LG(LS(N4))       &deskhop_gaming      &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILIN SEMI       
- &kp Z                &kp X                &kp C                &kp V                &kp B                &kp LA(SPACE)        &deskhop_normal      &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH       
+ &kp Q                &kp W                &kp E                &kp R                &kp T                &kp Y                &kp U                &kp I                &kp O                &kp P
+ &lt TILIN A          &hm LCTRL S          &hm LALT D           &hm LGUI F           &kp G                &kp LG(LS(N4))       &deskhop_gaming      &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILIN SEMI
+ &kp Z                &kp X                &kp C                &kp V                &kp B                &kp LA(SPACE)        &deskhop_normal      &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH
  &flush_mods          &trans               &kp LC(UP)           MO_TOG(MOUSE)        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)
+ LARISKA_BTNS
             >;
 
-            sensor-bindings = <&mouse_wheel>;
+            sensor-bindings = SB_WHEEL;
         };
 
         windows {
@@ -339,84 +382,92 @@
  &lt TILWI A          &hm LCTRL S          &hm LALT D           &hm LGUI F           &kp G                &kp PSCRN            &deskhop_gaming      &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILWI SEMI
  &kp Z                &kp X                &kp C                &kp V                &kp B                &tog GAMIN           &deskhop_normal      &kp N                &kp M                &kp COMMA            &kp DOT              &kp FSLH
  &flush_mods          &trans               &kp LG(DOT)          MO_TOG(MOUSE)        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)
+ LARISKA_BTNS
             >;
-            sensor-bindings = <&mouse_wheel>;
+            sensor-bindings = SB_WHEEL;
         };
 
 gaming_layer {
             label = "Gaming";
             bindings = <
- &kp TAB               &kp Q                &kp W                &kp E                &kp R                &kp Y                &kp U                &kp I                &kp O                &kp P               
- &kp LCTRL            &kp A                &kp S                &kp D                &kp F                &kp PSCRN            &trans               &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILIN SEMI       
- &kp LSHFT            &kp Z                &kp X                &kp C                &kp V                &kp B                &trans               &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH       
- &flush_mods          &tog GAMIN           &mo GAMFN               &kp LALT             &mo LOGAM            &kp SPACE            &to WINDO            &mo SYMBO            &trans               
+ &kp TAB               &kp Q                &kp W                &kp E                &kp R                &kp Y                &kp U                &kp I                &kp O                &kp P
+ &kp LCTRL            &kp A                &kp S                &kp D                &kp F                &kp PSCRN            &trans               &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILIN SEMI
+ &kp LSHFT            &kp Z                &kp X                &kp C                &kp V                &kp B                &trans               &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH
+ &flush_mods          &tog GAMIN           &mo GAMFN               &kp LALT             &mo LOGAM            &kp SPACE            &to WINDO            &mo SYMBO            &trans
+ LARISKA_BTNS
             >;
-            sensor-bindings = <&rot_kp PG_UP PG_DN>;
+            sensor-bindings = SB_PG;
         };
 
 lower_layer {
             label = "Number";
             bindings = <
- &kp N1               &kp N2               &kp N3               &kp N4               &kp N5               &kp N6               &kp N7               &kp N8               &kp N9               &kp N0               
- &kp LALT             &kp RCTRL            &kp TAB              &kp ESC              &kp LC(B)            &trans               &trans               &kp LEFT             &kp DOWN             &kp UP              &kp RIGHT            &kp BSPC            
- &mo SNIPE            &mo SCROL            &mkp MB2             &mkp MB1             &mkp MB3             &mo GAMIN            &trans               &kp HOME             &kp PG_DN           &kp PG_UP           &kp END             &kp DEL             
- &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               
+ &kp N1               &kp N2               &kp N3               &kp N4               &kp N5               &kp N6               &kp N7               &kp N8               &kp N9               &kp N0
+ &kp LALT             &kp RCTRL            &kp TAB              &kp ESC              &kp LC(B)            &trans               &trans               &kp LEFT             &kp DOWN             &kp UP              &kp RIGHT            &kp BSPC
+ &mo SNIPE            &mo SCROL            &mkp MB2             &mkp MB1             &mkp MB3             &mo GAMIN            &trans               &kp HOME             &kp PG_DN           &kp PG_UP           &kp END             &kp DEL
+ &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
+ LARISKA_BTNS
             >;
 
-            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN>;
+            sensor-bindings = SB_VOL;
         };
 
 raise_layer {
             label = "Symbol";
             bindings = <
- &kp EXCL             &kp AT               &kp HASH             &kp DLLR             &kp PRCNT            &kp CARET            &kp AMPS             &kp KP_MULTIPLY     &kp PIPE            &kp BSLH             
- &kp LBRC             &kp RBRC             &kp PLUS             &kp EQUAL            &kp MINUS            &trans               &trans               &kp UNDER            &kp LPAR            &kp RPAR            &kp DQT             &kp COLON           
- &kp GRAVE            &kp TILDE            &kp LBKT             &kp RBKT             &trans               &trans               &trans               &trans              &kp SQT             &kp LT              &kp GT             &kp QMARK           
- &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               
+ &kp EXCL             &kp AT               &kp HASH             &kp DLLR             &kp PRCNT            &kp CARET            &kp AMPS             &kp KP_MULTIPLY     &kp PIPE            &kp BSLH
+ &kp LBRC             &kp RBRC             &kp PLUS             &kp EQUAL            &kp MINUS            &trans               &trans               &kp UNDER            &kp LPAR            &kp RPAR            &kp DQT             &kp COLON
+ &kp GRAVE            &kp TILDE            &kp LBKT             &kp RBKT             &trans               &trans               &trans               &trans              &kp SQT             &kp LT              &kp GT             &kp QMARK
+ &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
+ LARISKA_BTNS
             >;
-            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN>;
+            sensor-bindings = SB_VOL;
         };
 
         gaming_lower {
             bindings = <
- &kp GRAVE            &kp N1               &kp N2               &kp N3               &kp N4               &kp N6               &kp N7               &kp N8               &kp N9               &kp N0               
- &kp ESC              &trans               &trans               &trans               &kp G                &trans               &trans               &kp LEFT             &kp DOWN             &kp UP              &kp RIGHT            &kp BSPC            
- &trans               &kp M                &kp N5               &kp T                &kp B                &tog GAMIN           &trans               &kp HOME             &kp PG_DN           &kp PG_UP           &kp END             &kp DEL             
- &trans               &trans               &trans               &kp LALT             &trans               &trans               &trans               &trans               &trans               
+ &kp GRAVE            &kp N1               &kp N2               &kp N3               &kp N4               &kp N6               &kp N7               &kp N8               &kp N9               &kp N0
+ &kp ESC              &trans               &trans               &trans               &kp G                &trans               &trans               &kp LEFT             &kp DOWN             &kp UP              &kp RIGHT            &kp BSPC
+ &trans               &kp M                &kp N5               &kp T                &kp B                &tog GAMIN           &trans               &kp HOME             &kp PG_DN           &kp PG_UP           &kp END             &kp DEL
+ &trans               &trans               &trans               &kp LALT             &trans               &trans               &trans               &trans               &trans
+ LARISKA_BTNS
             >;
 
-            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN>;
+            sensor-bindings = SB_VOL;
         };
 
         super_layer {
             label = "Super";
             bindings = <
- &kp F1                &kp F2                &kp F3                &kp F4                &kp F5                &kp F6                &kp F7                &kp F8                &kp F9               &kp F10               
- &kp F11               &kp F12              &kp LG(LS(N3))       &kp LG(LS(N4))       &kp PSCRN            &trans               &trans               &kp C_PREV            &kp C_PP              &kp C_NEXT           &kp C_VOL_DN         &kp C_VOL_UP         
- &bt_macro_0           &bt_macro_1           &bt_macro_2           &bt_macro_3           &bt_macro_4           &trans               &trans               &to GAMIN            &to DEFAU            &to WINDO            &none                &kp C_MUTE          
- &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               
+ &kp F1                &kp F2                &kp F3                &kp F4                &kp F5                &kp F6                &kp F7                &kp F8                &kp F9               &kp F10
+ &kp F11               &kp F12              &kp LG(LS(N3))       &kp LG(LS(N4))       &kp PSCRN            &trans               &trans               &kp C_PREV            &kp C_PP              &kp C_NEXT           &kp C_VOL_DN         &kp C_VOL_UP
+ &bt_macro_0           &bt_macro_1           &bt_macro_2           &bt_macro_3           &bt_macro_4           &out OUT_USB         &out OUT_BLE         &to GAMIN            &to DEFAU            &to WINDO            &bt BT_CLR           &kp C_MUTE
+ &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
+ LARISKA_BTNS
             >;
         };
 
         mouse_layer {
             label = "Mouse";
             bindings = <
- &deskhop2             &deskhop1             &mmv MOVE_UP          &trans               &msc MOVE_Y(140)      &kp LA(LS(A))        &kp LC(UP)           &kp LA(LS(D))        &trans               &trans               
- &trans               &mmv MOVE_LEFT       &mmv MOVE_DOWN      &mmv MOVE_RIGHT     &msc MOVE_Y(-140)    &trans               &trans               &trans               &mkp MB4             &mkp MB5             &trans               &trans              
- &mo SNIPE            MO_TOG(SCROL)       &mkp MB2             &mkp MB1             &mkp MB3             &trans               &trans               &mkp MB3             &mkp MB1             &mkp MB2           MO_TOG(SCROL)       &mo SNIPE           
- &trans               &trans               &trans               &dmouse             &trans               &trans               &dmouse             &mkp MB1            &trans              
+ &deskhop2             &deskhop1             &mmv MOVE_UP          &trans               &msc MOVE_Y(140)      &kp LA(LS(A))        &kp LC(UP)           &kp LA(LS(D))        &trans               &trans
+ &trans               &mmv MOVE_LEFT       &mmv MOVE_DOWN      &mmv MOVE_RIGHT     &msc MOVE_Y(-140)    &trans               &trans               &trans               &mkp MB4             &mkp MB5             &trans               &trans
+ &mo SNIPE            MO_TOG(SCROL)       &mkp MB2             &mkp MB1             &mkp MB3             &trans               &trans               &mkp MB3             &mkp MB1             &mkp MB2           MO_TOG(SCROL)       &mo SNIPE
+ &trans               &trans               &trans               &dmouse             &trans               &trans               &dmouse             &mkp MB1            &trans
+ LARISKA_BTNS
             >;
         };
 
         tiling_layer {
             label = "Tiling";
             bindings = <
- &hs LC(LA(LS(N1))) LA(LS(N1))  &hs LC(LA(LS(N2))) LA(LS(N2))  &hs LC(LA(LS(N3))) LA(LS(N3))  &hs LC(LA(LS(N4))) LA(LS(N4))  &hs LC(LA(LS(N5))) LA(LS(N5))     &hs LC(LA(LS(N6))) LA(LS(N6))  &hs LC(LA(LS(N7))) LA(LS(N7))  &hs LC(LA(LS(N8))) LA(LS(N8))  &hs LC(LA(LS(N9))) LA(LS(N9))  &trans  
- &trans                         &kp LC(F4)                     &hs LC(LA(LS(E))) LA(LS(E))    &hs LC(LA(LS(R))) LA(LS(R))    &hs LC(LA(LS(T))) LA(LS(T))    &trans  &trans     &trans                         &trans                         &trans                         &trans                         &trans 
+ &hs LC(LA(LS(N1))) LA(LS(N1))  &hs LC(LA(LS(N2))) LA(LS(N2))  &hs LC(LA(LS(N3))) LA(LS(N3))  &hs LC(LA(LS(N4))) LA(LS(N4))  &hs LC(LA(LS(N5))) LA(LS(N5))     &hs LC(LA(LS(N6))) LA(LS(N6))  &hs LC(LA(LS(N7))) LA(LS(N7))  &hs LC(LA(LS(N8))) LA(LS(N8))  &hs LC(LA(LS(N9))) LA(LS(N9))  &trans
+ &trans                         &kp LC(F4)                     &hs LC(LA(LS(E))) LA(LS(E))    &hs LC(LA(LS(R))) LA(LS(R))    &hs LC(LA(LS(T))) LA(LS(T))    &trans  &trans     &trans                         &trans                         &trans                         &trans                         &trans
  &kp LS(TAB)                    &kp LS(LC(F4))                 &swapmac                       &trans                         &trans                         &trans  &trans     &trans                         &trans                         &trans                         &trans                         &trans
  &trans                         &trans                         &trans                       &trans                       &trans                         &kp LG(SPACE)        &trans                         &trans                         &trans
+ LARISKA_BTNS
             >;
-            sensor-bindings = <&rot_kp LC(RIGHT) LC(LEFT)>;
+            sensor-bindings = SB_TILING;
         };
 
         tiling_win_layer {
@@ -426,28 +477,31 @@ raise_layer {
  &trans               &swap               &hs LC(LA(LS(E))) LA(LS(E)) &hs LC(LA(LS(R))) LA(LS(R)) &hs LC(LA(LS(T))) LA(LS(T))  &trans  &trans    &trans       &trans      &trans      &trans                         &trans
  &kp LA(LS(D))        &kp LS(TAB)         &kp LA(LS(D))               &trans                      &trans                       &trans  &trans    &trans       &trans      &trans                      &trans                      &trans
  &trans               &trans               &trans               &trans                      &trans                         &kp LGUI     &trans                         &trans                         &trans
+ LARISKA_BTNS
             >;
-            sensor-bindings = <&alt_tab_encoder>;
+            sensor-bindings = SB_ALT;
         };
 
 
 scroll {
             label = "Scroll";
             bindings = <
- &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               
- &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               
- &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               
- &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               
+ &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans
+ &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans
+ &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans
+ &trans &trans &trans &trans &trans &trans &trans &trans &trans
+ LARISKA_BTNS
             >;
         };
 
 snipe {
             label = "Snipe";
             bindings = <
- &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               
- &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               
- &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               
- &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               
+ &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans
+ &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans
+ &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans
+ &trans &trans &trans &trans &trans &trans &trans &trans &trans
+ LARISKA_BTNS
             >;
         };
 
@@ -458,6 +512,7 @@ game_fn_layer {
  &kp F6               &kp F7               &kp F8               &kp F9               &kp F10              &trans               &trans               &trans               &trans               &trans               &trans               &trans
  &kp F11              &kp F12              &kp Y                &kp H                &kp N                &trans               &trans               &trans               &trans               &trans               &trans               &trans
  &sk_forever LCTRL    &kp EQUAL            &trans               &trans               &trans               &trans               &trans               &trans               &trans
+ LARISKA_BTNS
             >;
         };
     };

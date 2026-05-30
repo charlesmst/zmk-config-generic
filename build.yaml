@@ -37,6 +37,14 @@ include:
    shield: roBaesb
    artifact-name: roBaesb_dongle
  - board: nice_nano@2.0.0
+   shield: roBaesb
+   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_MOUSE -DCONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS=3
+   artifact-name: roBaesb_dongle_mouse
+ - board: nice_nano@2.0.0
+   shield: roBaesb_display_ble
+   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_MOUSE -DCONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS=3
+   artifact-name: roBaesb_dongle_ble_mouse
+ - board: nice_nano@2.0.0
    shield: roBaesb_display dongle_display
    artifact-name: roBaesb_dongle_display
  - board: nice_nano@2.0.0
@@ -45,6 +53,10 @@ include:
  - board: holyiot_dongle_1k
    shield: roBaesb
    artifact-name: roBaesb_dongle_holyiot
+ - board: holyiot_dongle_1k
+   shield: roBaesb
+   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_MOUSE -DCONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS=3
+   artifact-name: roBaesb_dongle_holyiot_mouse
  - board: seeeduino_xiao_ble
    shield: roBaesb_right
    artifact-name: roBaesb_right
@@ -60,6 +72,36 @@ include:
    shield: roBaesb_display dongle_display
    cmake-args: -DDTS_EXTRA_CPPFLAGS="-DZMK_ESB_ADDR_B"
    artifact-name: roBaesb_dongle_display_b
+
+ # roBa ESB A + lariska mouse (peripheral ID 2)
+ - board: nice_nano@2.0.0
+   shield: roBaesb_display dongle_display
+   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_MOUSE -DCONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS=3
+   snippet: zmk-usb-logging
+   artifact-name: roBaesb_dongle_display_mouse_logging
+
+ # roBa ESB B + lariska mouse (peripheral ID 2)
+ - board: nice_nano@2.0.0
+   shield: roBaesb_display dongle_display
+   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_ADDR_B;-DZMK_ESB_MOUSE -DCONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS=3
+   artifact-name: roBaesb_dongle_display_mouse_b
+ - board: nice_nano@2.0.0
+   shield: roBaesb_display dongle_display
+   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_ADDR_B;-DZMK_ESB_MOUSE -DCONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS=3
+   snippet: zmk-usb-logging
+   artifact-name: roBaesb_dongle_display_mouse_b_logging
+ - board: nice_nano@2.0.0
+   shield: lariska_esb
+   artifact-name: lariska_esb
+ - board: nice_nano@2.0.0
+   shield: lariska_esb
+   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_ADDR_B
+   artifact-name: lariska_esb_b
+ - board: nice_nano@2.0.0
+   shield: lariska_esb
+   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_ADDR_B
+   snippet: zmk-usb-logging
+   artifact-name: lariska_esb_b_logging
  - board: seeeduino_xiao_ble
    shield: roBaesb_right
    cmake-args: -DDTS_EXTRA_CPPFLAGS="-DZMK_ESB_ADDR_B"

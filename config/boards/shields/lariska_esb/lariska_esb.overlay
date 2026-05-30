@@ -1,0 +1,148 @@
+/* Lariska mouse as ESB peripheral (peripheral ID 2) for the roBaesb system.
+ * Runs on nice_nano@2.0.0.
+ * Build with -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_ADDR_B for the B-address unit.
+ */
+
+/* Map xiao_d alias used by roBa.dtsi to nice_nano's pro_micro connector */
+xiao_d: &pro_micro {};
+
+#include "../roBa/roBa.dtsi"
+#ifdef ZMK_ESB_ADDR_B
+#include "../roBaesb/roBaesb_addr_b.dtsi"
+#else
+#include "../roBaesb/roBaesb_addr.dtsi"
+#endif
+#include "../roBaesb/roBaesb_lariska_transform.dtsi"
+#include "mouse_leds.dtsi"
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/ {
+    chosen {
+        zmk,battery   = &vbatt;
+        zmk,kscan     = &lariska_kscan;
+        zmk,backlight = &backlight;
+    };
+
+    /* 5-button GPIO-direct scanner for the mouse buttons */
+    lariska_kscan: lariska_kscan {
+        compatible = "zmk,kscan-gpio-direct";
+        wakeup-source;
+        input-gpios
+            = <&gpio0 30 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio0 28 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio0  2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio0  3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            ;
+    };
+
+    vbatt: vbatt {
+        compatible = "zmk,battery-voltage-divider";
+        io-channels = <&adc 7>;
+        output-ohms = <400000>;
+        full-ohms   = <(1000000 + 400000)>;
+    };
+
+    /* Add mouse_split@1 alongside the existing trackball_split@0 from roBa.dtsi */
+    split_inputs {
+        mouse_split: mouse_split@1 {
+            compatible = "zmk,input-split";
+            reg = <1>;
+            status = "okay";
+            device = <&mou0>;
+        };
+    };
+};
+
+/* The GPIO-direct kscan uses a 1-row × 5-col virtual matrix.
+ * col-offset = 11 maps local cols 0-4 → global cols 11-15,
+ * so the extended transform finds them at indices 43-47. */
+&default_transform {
+    col-offset = <11>;
+};
+
+/* Point physical layout at the real kscan so button events are dispatched */
+&roba_physical_layout {
+    kscan = <&lariska_kscan>;
+};
+
+/* Disable the roBa matrix kscan — lariska uses gpio-direct instead */
+&kscan0 {
+    status = "disabled";
+};
+
+/* QDEC hardware encoder (same pin assignment as standalone lariska firmware) */
+&pinctrl {
+    qdec_default: qdec_default {
+        group1 {
+            psels = <NRF_PSEL(QDEC_A, 0, 1)>,
+                    <NRF_PSEL(QDEC_B, 0, 0)>;
+        };
+    };
+    qdec_sleep: qdec_sleep {
+        group1 {
+            psels = <NRF_PSEL(QDEC_A, 0, 1)>,
+                    <NRF_PSEL(QDEC_B, 0, 0)>;
+            low-power-enable;
+        };
+    };
+};
+
+/* Assign label lariska_encoder to qdec0 so we can place it at sensor index 2 */
+lariska_encoder: &qdec0 {
+    status = "okay";
+    led-pre = <0>;
+    steps   = <48>;
+    pinctrl-0    = <&qdec_default>;
+    pinctrl-1    = <&qdec_sleep>;
+    pinctrl-names = "default", "sleep";
+};
+
+/* Place lariska encoder at sensor slot 2 so the central dispatches it to
+ * sensor-bindings[2] — distinct from the left keyboard encoder at slot 0. */
+&sensors {
+    sensors = <&left_encoder &right_encoder &lariska_encoder>;
+    triggers-per-rotation = <24>;
+};
+
+/* PAW3395 SPI (same pins as standalone lariska firmware) */
+&pinctrl {
+    spi2_default: spi2_default {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK,  0, 6)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 5)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 4)>;
+        };
+    };
+    spi2_sleep: spi2_sleep {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK,  0, 6)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 5)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 4)>;
+            low-power-enable;
+        };
+    };
+};
+
+&spi2 {
+    compatible = "nordic,nrf-spim";
+    status = "okay";
+    pinctrl-0 = <&spi2_default>;
+    pinctrl-1 = <&spi2_sleep>;
+    pinctrl-names = "default", "sleep";
+    cs-gpios = <&gpio0 27 GPIO_ACTIVE_LOW>;
+
+    mou0: pd@0 {
+        compatible = "pixart,paw3395";
+        status = "okay";
+        label = "MOU0";
+        reg = <0>;
+        spi-max-frequency = <4000000>;
+        irq-gpios = <&gpio0 7 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        cpi = <1600>;
+        invert-x;
+        evt-type = <INPUT_EV_REL>;
+        x-input-code = <INPUT_REL_X>;
+        y-input-code = <INPUT_REL_Y>;
+    };
+};

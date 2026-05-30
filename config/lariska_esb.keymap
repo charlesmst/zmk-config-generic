@@ -1,0 +1,61 @@
+/* Keymap for the lariska_esb peripheral firmware.
+ * The peripheral transmits key positions to the central; behaviors here are
+ * never executed on the peripheral — they just need to compile.
+ *
+ * Key layout (48 total):
+ *   positions  0-42 : roBa keyboard keys (never activated on this peripheral)
+ *   positions 43-47 : lariska mouse buttons (LCLK RCLK MCLK MB4 MB5)
+ *
+ * Sensor layout (3 total):
+ *   sensor 0 : left_encoder  (disabled on this peripheral — roBa left side)
+ *   sensor 1 : right_encoder (disabled on this peripheral — roBa right side)
+ *   sensor 2 : lariska_encoder / qdec0 (ACTIVE — the scroll wheel)
+ */
+
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/pointing.h>
+
+/ {
+    behaviors {
+        wheel_scroll: wheel_scroll {
+            compatible = "zmk,behavior-sensor-rotate";
+            #sensor-binding-cells = <0>;
+            tap-ms = <20>;
+            bindings = <&msc SCRL_UP>, <&msc SCRL_DOWN>;
+        };
+    };
+
+    keymap {
+        compatible = "zmk,keymap";
+
+        default_layer {
+            /*
+             * 48 bindings:
+             *   row 0 (10): roBa top row
+             *   row 1 (12): roBa home row + thumb key
+             *   row 2 (12): roBa bottom row + thumb key
+             *   row 3 ( 9): roBa thumb cluster
+             *   lariska( 5): LCLK RCLK MCLK MB4 MB5
+             */
+            bindings = <
+                /* row 0: 10 */
+                &trans &trans &trans &trans &trans
+                &trans &trans &trans &trans &trans
+                /* row 1: 12 */
+                &trans &trans &trans &trans &trans &trans
+                &trans &trans &trans &trans &trans &trans
+                /* row 2: 12 */
+                &trans &trans &trans &trans &trans &trans
+                &trans &trans &trans &trans &trans &trans
+                /* row 3: 9 */
+                &trans &trans &trans &trans &trans &trans
+                &trans &trans &trans
+                /* lariska mouse buttons: 5 */
+                &mkp LCLK &mkp RCLK &mkp MCLK &mkp MB4 &mkp MB5
+            >;
+            /* sensor 0=left enc (unused), sensor 1=right enc (unused), sensor 2=qdec scroll */
+            sensor-bindings = <&wheel_scroll &wheel_scroll &wheel_scroll>;
+        };
+    };
+};

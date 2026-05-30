@@ -1,0 +1,8 @@
+file_format: "1"
+id: lariska_esb
+name: Lariska ESB
+type: shield
+url: https://github.com/greengrocer98/lariska
+features:
+  - keys
+  - pointer

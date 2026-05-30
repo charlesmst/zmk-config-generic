@@ -48,7 +48,8 @@ include:
    shield: roBaesb_display dongle_display
    artifact-name: roBaesb_dongle_display
  - board: nice_nano@2.0.0
-   shield: roBaesb_display_ble dongle_display
+   shield: roBaesb_display_ble
+   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_MOUSE -DCONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS=3
    artifact-name: roBaesb_dongle_display_ble
  - board: holyiot_dongle_1k
    shield: roBaesb

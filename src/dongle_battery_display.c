@@ -11,6 +11,8 @@
 #include <zmk/endpoints.h>
 #include <zmk/endpoints_types.h>
 #include <zmk/events/endpoint_changed.h>
+#include <zmk/ble.h>
+#include <zmk/events/ble_active_profile_changed.h>
 #include <zmk/keymap.h>
 #include <zmk/events/layer_state_changed.h>
 
@@ -28,11 +30,13 @@ static lv_obj_t *conn_label;
 static lv_obj_t *layer_label;
 
 struct display_state {
-    uint8_t          bat_levels[NUM_LABELS];
-    bool             bat_valid[NUM_LABELS];
+    uint8_t            bat_levels[NUM_LABELS];
+    bool               bat_valid[NUM_LABELS];
     enum zmk_transport transport;
-    int              ble_profile;
-    uint8_t          active_layer;
+    int                ble_profile;
+    bool               ble_connected;
+    bool               ble_bonded;
+    uint8_t            active_layer;
 };
 
 K_MUTEX_DEFINE(state_mutex);
@@ -45,11 +49,12 @@ static void update_display(struct k_work *work) {
 
     char buf[8];
 
-    /* Connection label: "USB" or "BT 1" / "BT 2" */
+    /* Connection label: "USB" or "BT N+" / "BT N-" / "BT N?" */
     if (s.transport == ZMK_TRANSPORT_USB) {
         snprintf(buf, sizeof(buf), "USB");
     } else {
-        snprintf(buf, sizeof(buf), "BT %d", s.ble_profile + 1);
+        char status = s.ble_connected ? '+' : (s.ble_bonded ? '-' : '?');
+        snprintf(buf, sizeof(buf), "BT %d%c", s.ble_profile + 1, status);
     }
     if (strcmp(lv_label_get_text(conn_label), buf) != 0) {
         lv_label_set_text(conn_label, buf);
@@ -114,17 +119,25 @@ static int peripheral_bat_listener(const zmk_event_t *eh) {
     return ZMK_EV_EVENT_BUBBLE;
 }
 
+static void refresh_ble_state(void) {
+    struct zmk_endpoint_instance ep = zmk_endpoints_selected();
+    k_mutex_lock(&state_mutex, K_FOREVER);
+    dstate.transport   = ep.transport;
+    dstate.ble_profile = (ep.transport == ZMK_TRANSPORT_BLE) ? ep.ble.profile_index : dstate.ble_profile;
+    dstate.ble_connected = zmk_ble_active_profile_is_connected();
+    dstate.ble_bonded    = !zmk_ble_active_profile_is_open();
+    k_mutex_unlock(&state_mutex);
+}
+
 static int endpoint_listener(const zmk_event_t *eh) {
-    const struct zmk_endpoint_changed *ev = as_zmk_endpoint_changed(eh);
-    if (ev) {
-        k_mutex_lock(&state_mutex, K_FOREVER);
-        dstate.transport = ev->endpoint.transport;
-        if (ev->endpoint.transport == ZMK_TRANSPORT_BLE) {
-            dstate.ble_profile = ev->endpoint.ble.profile_index;
-        }
-        k_mutex_unlock(&state_mutex);
-        schedule_update();
-    }
+    refresh_ble_state();
+    schedule_update();
+    return ZMK_EV_EVENT_BUBBLE;
+}
+
+static int ble_profile_listener(const zmk_event_t *eh) {
+    refresh_ble_state();
+    schedule_update();
     return ZMK_EV_EVENT_BUBBLE;
 }
 
@@ -148,6 +161,9 @@ ZMK_SUBSCRIPTION(peripheral_bat_display, zmk_peripheral_battery_state_changed);
 ZMK_LISTENER(endpoint_display, endpoint_listener);
 ZMK_SUBSCRIPTION(endpoint_display, zmk_endpoint_changed);
 
+ZMK_LISTENER(ble_profile_display, ble_profile_listener);
+ZMK_SUBSCRIPTION(ble_profile_display, zmk_ble_active_profile_changed);
+
 ZMK_LISTENER(layer_display, layer_listener);
 ZMK_SUBSCRIPTION(layer_display, zmk_layer_state_changed);
 
@@ -168,14 +184,12 @@ lv_obj_t *zmk_display_status_screen(void) {
         lv_label_set_text(bat_labels[i], "? --");
     }
 
-    struct zmk_endpoint_instance ep = zmk_endpoints_selected();
     k_mutex_lock(&state_mutex, K_FOREVER);
     dstate.bat_levels[0] = zmk_battery_state_of_charge();
     dstate.bat_valid[0]  = true;
-    dstate.transport     = ep.transport;
-    dstate.ble_profile   = (ep.transport == ZMK_TRANSPORT_BLE) ? ep.ble.profile_index : 0;
     dstate.active_layer  = zmk_keymap_highest_layer_active();
     k_mutex_unlock(&state_mutex);
+    refresh_ble_state();
 
     k_work_submit_to_queue(zmk_display_work_q(), &update_work);
 

@@ -3,27 +3,27 @@
 
 &bt_macro_0 {
     label = "bt_macro_0";
-    bindings = <&to DEFAU>, <&bt BT_SEL 0>;
+    bindings = <&to DEFAU>, <&bt BT_SEL 0>, <&out OUT_BLE>;
 };
 
 &bt_macro_1 {
     label = "bt_macro_1";
-    bindings = <&to DEFAU>, <&bt BT_SEL 1>;
+    bindings = <&to DEFAU>, <&bt BT_SEL 1>, <&out OUT_BLE>;
 };
 
 &bt_macro_2 {
     label = "bt_macro_2";
-    bindings = <&to DEFAU>, <&bt BT_SEL 2>;
+    bindings = <&to DEFAU>, <&bt BT_SEL 2>, <&out OUT_BLE>;
 };
 
 &bt_macro_3 {
     label = "bt_macro_3";
-    bindings = <&to WINDO>, <&bt BT_SEL 3>;
+    bindings = <&to WINDO>, <&bt BT_SEL 3>, <&out OUT_BLE>;
 };
 
 &bt_macro_4 {
     label = "bt_macro_4";
-    bindings = <&to WINDO>, <&bt BT_SEL 4>;
+    bindings = <&to WINDO>, <&bt BT_SEL 4>, <&out OUT_BLE>;
 };
 
 / {

@@ -312,7 +312,7 @@
             #binding-cells = <0>;
             wait-ms = <0>;
             tap-ms = <0>;
-            bindings = <&kp RC(RA(N1))>, <&to WINDO>;
+            bindings = <&kp RC(RA(N1))>, <&to WINDO>, <&out OUT_USB>;
         };
         deskhop2: deskhop2 {
             label = "deskho2";
@@ -320,7 +320,7 @@
             #binding-cells = <0>;
             wait-ms = <0>;
             tap-ms = <0>;
-            bindings = <&kp RC(RA(N2))>, <&to DEFAU>;
+            bindings = <&kp RC(RA(N2))>, <&to DEFAU>, <&out OUT_USB>;
         };
         deskhop_gaming: deskhop_gaming {
             label = "deskhop_gaming";

@@ -13,3 +13,4 @@ zmk-input-processor-report-rate-limit
 zmk-input-processor-xyz
 zmk-pmw3610-driver
 .west
+firmware

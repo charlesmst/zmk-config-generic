@@ -21,7 +21,7 @@ manifest:
 
     - name: zmk-feature-split-esb
       remote: charlesmst
-      revision: fix/esb-jitter-hfxo
+      revision: feat/esb-per-event-retry
 
     - name: sdk-nrf
       remote: nrfconnect

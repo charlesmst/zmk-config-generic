@@ -18,12 +18,24 @@
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
+/* Custom device icons from dongle_icons.c (U+E000–U+E003, Private Use Area) */
+LV_FONT_DECLARE(dongle_icons);
+#define ICON_DONGLE   "\xEE\x80\x80"
+#define ICON_LEFT_KB  "\xEE\x80\x81"
+#define ICON_RIGHT_KB "\xEE\x80\x82"
+#define ICON_MOUSE    "\xEE\x80\x83"
+
 #define NUM_PERIPHERALS CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS
 #define NUM_LABELS      (1 + NUM_PERIPHERALS)
 
 BUILD_ASSERT(NUM_PERIPHERALS <= 3, "dongle_battery_display supports up to 3 peripherals");
 
-static const char label_chars[4] = {'D', 'L', 'R', 'M'};
+static const char *label_syms[4] = {
+    ICON_DONGLE,
+    ICON_LEFT_KB,
+    ICON_RIGHT_KB,
+    ICON_MOUSE,
+};
 
 static lv_obj_t *bat_labels[NUM_LABELS];
 static lv_obj_t *conn_label;
@@ -65,7 +77,7 @@ static void update_display(struct k_work *work) {
         lv_label_set_text(conn_label, buf);
     }
 
-    /* Layer label: name of highest active layer, truncated */
+    /* Layer label */
     const char *name = zmk_keymap_layer_name(s.active_layer);
     char layer_buf[10];
     if (name == NULL) {
@@ -77,12 +89,12 @@ static void update_display(struct k_work *work) {
         lv_label_set_text(layer_label, layer_buf);
     }
 
-    /* Battery labels: "X NNN%" right-aligned, or "X  --" when unknown */
+    /* Battery labels: [device icon][battery icon]NNN% or [device icon] -- */
     for (int i = 0; i < NUM_LABELS; i++) {
         if (s.bat_valid[i]) {
-            snprintf(buf, sizeof(buf), "%c%3u%%", label_chars[i], s.bat_levels[i]);
+            snprintf(buf, sizeof(buf), "%s%3u%%", label_syms[i], s.bat_levels[i]);
         } else {
-            snprintf(buf, sizeof(buf), "%c --", label_chars[i]);
+            snprintf(buf, sizeof(buf), "%s --", label_syms[i]);
         }
         if (strcmp(lv_label_get_text(bat_labels[i]), buf) != 0) {
             lv_label_set_text(bat_labels[i], buf);
@@ -127,8 +139,8 @@ static int peripheral_bat_listener(const zmk_event_t *eh) {
 static void refresh_ble_state(void) {
     struct zmk_endpoint_instance ep = zmk_endpoints_selected();
     k_mutex_lock(&state_mutex, K_FOREVER);
-    dstate.transport   = ep.transport;
-    dstate.ble_profile = (ep.transport == ZMK_TRANSPORT_BLE) ? ep.ble.profile_index : dstate.ble_profile;
+    dstate.transport     = ep.transport;
+    dstate.ble_profile   = (ep.transport == ZMK_TRANSPORT_BLE) ? ep.ble.profile_index : dstate.ble_profile;
     dstate.ble_connected = zmk_ble_active_profile_is_connected();
     dstate.ble_bonded    = !zmk_ble_active_profile_is_open();
     k_mutex_unlock(&state_mutex);
@@ -185,8 +197,9 @@ lv_obj_t *zmk_display_status_screen(void) {
 
     for (int i = 0; i < NUM_LABELS; i++) {
         bat_labels[i] = lv_label_create(screen);
+        lv_obj_set_style_text_font(bat_labels[i], &dongle_icons, LV_PART_MAIN);
         lv_obj_align(bat_labels[i], LV_ALIGN_TOP_RIGHT, 0, i * 16);
-        lv_label_set_text(bat_labels[i], "? --");
+        lv_label_set_text(bat_labels[i], label_syms[i]);
     }
 
     k_mutex_lock(&state_mutex, K_FOREVER);

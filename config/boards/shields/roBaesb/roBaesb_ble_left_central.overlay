@@ -29,9 +29,18 @@
     };
 
 #ifdef ZMK_ESB_MOUSE
-    /* Disabled EC11 at sensors[2] — positional placeholder so lariska's encoder
+    /* Disabled EC11 at sensors[2] - positional placeholder so lariska's encoder
      * (which fires at peripheral sensor index 2) maps to sensor-bindings[2].
-     * right_encoder at [1] is the gap-filler; it is also disabled. */
+     * encoder_slot_1_placeholder at [1] keeps that index stable without
+     * implying there is a physical right-side encoder on this build. */
+    encoder_slot_1_placeholder: encoder_slot_1_placeholder {
+        compatible = "alps,ec11";
+        a-gpios = <&xiao_d 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        b-gpios = <&xiao_d 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        steps = <12>;
+        status = "disabled";
+    };
+
     mouse_encoder: mouse_encoder {
         compatible = "alps,ec11";
         a-gpios = <&xiao_d 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
@@ -107,9 +116,9 @@
 
 #ifdef ZMK_ESB_MOUSE
 &sensors {
-    sensors = <&left_encoder &right_encoder &mouse_encoder>;
+    sensors = <&left_encoder &encoder_slot_1_placeholder &mouse_encoder>;
     left_enc_cfg: left_enc_cfg {};
-    right_enc_cfg: right_enc_cfg {};
+    unused_enc_cfg: unused_enc_cfg {};
     mouse_enc_cfg: mouse_enc_cfg {
         triggers-per-rotation = <24>;
     };

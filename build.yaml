@@ -42,7 +42,7 @@ include:
    artifact-name: roBaesb_dongle_mouse
  - board: nice_nano@2.0.0
    shield: roBaesb_display_ble
-   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_MOUSE;-DZMK_ESB_MOUSE_TRIPLE_ENC -DCONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS=3
+   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_MOUSE -DCONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS=3
    artifact-name: roBaesb_dongle_display_ble
  - board: holyiot_dongle_1k
    shield: roBaesb

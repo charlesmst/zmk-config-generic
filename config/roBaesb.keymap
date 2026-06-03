@@ -15,23 +15,15 @@
  *  - 5 extra mouse-button bindings are appended to every layer (positions 43-47)
  *  - sensor-bindings expands to 3 entries: [left_enc, right_enc(unused), mouse_enc]
  */
-/* ZMK_ESB_MOUSE enables the 5 lariska button positions in every layer.
- * ZMK_ESB_MOUSE_TRIPLE_ENC additionally expands sensor-bindings to 3 entries
- * for builds that have a physical third encoder (e.g. display dongle).
- * Left-central has only 1 physical encoder so it sets ZMK_ESB_MOUSE alone. */
 #ifdef ZMK_ESB_MOUSE
 #define LARISKA_BTNS &mkp LCLK &mkp RCLK &mkp MCLK &mkp MB4 &mkp MB5
-#else
-#define LARISKA_BTNS
-#endif
-
-#if defined(ZMK_ESB_MOUSE) && defined(ZMK_ESB_MOUSE_TRIPLE_ENC)
 #define SB_WHEEL <&mouse_wheel &mouse_wheel &lariska_mouse_wheel>
 #define SB_VOL   <&rot_kp C_VOL_UP C_VOL_DN &rot_kp C_VOL_UP C_VOL_DN &lariska_wheel>
 #define SB_PG    <&rot_kp PG_UP PG_DN &rot_kp PG_UP PG_DN &lariska_wheel>
 #define SB_ALT   <&alt_tab_encoder &alt_tab_encoder &lariska_wheel>
 #define SB_TILING <&rot_kp LC(RIGHT) LC(LEFT) &rot_kp LC(RIGHT) LC(LEFT) &lariska_wheel>
 #else
+#define LARISKA_BTNS
 #define SB_WHEEL <&mouse_wheel>
 #define SB_VOL   <&rot_kp C_VOL_UP C_VOL_DN>
 #define SB_PG    <&rot_kp PG_UP PG_DN>

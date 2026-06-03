@@ -14,7 +14,9 @@
 #else
 #include "roBaesb_addr.dtsi"
 #endif
+#ifdef ZMK_ESB_MOUSE
 #include "roBaesb_lariska_transform.dtsi"
+#endif
 
 #include <input/processors/xyz.dtsi>
 #include <input/processors/report_rate_limit.dtsi>
@@ -25,6 +27,34 @@
         zephyr,console = &usb_logging_uart;
         zephyr,shell-uart = &usb_logging_uart;
     };
+
+#ifdef ZMK_ESB_MOUSE
+    /* Disabled EC11 at sensors[2] — positional placeholder so lariska's encoder
+     * (which fires at peripheral sensor index 2) maps to sensor-bindings[2].
+     * right_encoder at [1] is the gap-filler; it is also disabled. */
+    mouse_encoder: mouse_encoder {
+        compatible = "alps,ec11";
+        a-gpios = <&xiao_d 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        b-gpios = <&xiao_d 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        steps = <48>;
+        status = "disabled";
+    };
+
+    split_inputs {
+        mouse_split: mouse_split@1 {
+            compatible = "zmk,input-split";
+            reg = <1>;
+            status = "okay";
+        };
+    };
+
+    mouse_input_listener: mouse_input_listener {
+        compatible = "zmk,input-listener";
+        status = "okay";
+        device = <&mouse_split>;
+        input-processors = <&zip_ble_report_rate_limit 8>;
+    };
+#endif
 };
 
 &zephyr_udc0 {
@@ -47,24 +77,6 @@
 
 &left_encoder {
     status = "okay";
-};
-
-/ {
-    split_inputs {
-        /* Receive PAW3395 events from lariska (peripheral reg=1) */
-        mouse_split: mouse_split@1 {
-            compatible = "zmk,input-split";
-            reg = <1>;
-            status = "okay";
-        };
-    };
-
-    mouse_input_listener: mouse_input_listener {
-        compatible = "zmk,input-listener";
-        status = "okay";
-        device = <&mouse_split>;
-        input-processors = <&zip_ble_report_rate_limit 8>;
-    };
 };
 
 /* Receive PMW3610 events from roBaesb_right peripheral (reg=0).
@@ -92,3 +104,14 @@
         input-processors = <&zip_zxy>, <&zip_xy_scaler 1 3>;
     };
 };
+
+#ifdef ZMK_ESB_MOUSE
+&sensors {
+    sensors = <&left_encoder &right_encoder &mouse_encoder>;
+    left_enc_cfg: left_enc_cfg {};
+    right_enc_cfg: right_enc_cfg {};
+    mouse_enc_cfg: mouse_enc_cfg {
+        triggers-per-rotation = <24>;
+    };
+};
+#endif

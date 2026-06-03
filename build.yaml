@@ -66,6 +66,10 @@ include:
    artifact-name: lariska_esb
  - board: nice_nano@2.0.0
    shield: lariska_esb
+   snippet: zmk-usb-logging
+   artifact-name: lariska_esb_logging
+ - board: nice_nano@2.0.0
+   shield: lariska_esb
    cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_ADDR_B
    artifact-name: lariska_esb_b
  - board: nice_nano@2.0.0

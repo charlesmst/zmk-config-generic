@@ -20,6 +20,19 @@
 #include <input/processors/report_rate_limit.dtsi>
 #include <behaviors/input_processor_sigmoid_accel.dtsi>
 
+/ {
+    chosen {
+        zephyr,console = &usb_logging_uart;
+        zephyr,shell-uart = &usb_logging_uart;
+    };
+};
+
+&zephyr_udc0 {
+    usb_logging_uart: usb_logging_uart {
+        compatible = "zephyr,cdc-acm-uart";
+    };
+};
+
 /* Left-half column wiring (6 cols, col-offset stays at default 0) */
 &kscan0 {
     col-gpios

@@ -10,7 +10,6 @@
 
 #include <input/processors/xyz.dtsi>
 #include <input/processors/report_rate_limit.dtsi>
-#include <behaviors/input_processor_sigmoid_accel.dtsi>
 
 / {
     chosen {
@@ -82,22 +81,18 @@
     status = "okay";
 };
 
-&sigmoid_accel {
-    cpi = <2600>;
-};
-
 &trackball_listener {
     status = "okay";
-    input-processors = <&zip_zxy>, <&sigmoid_accel>, <&zip_ble_report_rate_limit 8>;
+    input-processors = <&zip_ble_report_rate_limit 8>;
 
     scroll {
         layers = <10>;
-        input-processors = <&zip_zxy>, <&sigmoid_accel>, <&zip_xy_scaler 1 40>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>;
+        input-processors = <&zip_xy_scaler 1 40>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>;
     };
 
     snipe {
         layers = <11>;
-        input-processors = <&zip_zxy>, <&zip_xy_scaler 1 3>;
+        input-processors = <&zip_xy_scaler 1 3>;
     };
 };
 

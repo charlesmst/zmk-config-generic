@@ -6,6 +6,7 @@
 #include "roBaesb_addr.dtsi"
 #endif
 #include <input/processors/xyz.dtsi>
+#include <behaviors/input_processor_sigmoid_accel.dtsi>
 
 / {
     chosen {
@@ -34,10 +35,14 @@
         ;
 };
 
+&sigmoid_accel {
+    cpi = <2600>;
+};
+
 &trackball_split {
     status = "okay";
     device = <&trackball>;
-    input-processors = <&zip_xyz>;
+    input-processors = <&sigmoid_accel>;
 };
 
 &trackball {

@@ -101,14 +101,6 @@ include:
    shield: roBaesb_ble_left_central_enc_inv
    cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_MOUSE
    artifact-name: roBaesb_ble_left_central_enc_inv
- - board: seeeduino_xiao_ble
-   shield: roBaesb_ble_left_central
-   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_MOUSE;-DZMK_ESB_ADDR_B
-   artifact-name: roBaesb_ble_left_central_b
- - board: seeeduino_xiao_ble
-   shield: roBaesb_ble_left_central_enc_inv
-   cmake-args: -DDTS_EXTRA_CPPFLAGS=-DZMK_ESB_MOUSE;-DZMK_ESB_ADDR_B
-   artifact-name: roBaesb_ble_left_central_enc_inv_b
 
  # roBa ESB right-central + BLE host experiment
  - board: seeeduino_xiao_ble

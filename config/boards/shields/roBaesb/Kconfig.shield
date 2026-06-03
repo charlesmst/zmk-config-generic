@@ -24,3 +24,9 @@ config SHIELD_ROBAESB_DISPLAY
 
 config SHIELD_ROBAESB_DISPLAY_BLE
     def_bool $(shields_list_contains,roBaesb_display_ble)
+
+config SHIELD_ROBAESB_BLE_LEFT_CENTRAL
+    def_bool $(shields_list_contains,roBaesb_ble_left_central)
+
+config SHIELD_ROBAESB_BLE_LEFT_CENTRAL_ENC_INV
+    def_bool $(shields_list_contains,roBaesb_ble_left_central_enc_inv)

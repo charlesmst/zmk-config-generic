@@ -185,3 +185,41 @@ endchoice
 endif # SSD1306
 
 endif # SHIELD_ROBAESB_DISPLAY_BLE
+
+if SHIELD_ROBAESB_BLE_LEFT_CENTRAL
+
+config ZMK_KEYBOARD_NAME
+    default "roBa BLE L"
+
+config ZMK_SPLIT
+    default y
+
+config ZMK_SPLIT_ROLE_CENTRAL
+    default y
+
+config ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS
+    default 4
+
+config BT_MAX_PAIRED
+    default 5
+
+endif # SHIELD_ROBAESB_BLE_LEFT_CENTRAL
+
+if SHIELD_ROBAESB_BLE_LEFT_CENTRAL_ENC_INV
+
+config ZMK_KEYBOARD_NAME
+    default "roBa BLE L"
+
+config ZMK_SPLIT
+    default y
+
+config ZMK_SPLIT_ROLE_CENTRAL
+    default y
+
+config ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS
+    default 4
+
+config BT_MAX_PAIRED
+    default 5
+
+endif # SHIELD_ROBAESB_BLE_LEFT_CENTRAL_ENC_INV

@@ -1,0 +1,81 @@
+/*
+ * Left half of roBa acting as ESB central + BLE host.
+ *
+ * Peripherals:
+ *   roBaesb_right  (ID=2, reg=0) — right keys + PMW3610 trackball
+ *   lariska_esb    (ID=3, reg=1) — PAW3395 mouse + 5 buttons
+ *
+ * Both peripherals must use roBaesb_addr.dtsi (the standard address set).
+ */
+
+#include "../roBa/roBa.dtsi"
+#ifdef ZMK_ESB_ADDR_B
+#include "roBaesb_addr_b.dtsi"
+#else
+#include "roBaesb_addr.dtsi"
+#endif
+#include "roBaesb_lariska_transform.dtsi"
+
+#include <input/processors/xyz.dtsi>
+#include <input/processors/report_rate_limit.dtsi>
+#include <behaviors/input_processor_sigmoid_accel.dtsi>
+
+/* Left-half column wiring (6 cols, col-offset stays at default 0) */
+&kscan0 {
+    col-gpios
+        = <&xiao_d 10 GPIO_ACTIVE_HIGH>
+        , <&xiao_d 9 GPIO_ACTIVE_HIGH>
+        , <&xiao_d 8 GPIO_ACTIVE_HIGH>
+        , <&xiao_d 7 GPIO_ACTIVE_HIGH>
+        , <&gpio0 10 GPIO_ACTIVE_HIGH>
+        , <&gpio0 9 GPIO_ACTIVE_HIGH>
+        ;
+};
+
+&left_encoder {
+    status = "okay";
+};
+
+/ {
+    split_inputs {
+        /* Receive PAW3395 events from lariska (peripheral reg=1) */
+        mouse_split: mouse_split@1 {
+            compatible = "zmk,input-split";
+            reg = <1>;
+            status = "okay";
+        };
+    };
+
+    mouse_input_listener: mouse_input_listener {
+        compatible = "zmk,input-listener";
+        status = "okay";
+        device = <&mouse_split>;
+        input-processors = <&zip_ble_report_rate_limit 8>;
+    };
+};
+
+/* Receive PMW3610 events from roBaesb_right peripheral (reg=0).
+ * The right peripheral sends XYZ-transformed events; zip_zxy converts them
+ * back to standard X/Y before the accel and rate-limit processors. */
+&trackball_split {
+    status = "okay";
+};
+
+&sigmoid_accel {
+    cpi = <2600>;
+};
+
+&trackball_listener {
+    status = "okay";
+    input-processors = <&zip_zxy>, <&sigmoid_accel>, <&zip_ble_report_rate_limit 8>;
+
+    scroll {
+        layers = <10>;
+        input-processors = <&zip_zxy>, <&sigmoid_accel>, <&zip_xy_scaler 1 40>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>;
+    };
+
+    snipe {
+        layers = <11>;
+        input-processors = <&zip_zxy>, <&zip_xy_scaler 1 3>;
+    };
+};

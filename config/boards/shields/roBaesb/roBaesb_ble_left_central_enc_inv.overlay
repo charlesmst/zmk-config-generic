@@ -9,7 +9,6 @@
 #endif
 
 #include <input/processors/xyz.dtsi>
-#include <input/processors/report_rate_limit.dtsi>
 
 / {
     chosen {
@@ -48,7 +47,6 @@
         compatible = "zmk,input-listener";
         status = "okay";
         device = <&mouse_split>;
-        input-processors = <&zip_ble_report_rate_limit 8>;
     };
 #endif
 };
@@ -83,11 +81,9 @@
 
 &trackball_listener {
     status = "okay";
-    input-processors = <&zip_ble_report_rate_limit 8>;
-
     scroll {
         layers = <10>;
-        input-processors = <&zip_ble_report_rate_limit 8>, <&zip_xy_scaler 1 40>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>;
+        input-processors = <&zip_xy_scaler 1 40>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>;
     };
 
     snipe {

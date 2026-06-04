@@ -52,6 +52,4 @@
     force-awake;
     force-high-performance;
     /delete-property/ invert-y;
-    usb-rate-ms = <2>;
-    ble-rate-ms = <8>;
 };

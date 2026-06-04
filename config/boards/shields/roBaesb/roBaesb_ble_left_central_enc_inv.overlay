@@ -48,6 +48,7 @@
         compatible = "zmk,input-listener";
         status = "okay";
         device = <&mouse_split>;
+        input-processors = <&zip_ble_report_rate_limit 6>;
     };
 #endif
 };

@@ -35,8 +35,9 @@ manifest:
       path: nrfxlib
 
     - name: zmk-pmw3610-driver
-      remote: efogdev
-      revision: main
+      remote: charlesmst
+      repo-path: zmk-pmw3610-driver-efog
+      revision: feat/runtime-report-rate
 
     - name: zmk-input-processor-report-rate-limit
       remote: badjeff

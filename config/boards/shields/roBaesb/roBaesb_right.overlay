@@ -52,4 +52,9 @@
     force-awake;
     force-high-performance;
     /delete-property/ invert-y;
+    /* Last key in right-half keymap (RC(3,10) = local col 4 = gpio0 10).
+     * Cycles report rate locally on each press: 8ms→4ms→2ms→wrap.
+     * Note: shares the matrix col — any key in col 4 will trigger. OK for testing. */
+    rate-cycle-gpios = <&gpio0 10 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+    rate-cycle-rates-ms = <8 4 2>;
 };

@@ -92,13 +92,12 @@
     status = "okay";
 };
 
+/* Limit trackball to 8 ms (125 Hz) on BLE, full rate on USB.
+ * Applied at top level (default) and in every layer override so it
+ * is always first in the chain regardless of active layer. */
 &trackball_listener {
     status = "okay";
-
-    /* Default: limit to 8 ms (125 Hz) on BLE, passes at full rate on USB. */
-    default {
-        input-processors = <&zip_ble_report_rate_limit 8>;
-    };
+    input-processors = <&zip_ble_report_rate_limit 8>;
 
     scroll {
         layers = <10>;

@@ -82,10 +82,7 @@
 
 &trackball_listener {
     status = "okay";
-
-    default {
-        input-processors = <&zip_ble_report_rate_limit 8>;
-    };
+    input-processors = <&zip_ble_report_rate_limit 8>;
 
     scroll {
         layers = <10>;

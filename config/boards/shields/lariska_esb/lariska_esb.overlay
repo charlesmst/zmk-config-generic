@@ -144,7 +144,12 @@ lariska_encoder: &qdec0 {
         evt-type = <INPUT_EV_REL>;
         x-input-code = <INPUT_REL_X>;
         y-input-code = <INPUT_REL_Y>;
-        /* DPI button on bottom of mouse — P1.15, cycles report rate locally */
+        /* Output-driven rate switching (CONFIG_PAW3395_OUTPUT_RATE_NOTIFY).
+         * 1 = 1000 Hz (USB), 8 = 120 Hz (BLE). usb-rate-ms also sets the boot rate. */
+        usb-rate-ms = <1>;
+        ble-rate-ms = <8>;
+        /* DPI button on bottom of mouse — P1.15, cycles report rate locally.
+         * Manual override; last writer wins vs the USB/BLE switch above. */
         rate-cycle-gpios = <&gpio1 15 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
         rate-cycle-rates-ms = <8 4 1>;
     };

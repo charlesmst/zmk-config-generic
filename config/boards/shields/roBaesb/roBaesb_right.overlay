@@ -50,6 +50,10 @@
     spi-max-frequency = <2000000>;
     y-invert;
     force-awake;
-    force-high-performance;
     /delete-property/ invert-y;
+    /* Output-driven rate switching (CONFIG_PMW3610_OUTPUT_RATE_NOTIFY).
+     * The central broadcasts USB/BLE over ESB; the driver picks the rate.
+     * 2 = ~500 Hz (USB), 8 = 125 Hz (BLE). usb-rate-ms also sets the boot rate. */
+    usb-rate-ms = <2>;
+    ble-rate-ms = <8>;
 };

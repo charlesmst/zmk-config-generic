@@ -144,5 +144,8 @@ lariska_encoder: &qdec0 {
         evt-type = <INPUT_EV_REL>;
         x-input-code = <INPUT_REL_X>;
         y-input-code = <INPUT_REL_Y>;
+        /* DPI button on bottom of mouse — P1.15, cycles report rate locally */
+        rate-cycle-gpios = <&gpio1 15 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        rate-cycle-rates-ms = <8 4 1>;
     };
 };

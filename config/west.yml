@@ -55,8 +55,8 @@ manifest:
       revision: main
 
     - name: zmk-paw3395-driver
-      remote: ggrocer
-      revision: main
+      remote: charlesmst
+      revision: feat/runtime-report-rate
 
     - name: zmk-vfx-rgbled-indicator
       remote: ggrocer

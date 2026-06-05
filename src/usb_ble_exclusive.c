@@ -31,6 +31,14 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
  */
 extern int update_advertising(void);
 
+/* advertising_status in ble.c has external linkage (not static). bt_disable()
+ * stops advertising at the controller but never updates this variable, so it
+ * can be stale when we re-enable. update_advertising()'s switch has no case
+ * for desired==current==CONN, so it silently no-ops and advertising never
+ * restarts. Resetting to ZMK_ADV_NONE (0) before calling update_advertising()
+ * forces the correct transition. */
+extern int advertising_status;
+
 /* ------------------------------------------------------------------ */
 /*  Work items — BT enable/disable must not be called from event      */
 /*  callbacks which may run on the system workqueue.                   */
@@ -51,9 +59,13 @@ static void do_enable_ble(struct k_work *work)
         return;
     }
 
-    /* Restart advertising.  Callbacks were registered at startup and
-     * bt_conn_cb_register() is idempotent (returns -EEXIST if already
-     * in the list), so ZMK's ble.c callbacks survive across disable/enable. */
+    /* bt_disable() stops the controller but leaves advertising_status stale.
+     * Reset it so update_advertising()'s state machine sees NONE→CONN and
+     * actually starts advertising instead of no-oping on CONN→CONN. */
+    advertising_status = 0; /* ZMK_ADV_NONE */
+
+    /* Callbacks registered at startup survive across disable/enable because
+     * bt_conn_cb_register() is idempotent (returns -EEXIST if already listed). */
     int adv_err = update_advertising();
     if (adv_err) {
         LOG_WRN("usb_ble_exclusive: update_advertising returned %d", adv_err);

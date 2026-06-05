@@ -46,15 +46,7 @@
 #define SNIPE 11
 #define GAMFN 12
 
-/* Base-layer key after B. On central builds (ZMK_CENTRAL_SOFT_OFF defined by the
- * central keymap before including this) it's a hold-3s soft-off power button;
- * everywhere else it stays Alt+Space. */
-#ifdef ZMK_CENTRAL_SOFT_OFF
-/* tap = Alt+Space (the normal key); hold 3s = soft-off power button */
-#define KEY_AFTER_B &ht_softoff 0 LA(SPACE)
-#else
 #define KEY_AFTER_B &kp LA(SPACE)
-#endif
 
 
 / {

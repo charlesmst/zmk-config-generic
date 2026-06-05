@@ -116,13 +116,3 @@
     };
 };
 #endif
-
-/ {
-    /* Wake from soft-off via the left matrix (any key). Reset button always works.
-     * (The &soft_off hold-time override lives in the keymap, where behaviors.dtsi
-     * defines the soft_off node.) */
-    soft_off_wakers: soft_off_wakers {
-        compatible = "zmk,soft-off-wakeup-sources";
-        wakeup-sources = <&kscan0>;
-    };
-};

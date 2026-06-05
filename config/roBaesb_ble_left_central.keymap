@@ -1,5 +1,3 @@
-/* Central is the host: the base-layer key after B becomes a hold-3s soft-off. */
-#define ZMK_CENTRAL_SOFT_OFF
 #include "roBaesb.keymap"
 #include <dt-bindings/zmk/bt.h>
 
@@ -38,22 +36,6 @@
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
  LARISKA_BTNS
             >;
-        };
-    };
-};
-
-/ {
-    behaviors {
-        /* Base-layer key after B (central only): tap = Alt+Space, hold 3s =
-         * soft-off. soft_off keeps its default instant trigger; the 3s gate is
-         * the hold-tap's tapping-term. tap-preferred so rolling keys never
-         * accidentally power off. Wakes from the left matrix or the reset button. */
-        ht_softoff: ht_softoff {
-            compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <2>;
-            bindings = <&soft_off>, <&kp>;
-            tapping-term-ms = <3000>;
-            flavor = "tap-preferred";
         };
     };
 };

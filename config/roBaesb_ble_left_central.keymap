@@ -1,3 +1,5 @@
+/* Central is the host: the base-layer key after B becomes a hold-3s soft-off. */
+#define ZMK_CENTRAL_SOFT_OFF
 #include "roBaesb.keymap"
 #include <dt-bindings/zmk/bt.h>
 
@@ -38,4 +40,10 @@
             >;
         };
     };
+};
+
+/* Soft-off power button: the base-layer key after B (KEY_AFTER_B -> &soft_off on
+ * central builds). Hold 3s to power off; wakes from the left matrix or reset. */
+&soft_off {
+    hold-time-ms = <3000>;
 };

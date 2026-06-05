@@ -21,7 +21,7 @@ manifest:
 
     - name: zmk-feature-split-esb
       remote: charlesmst
-      revision: fix/esb-jitter-hfxo
+      revision: zmk-0.3
 
     - name: sdk-nrf
       remote: nrfconnect
@@ -35,12 +35,13 @@ manifest:
       path: nrfxlib
 
     - name: zmk-pmw3610-driver
-      remote: efogdev
-      revision: main
+      remote: charlesmst
+      repo-path: zmk-pmw3610-driver-efog
+      revision: feat/dynamic-pmw3610-report-rate
 
     - name: zmk-input-processor-report-rate-limit
-      remote: badjeff
-      revision: f43f37a
+      remote: charlesmst
+      revision: feat/timer-driven-report-rate-limit
 
     - name: zmk-input-processor-xyz
       remote: badjeff
@@ -55,8 +56,8 @@ manifest:
       revision: main
 
     - name: zmk-paw3395-driver
-      remote: ggrocer
-      revision: main
+      remote: charlesmst
+      revision: feat/dynamic-paw3395-report-rate
 
     - name: zmk-vfx-rgbled-indicator
       remote: ggrocer

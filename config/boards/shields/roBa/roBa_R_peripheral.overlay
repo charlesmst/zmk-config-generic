@@ -1,6 +1,5 @@
 #include "roBa.dtsi"
 #include "roBa_R_trackball.dtsi"
-#include <input/processors/report_rate_limit.dtsi>
 #include <input/processors/xyz.dtsi>
 
 &default_transform {
@@ -20,6 +19,5 @@
 &trackball_split {
     status = "okay";
     device = <&trackball>;
-    input-processors = <&zip_report_rate_limit 8>, <&zip_xyz>;
+    input-processors = <&zip_xyz>;
 };
-

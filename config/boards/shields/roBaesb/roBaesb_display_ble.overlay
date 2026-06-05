@@ -18,6 +18,8 @@ xiao_d: &pro_micro {};
     chosen {
         zmk,kscan = &mock_kscan;
         zephyr,display = &oled;
+        zephyr,console = &usb_logging_uart;
+        zephyr,shell-uart = &usb_logging_uart;
     };
 
     mock_kscan: mock_kscan_0 {
@@ -51,6 +53,12 @@ xiao_d: &pro_micro {};
         input-processors = <&zip_ble_report_rate_limit 8>;
     };
 #endif
+};
+
+&zephyr_udc0 {
+    usb_logging_uart: usb_logging_uart {
+        compatible = "zephyr,cdc-acm-uart";
+    };
 };
 
 &pinctrl {

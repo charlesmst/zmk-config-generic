@@ -1,10 +1,20 @@
 param(
     [string]$LogPath = "$env:USERPROFILE\Downloads\charybdis_dongle.log",
-    [string]$PortName,
+    [string[]]$PortName,
     [int]$BaudRate = 115200
 )
 
 $ErrorActionPreference = "Stop"
+
+# Kill any other running instance of this script before starting
+Get-CimInstance Win32_Process | Where-Object {
+    $_.Name -in 'powershell.exe', 'pwsh.exe' -and
+    $_.CommandLine -like '*watch-dongle-logs*' -and
+    $_.ProcessId -ne $PID
+} | ForEach-Object {
+    Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
+    Write-Host "Killed previous instance (PID $($_.ProcessId))"
+}
 
 function Get-CandidatePortScore {
     param(
@@ -58,68 +68,106 @@ function Show-DriverHint {
     Write-Warning "If that succeeds, replug the dongle and rerun this script."
 }
 
-function Get-DonglePortName {
-    if ($PortName) {
-        return $PortName
-    }
+# Per-port monitor loop — runs in its own runspace
+$portScript = {
+    param($portName, $baudRate, $logPath)
 
-    $ports = @(Get-DongleSerialPorts)
-    if ($ports.Count -gt 0) {
-        return $ports[0].DeviceID
-    }
+    while ($true) {
+        $port = $null
+        try {
+            $port = New-Object System.IO.Ports.SerialPort $portName, $baudRate, "None", 8, "One"
+            $port.ReadTimeout = 500
+            $port.DtrEnable = $true
+            $port.RtsEnable = $false
+            $port.Open()
+            $port.DiscardInBuffer()
+            Start-Sleep -Milliseconds 200
+            [Console]::WriteLine("--- connected $portName ---")
 
-    return $null
+            $lineBuffer = ""
+            while ($true) {
+                $data = $port.ReadExisting()
+                if ($data.Length -gt 0) {
+                    $lineBuffer += $data
+                    $lines = $lineBuffer -split "`n"
+                    for ($i = 0; $i -lt $lines.Count - 1; $i++) {
+                        $line = "[$portName] " + $lines[$i].TrimEnd("`r")
+                        [Console]::WriteLine($line)
+                        [System.IO.File]::AppendAllText($logPath, $line + "`n")
+                    }
+                    $lineBuffer = $lines[-1]
+                } else {
+                    Start-Sleep -Milliseconds 50
+                }
+            }
+        } catch {
+            # port open failed, read error, or write error — fall through to reconnect
+        } finally {
+            if ($port -ne $null) {
+                try { $port.Close() } catch {}
+                try { $port.Dispose() } catch {}
+            }
+        }
+
+        # Check if the COM port still exists in Windows before retrying.
+        # If the device was unplugged, exit the runspace instead of looping forever.
+        $portExists = [bool](Get-CimInstance Win32_SerialPort -Filter "DeviceID='$portName'" -ErrorAction SilentlyContinue)
+        if (-not $portExists) {
+            [Console]::WriteLine("--- $portName gone, stopping monitor ---")
+            return
+        }
+
+        [Console]::WriteLine("--- $portName disconnected, retrying ---")
+        Start-Sleep -Seconds 1
+    }
+}
+
+function Start-PortMonitor {
+    param([string]$portName, [int]$baudRate, [string]$logPath)
+
+    $rs = [runspacefactory]::CreateRunspace()
+    $rs.Open()
+    $ps = [powershell]::Create()
+    $ps.Runspace = $rs
+    $ps.AddScript($portScript).AddArgument($portName).AddArgument($baudRate).AddArgument($logPath) | Out-Null
+    [void]$ps.BeginInvoke()
 }
 
 Write-Host "Logging to $LogPath"
 Write-Host "Watching ZMK dongle logs. Ctrl-C to stop."
-Write-Host "Auto-detect prefers 0011:0007 MI_03, then 1209:C000 MI_03, then 1D50:615E MI_03."
 
-$driverHintShown = $false
-
-while ($true) {
-    $currentPortName = Get-DonglePortName
-    if (-not $currentPortName) {
-        if (-not $driverHintShown -and (Test-DongleUsbInterfacePresent)) {
-            Show-DriverHint
-            $driverHintShown = $true
-        }
-        Start-Sleep -Seconds 1
-        continue
+# -PortName forces specific ports; otherwise auto-detect all matching ports
+if ($PortName -and $PortName.Count -gt 0) {
+    $activePorts = [System.Collections.Generic.HashSet[string]]::new()
+    foreach ($p in $PortName) {
+        Write-Host "Monitoring $p (manual)"
+        Start-PortMonitor -portName $p -baudRate $BaudRate -logPath $LogPath
+        $activePorts.Add($p) | Out-Null
     }
-
+    # Keep main thread alive
+    while ($true) { Start-Sleep -Seconds 60 }
+} else {
+    $activePorts = [System.Collections.Generic.HashSet[string]]::new()
     $driverHintShown = $false
-    $port = New-Object System.IO.Ports.SerialPort $currentPortName, $BaudRate, "None", 8, "One"
-    $port.ReadTimeout = 500
-    $port.DtrEnable = $true
-    $port.RtsEnable = $false
 
-    try {
-        $port.Open()
-        $port.DiscardInBuffer()
-        Start-Sleep -Milliseconds 200
-        Write-Host "--- connected $currentPortName (baud=$BaudRate dtr=$($port.DtrEnable) rts=$($port.RtsEnable)) ---"
-        Write-Host "Note: USB CDC ACM ignores host baud on most ZMK builds; DTR is the important signal."
+    while ($true) {
+        $found = @(Get-DongleSerialPorts)
 
-        while ($true) {
-            try {
-                $data = $port.ReadExisting()
-                if ($data.Length -gt 0) {
-                    Write-Host -NoNewline $data
-                    Add-Content -Path $LogPath -Value $data
-                } else {
-                    Start-Sleep -Milliseconds 100
+        if ($found.Count -eq 0) {
+            if (-not $driverHintShown -and (Test-DongleUsbInterfacePresent)) {
+                Show-DriverHint
+                $driverHintShown = $true
+            }
+        } else {
+            $driverHintShown = $false
+            foreach ($p in $found) {
+                if ($activePorts.Add($p.DeviceID)) {
+                    Write-Host "Found $($p.DeviceID) -> starting monitor"
+                    Start-PortMonitor -portName $p.DeviceID -baudRate $BaudRate -logPath $LogPath
                 }
-            } catch {
-                break
             }
         }
-    } finally {
-        if ($port -and $port.IsOpen) {
-            $port.Close()
-        }
-    }
 
-    Write-Host "--- disconnected, retrying ---"
-    Start-Sleep -Seconds 1
+        Start-Sleep -Seconds 2
+    }
 }

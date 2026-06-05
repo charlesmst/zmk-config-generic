@@ -40,8 +40,8 @@ manifest:
       revision: feat/esb-shared-state-broadcast
 
     - name: zmk-input-processor-report-rate-limit
-      remote: badjeff
-      revision: f43f37a
+      remote: charlesmst
+      revision: fix/esb-reduce-keyslots-wider-jitter
 
     - name: zmk-input-processor-xyz
       remote: badjeff

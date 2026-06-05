@@ -21,7 +21,7 @@ manifest:
 
     - name: zmk-feature-split-esb
       remote: charlesmst
-      revision: fix/esb-reduce-keyslots-wider-jitter
+      revision: zmk-0.3
 
     - name: sdk-nrf
       remote: nrfconnect

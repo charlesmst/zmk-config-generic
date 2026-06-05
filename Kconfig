@@ -101,4 +101,15 @@ config ROBA_PMW3610_PERIPHERAL_KEYMAP_COMPAT
       ZMK keymap state, so layer-based PMW3610 modes cannot be evaluated
       there; the central still processes the shared keymap.
 
+config ROBA_USB_BLE_EXCLUSIVE
+    bool "Disable BLE while USB is the selected endpoint"
+    depends on BT && ZMK_BLE && ZMK_USB
+    default n
+    help
+      When the active ZMK endpoint switches to USB, call bt_disable() to
+      fully shut down BLE and release the MPSL timeslot session, freeing
+      radio bandwidth for ESB or other radio users.  When switching back
+      to a non-USB endpoint, bt_enable(NULL) is called and BLE advertising
+      is restarted via update_advertising() in ZMK's ble.c.
+
 endmenu

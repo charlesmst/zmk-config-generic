@@ -50,7 +50,8 @@
  * central keymap before including this) it's a hold-3s soft-off power button;
  * everywhere else it stays Alt+Space. */
 #ifdef ZMK_CENTRAL_SOFT_OFF
-#define KEY_AFTER_B &soft_off
+/* tap = Alt+Space (the normal key); hold 3s = soft-off power button */
+#define KEY_AFTER_B &ht_softoff 0 LA(SPACE)
 #else
 #define KEY_AFTER_B &kp LA(SPACE)
 #endif

@@ -42,8 +42,18 @@
     };
 };
 
-/* Soft-off power button: the base-layer key after B (KEY_AFTER_B -> &soft_off on
- * central builds). Hold 3s to power off; wakes from the left matrix or reset. */
-&soft_off {
-    hold-time-ms = <3000>;
+/ {
+    behaviors {
+        /* Base-layer key after B (central only): tap = Alt+Space, hold 3s =
+         * soft-off. soft_off keeps its default instant trigger; the 3s gate is
+         * the hold-tap's tapping-term. tap-preferred so rolling keys never
+         * accidentally power off. Wakes from the left matrix or the reset button. */
+        ht_softoff: ht_softoff {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            bindings = <&soft_off>, <&kp>;
+            tapping-term-ms = <3000>;
+            flavor = "tap-preferred";
+        };
+    };
 };

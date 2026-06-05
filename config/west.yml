@@ -21,7 +21,7 @@ manifest:
 
     - name: zmk-feature-split-esb
       remote: charlesmst
-      revision: feat/esb-shared-state-broadcast
+      revision: fix/esb-reduce-keyslots-wider-jitter
 
     - name: sdk-nrf
       remote: nrfconnect
@@ -41,7 +41,7 @@ manifest:
 
     - name: zmk-input-processor-report-rate-limit
       remote: charlesmst
-      revision: fix/esb-reduce-keyslots-wider-jitter
+      revision: feat/timer-driven-report-rate-limit
 
     - name: zmk-input-processor-xyz
       remote: badjeff

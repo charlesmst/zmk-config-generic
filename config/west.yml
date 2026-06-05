@@ -37,7 +37,7 @@ manifest:
     - name: zmk-pmw3610-driver
       remote: charlesmst
       repo-path: zmk-pmw3610-driver-efog
-      revision: feat/runtime-report-rate
+      revision: feat/esb-shared-state-broadcast
 
     - name: zmk-input-processor-report-rate-limit
       remote: badjeff
@@ -57,7 +57,7 @@ manifest:
 
     - name: zmk-paw3395-driver
       remote: charlesmst
-      revision: feat/runtime-report-rate
+      revision: feat/esb-shared-state-broadcast
 
     - name: zmk-vfx-rgbled-indicator
       remote: ggrocer

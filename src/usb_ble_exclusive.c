@@ -3,13 +3,20 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * usb_ble_exclusive: fully disable BLE when USB is the selected endpoint,
- * re-enable it when switching away from USB.
+ * usb_ble_exclusive: fully disable BLE when USB is physically connected,
+ * re-enable it when USB is disconnected.
  *
  * Rationale: bt_disable() releases the MPSL timeslot session, freeing radio
  * bandwidth for ESB.  bt_enable(NULL) restores it; update_advertising() then
  * restarts BLE advertising without re-registering any callbacks (Zephyr's
  * bt_conn_cb_register guards against double-registration).
+ *
+ * Why zmk_usb_conn_state_changed instead of zmk_endpoint_changed:
+ * zmk_endpoint_changed only fires with BLE transport when BLE is already
+ * connected (is_ble_ready() = zmk_ble_active_profile_is_connected()).  With
+ * BLE disabled there are no connections, so OUT_BLE falls back to USB,
+ * zmk_endpoint_changed never fires with BLE transport, and BLE is never
+ * re-enabled.  Driving off physical USB state avoids this circular dependency.
  */
 
 #include <zephyr/kernel.h>
@@ -17,8 +24,8 @@
 #include <zephyr/logging/log.h>
 
 #include <zmk/event_manager.h>
-#include <zmk/events/endpoint_changed.h>
-#include <zmk/endpoints_types.h>
+#include <zmk/events/usb_conn_state_changed.h>
+#include <zmk/usb.h>
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -51,7 +58,7 @@ static void do_enable_ble(struct k_work *work)
 {
     ARG_UNUSED(work);
 
-    LOG_INF("usb_ble_exclusive: re-enabling BLE");
+    LOG_INF("usb_ble_exclusive: re-enabling BLE (USB disconnected)");
 
     int err = bt_enable(NULL);
     if (err && err != -EALREADY) {
@@ -76,7 +83,7 @@ static void do_disable_ble(struct k_work *work)
 {
     ARG_UNUSED(work);
 
-    LOG_INF("usb_ble_exclusive: disabling BLE (USB selected)");
+    LOG_INF("usb_ble_exclusive: disabling BLE (USB connected)");
 
     int err = bt_disable();
     if (err) {
@@ -90,22 +97,22 @@ static void do_disable_ble(struct k_work *work)
 
 static int usb_ble_exclusive_listener(const zmk_event_t *eh)
 {
-    const struct zmk_endpoint_changed *ev = as_zmk_endpoint_changed(eh);
+    const struct zmk_usb_conn_state_changed *ev = as_zmk_usb_conn_state_changed(eh);
     if (ev == NULL) {
         return ZMK_EV_EVENT_BUBBLE;
     }
 
-    if (ev->endpoint.transport == ZMK_TRANSPORT_USB) {
-        k_work_submit(&disable_ble_work);
-    } else {
+    if (ev->conn_state == ZMK_USB_CONN_NONE) {
         k_work_submit(&enable_ble_work);
+    } else {
+        k_work_submit(&disable_ble_work);
     }
 
     return ZMK_EV_EVENT_BUBBLE;
 }
 
 ZMK_LISTENER(usb_ble_exclusive, usb_ble_exclusive_listener);
-ZMK_SUBSCRIPTION(usb_ble_exclusive, zmk_endpoint_changed);
+ZMK_SUBSCRIPTION(usb_ble_exclusive, zmk_usb_conn_state_changed);
 
 /* ------------------------------------------------------------------ */
 /*  Init                                                                */

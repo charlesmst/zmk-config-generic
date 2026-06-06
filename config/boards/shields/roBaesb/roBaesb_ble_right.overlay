@@ -6,7 +6,6 @@
 #include "roBaesb_ble_addr.dtsi"
 #endif
 #include <input/processors/xyz.dtsi>
-#include <input/processors/report_rate_limit.dtsi>
 #include <behaviors/input_processor_sigmoid_accel.dtsi>
 
 
@@ -27,11 +26,11 @@
 &trackball_listener {
     status = "okay";
     device = <&trackball>;
-    input-processors = <&sigmoid_accel>, <&zip_ble_report_rate_limit 8>;
+    input-processors = <&sigmoid_accel>;
 
     scroll {
         layers = <10>;
-        input-processors = <&zip_ble_report_rate_limit 8>, <&zip_xy_scaler 1 10>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>, <&sigmoid_accel>;
+        input-processors = <&zip_xy_scaler 1 10>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>, <&sigmoid_accel>;
     };
 
     snipe {
@@ -51,5 +50,7 @@
     y-invert;
     force-awake;
     force-high-performance;
+    usb-rate-ms = <2>;
+    ble-rate-ms = <8>;
     /delete-property/ invert-y;
 };

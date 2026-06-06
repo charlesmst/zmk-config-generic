@@ -40,8 +40,8 @@ manifest:
       revision: feat/dynamic-pmw3610-report-rate
 
     - name: zmk-input-processor-report-rate-limit
-      remote: charlesmst
-      revision: feat/timer-driven-report-rate-limit
+      remote: badjeff
+      revision: main
 
     - name: zmk-input-processor-xyz
       remote: badjeff

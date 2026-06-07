@@ -1,15 +1,15 @@
 ---
 include:
-  - board: seeeduino_xiao_ble
+  - board: xiao_ble
     shield: roBa_R
     snippet: studio-rpc-usb-uart
 
-  - board: seeeduino_xiao_ble
+  - board: xiao_ble
     shield: roBa_L
 
-  - board: seeeduino_xiao_ble
+  - board: xiao_ble
     shield: roBa_L_enc_inv
     artifact-name: roBa_L_enc_inv
 
-  - board: seeeduino_xiao_ble
+  - board: xiao_ble
     shield: settings_reset

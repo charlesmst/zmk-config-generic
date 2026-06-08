@@ -3,7 +3,7 @@ id: roBakesb
 name: roBakesb (kumbung01 ESB)
 type: shield
 url: https://github.com/charlesmst/zmk-config-generic
-requires: [seeeduino_xiao_ble]
+requires: [pro_micro]
 features:
   - keys
   - pointer

@@ -1,6 +1,3 @@
-/* Alias xiao_d to pro_micro so any board with a pro_micro connector works. */
-xiao_d: &pro_micro {};
-
 #include "../roBaesb/roBaesb_addr.dtsi"
 
 / {

@@ -3,8 +3,8 @@ include:
   - board: xiao_ble//zmk
     shield: settings_reset
 
-  # kumbung01 ESB dongle setup (nice!nano v2 as USB dongle)
-  - board: nice_nano@2.0.0//zmk
+  # kumbung01 ESB dongle setup (xiao_ble as USB central)
+  - board: xiao_ble//zmk
     shield: roBakesb
     snippet: zmk-usb-logging
     artifact-name: roBakesb_dongle

@@ -6,6 +6,8 @@ manifest:
       url-base: https://github.com/charlesmst
     - name: kumbung01
       url-base: https://github.com/kumbung01
+    - name: nrfconnect
+      url-base: https://github.com/nrfconnect
     - name: urob
       url-base: https://github.com/urob
 
@@ -32,6 +34,17 @@ manifest:
     - name: zmk-feature-split-esb
       remote: kumbung01
       revision: main
+
+    - name: sdk-nrf
+      remote: kumbung01
+      revision: v3.1-branch-tdma-fhss
+      path: nrf
+
+    - name: nrfxlib
+      remote: nrfconnect
+      revision: v3.1-branch
+      repo-path: sdk-nrfxlib
+      path: nrfxlib
 
   self:
     path: config

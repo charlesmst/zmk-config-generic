@@ -3,6 +3,7 @@
 / {
     chosen {
         zmk,kscan = &kscan0;
+        zmk,esb-self = &esb_left;
     };
 
     kscan0: kscan {
@@ -39,4 +40,3 @@
         triggers-per-rotation = <10>;
     };
 };
-

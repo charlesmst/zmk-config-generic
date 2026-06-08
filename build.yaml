@@ -3,11 +3,30 @@ include:
   - board: xiao_ble//zmk
     shield: settings_reset
 
-  # kumbung01 ESB dongle setup (xiao_ble as USB central)
-  - board: xiao_ble//zmk
+  # Damex ESB dongle setup (nice!nano v2 as USB central)
+  - board: nice_nano@2.0.0//zmk
     shield: roBakesb
     snippet: zmk-usb-logging
     artifact-name: roBakesb_dongle
+
+  # Damex ESB dongle setup (MakerDiary nRF52840 MDK USB dongle as USB central)
+  - board: nrf52840_mdk_usb_dongle
+    shield: roBakesb
+    snippet: zmk-usb-logging
+    artifact-name: roBakesb_mdk_dongle
+
+  # Same MDK dongle build with symbols/asserts/RTT for probe debugging
+  - board: nrf52840_mdk_usb_dongle
+    shield: roBakesb
+    snippet: zmk-usb-logging
+    cmake-args: -DEXTRA_CONF_FILE=/home/charlesstein/personal/zmk-config-generic/config/boards/shields/roBakesb/roBakesb_debug.conf
+    artifact-name: roBakesb_mdk_dongle_debug
+
+  # Damex ESB setup with the physical right half as USB central
+  - board: xiao_ble//zmk
+    shield: roBakesb_right_central
+    snippet: zmk-usb-logging
+    artifact-name: roBakesb_right_central
 
   - board: xiao_ble//zmk
     shield: roBakesb_left

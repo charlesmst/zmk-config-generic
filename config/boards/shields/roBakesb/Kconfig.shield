@@ -6,6 +6,3 @@ config SHIELD_ROBAKESB_LEFT
 
 config SHIELD_ROBAKESB_RIGHT
     def_bool $(shields_list_contains,roBakesb_right)
-
-config SHIELD_ROBAKESB_RIGHT_CENTRAL
-    def_bool $(shields_list_contains,roBakesb_right_central)

@@ -27,16 +27,3 @@ config ZMK_SPLIT
     default y
 
 endif # SHIELD_ROBAKESB_RIGHT
-
-if SHIELD_ROBAKESB_RIGHT_CENTRAL
-
-config ZMK_KEYBOARD_NAME
-    default "roBa KESB RC"
-
-config ZMK_SPLIT
-    default y
-
-config ZMK_SPLIT_ROLE_CENTRAL
-    default y
-
-endif # SHIELD_ROBAKESB_RIGHT_CENTRAL

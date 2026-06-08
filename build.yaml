@@ -15,19 +15,6 @@ include:
     snippet: zmk-usb-logging
     artifact-name: roBakesb_mdk_dongle
 
-  # Same MDK dongle build with symbols/asserts/RTT for probe debugging
-  - board: nrf52840_mdk_usb_dongle
-    shield: roBakesb
-    snippet: zmk-usb-logging
-    cmake-args: -DEXTRA_CONF_FILE=/home/charlesstein/personal/zmk-config-generic/config/boards/shields/roBakesb/roBakesb_debug.conf
-    artifact-name: roBakesb_mdk_dongle_debug
-
-  # Damex ESB setup with the physical right half as USB central
-  - board: xiao_ble//zmk
-    shield: roBakesb_right_central
-    snippet: zmk-usb-logging
-    artifact-name: roBakesb_right_central
-
   - board: xiao_ble//zmk
     shield: roBakesb_left
     snippet: zmk-usb-logging

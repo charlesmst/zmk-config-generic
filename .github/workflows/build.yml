@@ -1,5 +1,137 @@
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
+  matrix:
+    runs-on: ubuntu-22.04
+    name: Fetch Build Keyboards
+    outputs:
+      build_matrix: ${{ env.build_matrix }}
+      has_valid_build_matrix: ${{ steps.fetch.outputs.has_valid_build_matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch Build Matrix
+        id: fetch
+        run: |
+          matrix_content=$(yq -oj -I0 'build.yaml')
+          if [ -z "$matrix_content" ] || [ "$matrix_content" = "null" ]; then
+            echo "has_valid_build_matrix=false" >> $GITHUB_OUTPUT
+          else
+            echo "build_matrix=$matrix_content" >> $GITHUB_ENV
+            echo "has_valid_build_matrix=true" >> $GITHUB_OUTPUT
+          fi
+
   build:
-    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@main
+    runs-on: ubuntu-latest
+    container:
+      image: zmkfirmware/zmk-build-arm:stable
+    needs: matrix
+    if: needs.matrix.outputs.has_valid_build_matrix == 'true'
+    name: Build (${{ matrix.board }}, ${{ matrix.shield }})
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix.outputs.build_matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create build directory
+        run: echo "build_dir=$(mktemp -d)" >> $GITHUB_ENV
+
+      - name: Prepare variables
+        env:
+          board: ${{ matrix.board }}
+          shield: ${{ matrix.shield }}
+          snippet: ${{ matrix.snippet }}
+          artifact_name: ${{ matrix.artifact-name }}
+        shell: bash -x {0}
+        run: |
+          base_dir="${TMPDIR:-/tmp}/zmk-config"
+          mkdir -p "${base_dir}"
+          echo "base_dir=${base_dir}" >> $GITHUB_ENV
+          echo "zephyr_version=${ZEPHYR_VERSION}" >> $GITHUB_ENV
+          if [ -n "${snippet}" ]; then
+            echo "extra_west_args=-S \"${snippet}\"" >> $GITHUB_ENV
+          fi
+          echo "extra_cmake_args=${shield:+-DSHIELD=\"$shield\"}" >> $GITHUB_ENV
+          echo "display_name=${shield:+$shield - }${board}" >> $GITHUB_ENV
+          echo "artifact_name=${artifact_name:-${shield:+$shield-}${board//\//_}-zmk}" >> $GITHUB_ENV
+
+      - name: Copy config files to isolated temporary directory
+        run: |
+          mkdir -p "${{ env.base_dir }}/config"
+          cp -R config/* "${{ env.base_dir }}/config/"
+
+      - name: Cache west modules
+        uses: actions/cache@v4
+        continue-on-error: true
+        with:
+          path: ${{ env.base_dir }}/modules/
+          key: ${{ runner.os }}-build-${{ env.zephyr_version }}-modules-${{ hashFiles('**/west.yml', '**/build.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.zephyr_version }}-modules-
+            ${{ runner.os }}-build-
+
+      - name: West Init
+        working-directory: ${{ env.base_dir }}
+        run: west init -l "${{ env.base_dir }}/config"
+
+      - name: West Update
+        working-directory: ${{ env.base_dir }}
+        run: west update --fetch-opt=--filter=tree:0
+
+      - name: Apply NRF SDK patches from ESB module
+        working-directory: ${{ env.base_dir }}
+        run: |
+          esb_dir=$(west list -f "{abspath}" zmk-feature-split-esb 2>/dev/null || true)
+          nrf_dir=$(west list -f "{abspath}" sdk-nrf 2>/dev/null || true)
+          if [ -d "${esb_dir}/zephyr/patches/nrf" ] && [ -d "${nrf_dir}" ]; then
+            echo "Applying NRF patches from ${esb_dir}/zephyr/patches/nrf"
+            for patch in "${esb_dir}"/zephyr/patches/nrf/*.patch; do
+              echo "  -> $(basename $patch)"
+              git -C "${nrf_dir}" apply --ignore-whitespace "${patch}" || true
+            done
+          else
+            echo "No patches dir found (esb_dir=${esb_dir}, nrf_dir=${nrf_dir})"
+          fi
+
+      - name: West Zephyr export
+        working-directory: ${{ env.base_dir }}
+        run: west zephyr-export
+
+      - name: West Build (${{ env.display_name }})
+        working-directory: ${{ env.base_dir }}
+        shell: sh -x {0}
+        run: west build -s zmk/app -d "${{ env.build_dir }}" -b "${{ matrix.board }}" ${{ env.extra_west_args }} -- -DZMK_CONFIG=${{ env.base_dir }}/config ${{ env.extra_cmake_args }} ${{ matrix.cmake-args }}
+
+      - name: ${{ env.display_name }} Kconfig file
+        if: ${{ !cancelled() }}
+        run: |
+          if [ -f "${{ env.build_dir }}/zephyr/.config" ]; then
+            grep -v -e "^#" -e "^$" "${{ env.build_dir }}/zephyr/.config" | sort
+          fi
+
+      - name: ${{ env.display_name }} Devicetree file
+        if: ${{ !cancelled() }}
+        run: |
+          if [ -f "${{ env.build_dir }}/zephyr/zephyr.dts" ]; then
+            cat "${{ env.build_dir }}/zephyr/zephyr.dts"
+          fi
+
+      - name: Rename artifacts
+        run: |
+          mkdir -p "${{ env.build_dir }}/artifacts"
+          if [ -f "${{ env.build_dir }}/zephyr/zmk.uf2" ]; then
+            cp "${{ env.build_dir }}/zephyr/zmk.uf2" "${{ env.build_dir }}/artifacts/${{ env.artifact_name }}.uf2"
+          fi
+          if [ -f "${{ env.build_dir }}/zephyr/zmk.hex" ]; then
+            cp "${{ env.build_dir }}/zephyr/zmk.hex" "${{ env.build_dir }}/artifacts/${{ env.artifact_name }}.hex"
+          fi
+
+      - name: Archive (${{ env.display_name }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.artifact_name }}
+          path: ${{ env.build_dir }}/artifacts/
+          if-no-files-found: ignore

@@ -2,6 +2,7 @@
  * pro_micro connector. */
 xiao_d: &pro_micro {};
 
+#include <behaviors.dtsi>
 #include "../roBa/roBa.dtsi"
 #include "../roBaesb/roBaesb_addr.dtsi"
 #include <behaviors/input_processor_sigmoid_accel.dtsi>

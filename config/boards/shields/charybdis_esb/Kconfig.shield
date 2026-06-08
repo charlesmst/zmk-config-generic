@@ -1,8 +1,0 @@
-config SHIELD_CHARYBDIS_ESB
-    def_bool $(shields_list_contains,charybdis_esb)
-
-config SHIELD_CHARYBDIS_ESB_LEFT
-    def_bool $(shields_list_contains,charybdis_esb_left)
-
-config SHIELD_CHARYBDIS_ESB_RIGHT
-    def_bool $(shields_list_contains,charybdis_esb_right)

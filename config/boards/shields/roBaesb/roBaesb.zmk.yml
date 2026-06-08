@@ -10,11 +10,5 @@ features:
 siblings:
   - roBaesb
   - roBaesb_left
+  - roBaesb_left_enc_inv
   - roBaesb_right
-  - roBaesb_ble_right
-  - roBaesb_ble_left
-  - roBaesb_ble_left_enc_inv
-  - roBaesb_display
-  - roBaesb_display_ble
-  - roBaesb_ble_left_central
-  - roBaesb_ble_left_central_enc_inv

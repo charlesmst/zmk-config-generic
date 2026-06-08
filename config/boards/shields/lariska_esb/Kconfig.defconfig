@@ -1,9 +1,0 @@
-if SHIELD_LARISKA_ESB
-
-config ZMK_KEYBOARD_NAME
-    default "Lariska ESB"
-
-config ZMK_SPLIT
-    default y
-
-endif

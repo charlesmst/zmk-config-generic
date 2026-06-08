@@ -1,2 +1,0 @@
-config SHIELD_LARISKA_ESB
-    def_bool $(shields_list_contains,lariska_esb)

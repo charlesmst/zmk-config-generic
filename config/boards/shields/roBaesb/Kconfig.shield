@@ -4,29 +4,8 @@ config SHIELD_ROBAESB
 config SHIELD_ROBAESB_LEFT
     def_bool $(shields_list_contains,roBaesb_left)
 
-config SHIELD_ROBAESB_RIGHT
-    def_bool $(shields_list_contains,roBaesb_right)
-
 config SHIELD_ROBAESB_LEFT_ENC_INV
     def_bool $(shields_list_contains,roBaesb_left_enc_inv)
 
-config SHIELD_ROBAESB_BLE_RIGHT
-    def_bool $(shields_list_contains,roBaesb_ble_right)
-
-config SHIELD_ROBAESB_BLE_LEFT
-    def_bool $(shields_list_contains,roBaesb_ble_left)
-
-config SHIELD_ROBAESB_BLE_LEFT_ENC_INV
-    def_bool $(shields_list_contains,roBaesb_ble_left_enc_inv)
-
-config SHIELD_ROBAESB_DISPLAY
-    def_bool $(shields_list_contains,roBaesb_display)
-
-config SHIELD_ROBAESB_DISPLAY_BLE
-    def_bool $(shields_list_contains,roBaesb_display_ble)
-
-config SHIELD_ROBAESB_BLE_LEFT_CENTRAL
-    def_bool $(shields_list_contains,roBaesb_ble_left_central)
-
-config SHIELD_ROBAESB_BLE_LEFT_CENTRAL_ENC_INV
-    def_bool $(shields_list_contains,roBaesb_ble_left_central_enc_inv)
+config SHIELD_ROBAESB_RIGHT
+    def_bool $(shields_list_contains,roBaesb_right)

@@ -52,11 +52,9 @@
 };
 
 &trackball {
-    compatible = "pixart,pmw3610";
     spi-max-frequency = <2000000>;
     y-invert;
     force-awake;
-    /delete-property/ invert-y;
     usb-rate-ms = <2>;
     ble-rate-ms = <8>;
 };

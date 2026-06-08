@@ -4,7 +4,6 @@ xiao_d: &pro_micro {};
 
 #include "../roBa/roBa.dtsi"
 #include "../roBaesb/roBaesb_addr.dtsi"
-#include <input/processors/xyz.dtsi>
 #include <behaviors/input_processor_sigmoid_accel.dtsi>
 
 / {

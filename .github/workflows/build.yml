@@ -95,6 +95,13 @@ jobs:
           else
             echo "No patches dir found (esb_dir=${esb_dir}, nrf_dir=${nrf_dir})"
           fi
+          # damex's CMakeLists applies -Wduplicated-branches + -Werror which fires
+          # as a false positive on Zephyr's cbprintf_internal.h macro expansion,
+          # and -fanalyzer which is very slow. Strip both.
+          if [ -f "${esb_dir}/CMakeLists.txt" ]; then
+            sed -i '/-Wduplicated-branches\|-fanalyzer/d' "${esb_dir}/CMakeLists.txt"
+            echo "Patched ESB CMakeLists.txt (removed -Wduplicated-branches, -fanalyzer)"
+          fi
 
       - name: West Zephyr export
         working-directory: ${{ env.base_dir }}

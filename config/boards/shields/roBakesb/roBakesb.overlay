@@ -1,16 +1,11 @@
-/* Alias xiao_d to pro_micro so roBa.dtsi resolves on any board with a
- * pro_micro connector. */
+/* Alias xiao_d to pro_micro so any board with a pro_micro connector works. */
 xiao_d: &pro_micro {};
 
-#include <behaviors.dtsi>
-#include "../roBa/roBa.dtsi"
 #include "../roBaesb/roBaesb_addr.dtsi"
-#include <behaviors/input_processor_sigmoid_accel.dtsi>
 
 / {
     chosen {
         zmk,kscan = &mock_kscan;
-        zmk,physical-layout = &roba_physical_layout;
         zephyr,console = &snippet_zmk_usb_logging_uart;
         zephyr,shell-uart = &snippet_zmk_usb_logging_uart;
     };
@@ -21,41 +16,25 @@ xiao_d: &pro_micro {};
         rows = <0>;
         events = <0>;
     };
+
+    split_inputs {
+        #address-cells = <1>;
+        #size-cells = <0>;
+        trackball_split: trackball_split@0 {
+            compatible = "zmk,input-split";
+            reg = <0>;
+            status = "okay";
+        };
+    };
 };
 
-&zephyr_udc0 {
+zephyr_udc0: &usbd {
+    compatible = "nordic,nrf-usbd";
+    status = "okay";
+};
+
+&usbd {
     snippet_zmk_usb_logging_uart: snippet_zmk_usb_logging_uart {
         compatible = "zephyr,cdc-acm-uart";
-    };
-};
-
-&kscan0 {
-    status = "disabled";
-};
-
-&roba_physical_layout {
-    kscan = <&mock_kscan>;
-};
-
-&trackball_split {
-    status = "okay";
-};
-
-&sigmoid_accel {
-    cpi = <2600>;
-};
-
-&trackball_listener {
-    status = "okay";
-    input-processors = <&sigmoid_accel>;
-
-    scroll {
-        layers = <10>;
-        input-processors = <&zip_xy_scaler 1 10>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>, <&sigmoid_accel>;
-    };
-
-    snipe {
-        layers = <11>;
-        input-processors = <&zip_xy_scaler 1 3>;
     };
 };

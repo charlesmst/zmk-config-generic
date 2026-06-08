@@ -2,6 +2,7 @@
 #include <physical_layouts.dtsi>
 #include <input/processors.dtsi>
 #include <dt-bindings/zmk/input_transform.h>
+#include <behaviors/input_processor_sigmoid_accel.dtsi>
 
 / {
     chosen {
@@ -23,6 +24,7 @@
         compatible = "zmk,input-listener";
         status = "disabled";
         device = <&trackball_split>;
+        input-processors = <&sigmoid_accel>;
 
         scroll {
             layers = <10>;

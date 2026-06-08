@@ -13,6 +13,11 @@ manifest:
       revision: main
       import: app/west.yml
 
+    - name: zmk-pmw3610-driver
+      remote: charlesmst
+      repo-path: zmk-pmw3610-driver-efog
+      revision: zmk0.4
+
     - name: zmk-input-processor-accel
       remote: charlesmst
       revision: main

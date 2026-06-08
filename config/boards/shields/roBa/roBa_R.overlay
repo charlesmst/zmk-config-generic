@@ -26,3 +26,7 @@
     status = "okay";
     device = <&trackball>;
 };
+
+&sigmoid_accel {
+    cpi = <2600>;
+};

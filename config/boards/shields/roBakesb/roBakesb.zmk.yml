@@ -1,0 +1,13 @@
+file_format: "1"
+id: roBakesb
+name: roBakesb (kumbung01 ESB)
+type: shield
+url: https://github.com/charlesmst/zmk-config-generic
+requires: [seeeduino_xiao_ble]
+features:
+  - keys
+  - pointer
+siblings:
+  - roBakesb
+  - roBakesb_left
+  - roBakesb_right

@@ -13,3 +13,16 @@ include:
 
   - board: xiao_ble//zmk
     shield: settings_reset
+
+  # kumbung01 ESB dongle setup (Nine Nano as USB dongle)
+  - board: xiao_ble//zmk
+    shield: roBakesb
+    artifact-name: roBakesb_dongle
+
+  - board: xiao_ble//zmk
+    shield: roBakesb_left
+    artifact-name: roBakesb_left
+
+  - board: xiao_ble//zmk
+    shield: roBakesb_right
+    artifact-name: roBakesb_right

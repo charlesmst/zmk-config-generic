@@ -1,0 +1,38 @@
+if SHIELD_ROBAKESB
+
+config ZMK_KEYBOARD_NAME
+    default "roBa KESB"
+
+config ZMK_SPLIT
+    default y
+
+config ZMK_SPLIT_ROLE_CENTRAL
+    default y
+
+config ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS
+    default 2
+
+config BT_MAX_PAIRED
+    default 2
+
+endif # SHIELD_ROBAKESB
+
+if SHIELD_ROBAKESB_LEFT
+
+config ZMK_KEYBOARD_NAME
+    default "roBa KESB L"
+
+config ZMK_SPLIT
+    default y
+
+endif # SHIELD_ROBAKESB_LEFT
+
+if SHIELD_ROBAKESB_RIGHT
+
+config ZMK_KEYBOARD_NAME
+    default "roBa KESB R"
+
+config ZMK_SPLIT
+    default y
+
+endif # SHIELD_ROBAKESB_RIGHT

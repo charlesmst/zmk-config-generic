@@ -4,7 +4,7 @@ include:
     shield: settings_reset
 
   # kumbung01 ESB dongle setup (nice!nano v2 as USB dongle)
-  - board: nice_nano_v2//zmk
+  - board: nice_nano@2.0.0//zmk
     shield: roBakesb
     artifact-name: roBakesb_dongle
 

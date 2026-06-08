@@ -1,2 +1,2 @@
-/* roBakesb keymap — reuses the roBaesb layout */
-#include "roBaesb.keymap"
+/* roBakesb keymap — reuses the roBa layout */
+#include "roBa.keymap"

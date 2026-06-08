@@ -26,8 +26,5 @@ xiao_d: &pro_micro {};
     };
 };
 
-/* Enable USB hardware so the snippet's CDC ACM node has a parent. */
-zephyr_udc0: &usbd {
-    compatible = "nordic,nrf-usbd";
-    status = "okay";
-};
+/* nice_nano already defines zephyr_udc0: &usbd { status = "okay" } in its
+ * base DTS, so no explicit USB enable is needed here. */

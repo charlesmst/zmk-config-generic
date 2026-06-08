@@ -5,12 +5,28 @@
  */
 
 / {
-    esb_split {
-        compatible = "zmk,esb-split";
-        // These are arbitrary default addresses. In end user products
-        // different addresses should be used for each set of devices.
-        base-addr-0 = <0x72 0xA1 0x5C 0x3E>;
-        base-addr-1 = <0x2D 0x74 0x91 0x58>;
-        addr-prefix = <0xD3 0xB7 0xA4 0x95 0x8E 0x7C 0x6B 0x5A>;
+    esb_link: esb_link {
+        compatible = "zmk,split-esb";
+        base-address = [72 A1 5C 3E];
+        hop-channels = [04];
+        bitrate-kbps = <2000>;
+
+        peripherals {
+            pipe = <0>;
+            prefix = <0xD3>;
+            weight = <1>;
+
+            esb_left: peripheral_left {
+                pipe = <0>;
+                prefix = <0xD3>;
+                weight = <1>;
+            };
+
+            esb_right: peripheral_right {
+                pipe = <1>;
+                prefix = <0xB7>;
+                weight = <1>;
+            };
+        };
     };
 };

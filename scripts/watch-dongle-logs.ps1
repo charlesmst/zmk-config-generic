@@ -136,6 +136,23 @@ function Start-PortMonitor {
 Write-Host "Logging to $LogPath"
 Write-Host "Watching ZMK dongle logs. Ctrl-C to stop."
 
+# ── startup diagnostic ──────────────────────────────────────────────────────
+Write-Host ""
+Write-Host "=== All COM ports on this machine ==="
+Get-CimInstance Win32_SerialPort | Sort-Object DeviceID |
+    Select-Object DeviceID, Name, @{N="PNP";E={$_.PNPDeviceID}} |
+    Format-Table -AutoSize
+
+Write-Host "=== All USB PnP entities (VID_1D50, VID_1209, VID_239A, VID_0011) ==="
+Get-CimInstance Win32_PnPEntity | Where-Object {
+    $_.PNPDeviceID -match "USB\\VID_(1D50|1209|239A|0011)"
+} | Sort-Object PNPDeviceID |
+    Select-Object @{N="PNP";E={$_.PNPDeviceID}}, Name, Status |
+    Format-Table -AutoSize
+Write-Host "──────────────────────────────────────────────────────────────────"
+Write-Host ""
+# ────────────────────────────────────────────────────────────────────────────
+
 # -PortName forces specific ports; otherwise auto-detect all matching ports
 if ($PortName -and $PortName.Count -gt 0) {
     $activePorts = [System.Collections.Generic.HashSet[string]]::new()

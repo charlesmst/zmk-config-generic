@@ -52,5 +52,5 @@
     force-awake;
     force-high-performance;
     usb-rate-ms = <2>;
-    ble-rate-ms = <2>;
+    ble-rate-ms = <8>;
 };

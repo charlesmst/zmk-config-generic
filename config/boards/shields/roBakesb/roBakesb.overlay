@@ -6,8 +6,6 @@ xiao_d: &pro_micro {};
 / {
     chosen {
         zmk,kscan = &mock_kscan;
-        zephyr,console = &snippet_zmk_usb_logging_uart;
-        zephyr,shell-uart = &snippet_zmk_usb_logging_uart;
     };
 
     mock_kscan: mock_kscan_0 {
@@ -28,13 +26,8 @@ xiao_d: &pro_micro {};
     };
 };
 
+/* Enable USB hardware so the snippet's CDC ACM node has a parent. */
 zephyr_udc0: &usbd {
     compatible = "nordic,nrf-usbd";
     status = "okay";
-};
-
-&usbd {
-    snippet_zmk_usb_logging_uart: snippet_zmk_usb_logging_uart {
-        compatible = "zephyr,cdc-acm-uart";
-    };
 };

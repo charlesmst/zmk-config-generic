@@ -5,8 +5,6 @@
 / {
     chosen {
         zmk,kscan = &kscan0;
-        zephyr,console = &snippet_zmk_usb_logging_uart;
-        zephyr,shell-uart = &snippet_zmk_usb_logging_uart;
     };
 
     kscan0: kscan {
@@ -45,11 +43,6 @@
     cpi = <2600>;
 };
 
-&zephyr_udc0 {
-    snippet_zmk_usb_logging_uart: snippet_zmk_usb_logging_uart {
-        compatible = "zephyr,cdc-acm-uart";
-    };
-};
 
 &trackball {
     spi-max-frequency = <2000000>;

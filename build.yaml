@@ -6,12 +6,15 @@ include:
   # kumbung01 ESB dongle setup (nice!nano v2 as USB dongle)
   - board: nice_nano@2.0.0//zmk
     shield: roBakesb
+    snippet: zmk-usb-logging
     artifact-name: roBakesb_dongle
 
   - board: xiao_ble//zmk
     shield: roBakesb_left
+    snippet: zmk-usb-logging
     artifact-name: roBakesb_left
 
   - board: xiao_ble//zmk
     shield: roBakesb_right
+    snippet: zmk-usb-logging
     artifact-name: roBakesb_right

@@ -13,7 +13,9 @@ include:
   - board: nrf52840_mdk_usb_dongle
     shield: roBakesb
     snippet: zmk-usb-logging
+    cmake-args: -DCONFIG_BUILD_OUTPUT_UF2=y
     artifact-name: roBakesb_mdk_dongle
+
 
   - board: xiao_ble//zmk
     shield: roBakesb_left

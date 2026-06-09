@@ -21,6 +21,12 @@
             status = "okay";
         };
     };
+
+    trackball_listener: trackball_listener {
+        compatible = "zmk,input-listener";
+        status = "okay";
+        device = <&trackball_split>;
+    };
 };
 
 /* nice_nano already defines zephyr_udc0: &usbd { status = "okay" } in its

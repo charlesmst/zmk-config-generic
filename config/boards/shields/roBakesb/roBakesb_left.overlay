@@ -1,4 +1,4 @@
-#include "../roBaesb/roBaesb_addr.dtsi"
+#include "roBakesb_addr.dtsi"
 
 / {
     chosen {

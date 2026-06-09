@@ -1,4 +1,4 @@
-#include "../roBaesb/roBaesb_addr.dtsi"
+#include "roBakesb_addr.dtsi"
 #include "../roBa/roBa_R_trackball.dtsi"
 #include <behaviors/input_processor_sigmoid_accel.dtsi>
 

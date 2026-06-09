@@ -33,20 +33,8 @@ manifest:
 
     - name: zmk-feature-split-esb
       remote: damex
-      revision: main
+      revision: v0.2.3
       import: true
-
-    - name: sdk-nrf
-      remote: nrfconnect
-      revision: v3.1.1
-      repo-path: sdk-nrf
-      path: nrf
-
-    - name: nrfxlib
-      remote: nrfconnect
-      revision: v3.1.1
-      repo-path: sdk-nrfxlib
-      path: nrfxlib
 
   self:
     path: config

@@ -27,11 +27,13 @@ function Get-CandidatePortScore {
     $name = [string]$Port.Name
 
     if ($pnpId -like "USB\VID_0011&PID_0007&MI_03*") { $score += 500 }
-    elseif ($pnpId -like "USB\VID_1209&PID_C000&MI_03*") { $score += 450 }
-    elseif ($pnpId -like "USB\VID_1D50&PID_615E&MI_03*") { $score += 425 }
+    elseif ($pnpId -like "USB\VID_1D50&PID_615E&MI_03*") { $score += 450 }
+    elseif ($pnpId -like "USB\VID_239A&*MI_03*") { $score += 400 }
+    elseif ($pnpId -like "USB\VID_2886&*MI_03*") { $score += 375 }
     elseif ($pnpId -like "USB\VID_0011&PID_0007*") { $score += 350 }
-    elseif ($pnpId -like "USB\VID_1209&PID_C000*") { $score += 300 }
-    elseif ($pnpId -like "USB\VID_1D50&PID_615E*") { $score += 275 }
+    elseif ($pnpId -like "USB\VID_1D50&PID_615E*") { $score += 300 }
+    elseif ($pnpId -like "USB\VID_239A*") { $score += 250 }
+    elseif ($pnpId -like "USB\VID_2886*") { $score += 225 }
 
     if ($pnpId -match "&MI_03\\") { $score += 100 }
     elseif ($pnpId -match "&MI_") { $score += 25 }
@@ -41,11 +43,27 @@ function Get-CandidatePortScore {
     return $score
 }
 
+function Test-LikelyZmkUsbDevice {
+    param($Device)
+
+    $pnpId = [string]$Device.PNPDeviceID
+    $name = [string]$Device.Name
+
+    return (
+        $pnpId -like "USB\VID_0011&PID_0007*" -or
+        $pnpId -like "USB\VID_1D50&PID_615E*" -or
+        $pnpId -like "USB\VID_239A*" -or
+        $pnpId -like "USB\VID_2886*" -or
+        $name -like "*ZMK*" -or
+        $name -like "*roBa*" -or
+        $name -like "*XIAO*" -or
+        $name -like "*CDC*"
+    )
+}
+
 function Get-DongleSerialPorts {
     $ports = @(Get-CimInstance Win32_SerialPort | Where-Object {
-            $_.PNPDeviceID -like "USB\VID_0011&PID_0007*" -or
-            $_.PNPDeviceID -like "USB\VID_1209&PID_C000*" -or
-            $_.PNPDeviceID -like "USB\VID_1D50&PID_615E*"
+            Test-LikelyZmkUsbDevice $_
         })
 
     return $ports |
@@ -54,9 +72,7 @@ function Get-DongleSerialPorts {
 
 function Test-DongleUsbInterfacePresent {
     $interfaces = @(Get-CimInstance Win32_PnPEntity | Where-Object {
-            $_.PNPDeviceID -like "USB\VID_0011&PID_0007*" -or
-            $_.PNPDeviceID -like "USB\VID_1209&PID_C000*" -or
-            $_.PNPDeviceID -like "USB\VID_1D50&PID_615E*"
+            Test-LikelyZmkUsbDevice $_
         })
 
     return $interfaces.Count -gt 0
@@ -143,9 +159,9 @@ Get-CimInstance Win32_SerialPort | Sort-Object DeviceID |
     Select-Object DeviceID, Name, @{N="PNP";E={$_.PNPDeviceID}} |
     Format-Table -AutoSize
 
-Write-Host "=== All USB PnP entities (VID_1D50, VID_1209, VID_239A, VID_0011) ==="
+Write-Host "=== All USB PnP entities (VID_1D50, VID_1209, VID_239A, VID_2886, VID_0011) ==="
 Get-CimInstance Win32_PnPEntity | Where-Object {
-    $_.PNPDeviceID -match "USB\\VID_(1D50|1209|239A|0011)"
+    $_.PNPDeviceID -match "USB\\VID_(1D50|1209|239A|2886|0011)"
 } | Sort-Object PNPDeviceID |
     Select-Object @{N="PNP";E={$_.PNPDeviceID}}, Name, Status |
     Format-Table -AutoSize

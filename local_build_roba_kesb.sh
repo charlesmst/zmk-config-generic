@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-# Build script for roBakesb — kumbung01 ESB dongle setup.
-# Uses the badjeff-zmk-config workspace (which has sdk-nrf v3.1-branch-tdma-fhss
-# and the kumbung01 zmk-feature-split-esb module available).
+# Build script for roBakesb — Damex ESB dongle setup.
+# Uses the west workspace rooted in this repository.
 #
 # Usage:
 #   ./local_build_roba_kesb.sh [artifact-name]   # build one target
@@ -11,7 +10,7 @@
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORKSPACE="${WORKSPACE:-$HOME/personal/badjeff-zmk-config}"
+WORKSPACE="${WORKSPACE:-$REPO_DIR}"
 ZMK_APP="$WORKSPACE/zmk/app"
 ZMK_CONFIG="$REPO_DIR/config"
 OUTPUT_DIR="$REPO_DIR/firmware"
@@ -23,26 +22,11 @@ else
     echo "⚠  Zephyr SDK 0.17.0 not found; using 0.16.8"
 fi
 
-OLD_WORKSPACE="$HOME/personal/zmk-config-roBa-charybdis-esb"
-
-# kumbung01 zmk-feature-split-esb module — clone if not present
-KESB_MODULE="$HOME/personal/zmk-feature-split-esb"
-if [[ ! -d "$KESB_MODULE" ]]; then
-    echo "→ Cloning kumbung01/zmk-feature-split-esb to $KESB_MODULE ..."
-    git clone --depth=1 https://github.com/kumbung01/zmk-feature-split-esb.git "$KESB_MODULE"
-fi
-
 EXTRA_MODULES=(
     "$ZMK_APP/module"
     "$ZMK_APP/keymap-module"
-    "$OLD_WORKSPACE/zmk-paw3395-driver"
-    "$OLD_WORKSPACE/zmk-dongle-display"
-    "$OLD_WORKSPACE/zmk-input-processor-xyz"
-    "$OLD_WORKSPACE/zmk-input-processor-report-rate-limit"
-    "$OLD_WORKSPACE/zmk-input-processor-accel"
-    "$OLD_WORKSPACE/zmk-vfx-rgbled-indicator"
-    "$OLD_WORKSPACE/modules/zmk/tri-state"
-    "$KESB_MODULE"
+    "$WORKSPACE/modules/zmk/tri-state"
+    "$WORKSPACE/zmk-feature-split-esb"
     "$REPO_DIR"
 )
 
@@ -140,6 +124,16 @@ build_target() {
         echo "✓ $OUTPUT_DIR/$name.uf2"
         if [[ -d "$DOWNLOADS" ]]; then cp "$uf2" "$DOWNLOADS/$name.uf2" && echo "✓ $DOWNLOADS/$name.uf2"; fi
     elif [[ -f "$build_dir/zephyr/zmk.hex" ]]; then
+        local uf2conv="$WORKSPACE/zephyr/scripts/build/uf2conv.py"
+        if [[ "$board" == *"nrf52840"* && -f "$uf2conv" ]]; then
+            python3 "$uf2conv" -c -f NRF52840 \
+                -o "$OUTPUT_DIR/$name.uf2" "$build_dir/zephyr/zmk.hex"
+            echo "✓ $OUTPUT_DIR/$name.uf2"
+            if [[ -d "$DOWNLOADS" ]]; then
+                cp "$OUTPUT_DIR/$name.uf2" "$DOWNLOADS/$name.uf2"
+                echo "✓ $DOWNLOADS/$name.uf2"
+            fi
+        fi
         cp "$build_dir/zephyr/zmk.hex" "$OUTPUT_DIR/$name.hex"
         echo "✓ $OUTPUT_DIR/$name.hex"
     else

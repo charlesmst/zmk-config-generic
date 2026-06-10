@@ -29,7 +29,7 @@
             };
         };
 
-        tx-power-dbm = <0>;
+        tx-power-dbm = <4>;
         retransmit-count = <6>;
         retransmit-delay-us = <600>;
         use-fast-ramp-up;

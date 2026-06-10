@@ -1,7 +1,6 @@
 #include "roBa_matrix.dtsi"
 #include "roBakesb_addr.dtsi"
 #include "roBa_R_trackball.dtsi"
-#include <behaviors/input_processor_sigmoid_accel.dtsi>
 
 / {
     chosen {
@@ -42,18 +41,8 @@
 &trackball_split {
     status = "okay";
     device = <&trackball>;
-    input-processors = <&sigmoid_accel>;
 };
-
-&sigmoid_accel {
-    cpi = <2600>;
-};
-
 
 &trackball {
     spi-max-frequency = <2000000>;
-    y-invert;
-    force-awake;
-    usb-rate-ms = <2>;
-    ble-rate-ms = <8>;
 };

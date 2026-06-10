@@ -1,4 +1,4 @@
-#include "../roBa/roBa_matrix.dtsi"
+#include "roBa_matrix.dtsi"
 #include "roBakesb_addr.dtsi"
 
 / {

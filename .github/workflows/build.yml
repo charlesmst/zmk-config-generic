@@ -85,15 +85,12 @@ jobs:
         working-directory: ${{ env.base_dir }}
         run: |
           esb_dir=$(west list -f "{abspath}" zmk-feature-split-esb 2>/dev/null || true)
-          nrf_dir=$(west list -f "{abspath}" sdk-nrf 2>/dev/null || true)
-          if [ -d "${esb_dir}/zephyr/patches/nrf" ] && [ -d "${nrf_dir}" ]; then
+          if [ -d "${esb_dir}/zephyr/patches/nrf" ]; then
             echo "Applying NRF patches from ${esb_dir}/zephyr/patches/nrf"
-            for patch in "${esb_dir}"/zephyr/patches/nrf/*.patch; do
-              echo "  -> $(basename $patch)"
-              git -C "${nrf_dir}" apply --ignore-whitespace "${patch}" || true
-            done
+            west patch -sm zmk-feature-split-esb clean || true
+            west patch -sm zmk-feature-split-esb apply -r
           else
-            echo "No patches dir found (esb_dir=${esb_dir}, nrf_dir=${nrf_dir})"
+            echo "No patches dir found (esb_dir=${esb_dir})"
           fi
           # damex's CMakeLists applies -Wduplicated-branches + -Werror which fires
           # as a false positive on Zephyr's cbprintf_internal.h macro expansion,

@@ -2,6 +2,8 @@
  * Shared ESB link identity for the roBakesb dongle and both peripherals.
  * Every side must include the same base address, channel set, and peripheral
  * table. Each peripheral overlay selects its own entry with zmk,esb-self.
+ * The trackball_listener is disabled here; the dongle overlay enables it.
+ * The right peripheral overlay assigns device = <&trackball> to trackball_split.
  */
 
 #include <zephyr/dt-bindings/input/input-event-codes.h>
@@ -35,5 +37,21 @@
         lossy-codes
             = <INPUT_EV_REL INPUT_REL_X>
             , <INPUT_EV_REL INPUT_REL_Y>;
+    };
+
+    split_inputs {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        trackball_split: trackball_split@0 {
+            compatible = "zmk,input-split";
+            reg = <0>;
+        };
+    };
+
+    trackball_listener: trackball_listener {
+        compatible = "zmk,input-listener";
+        status = "disabled";
+        device = <&trackball_split>;
     };
 };

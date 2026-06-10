@@ -27,17 +27,11 @@
             ;
     };
 
-    split_inputs {
-        #address-cells = <1>;
-        #size-cells = <0>;
-        trackball_split: trackball_split@0 {
-            compatible = "zmk,input-split";
-            reg = <0>;
-            device = <&trackball>;
-            input-processors = <&sigmoid_accel>;
-            status = "okay";
-        };
-    };
+};
+
+&trackball_split {
+    device = <&trackball>;
+    input-processors = <&sigmoid_accel>;
 };
 
 &sigmoid_accel {

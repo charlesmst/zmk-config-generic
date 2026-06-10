@@ -1,8 +1,10 @@
+#include "../roBa/roBa_matrix.dtsi"
 #include "roBakesb_addr.dtsi"
 
 / {
     chosen {
         zmk,kscan = &kscan0;
+        zmk,physical-layout = &roba_physical_layout;
         zmk,esb-self = &esb_left;
     };
 
@@ -39,4 +41,8 @@
         sensors = <&left_encoder>;
         triggers-per-rotation = <10>;
     };
+};
+
+&roba_physical_layout {
+    kscan = <&kscan0>;
 };

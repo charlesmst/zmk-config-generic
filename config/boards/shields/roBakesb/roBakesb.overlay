@@ -1,8 +1,10 @@
+#include "../roBa/roBa_matrix.dtsi"
 #include "roBakesb_addr.dtsi"
 
 / {
     chosen {
         zmk,kscan = &mock_kscan;
+        zmk,physical-layout = &roba_physical_layout;
     };
 
     mock_kscan: mock_kscan_0 {
@@ -11,6 +13,10 @@
         rows = <0>;
         events = <0>;
     };
+};
+
+&roba_physical_layout {
+    kscan = <&mock_kscan>;
 };
 
 &trackball_listener {

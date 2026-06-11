@@ -1,0 +1,2 @@
+/* nice_nano doesn't define xiao_d natively — alias it to pro_micro. */
+xiao_d: &pro_micro {};

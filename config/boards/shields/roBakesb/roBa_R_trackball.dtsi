@@ -24,7 +24,7 @@
     status = "disabled";
 
     trackball: trackball@0 {
-        compatible = "pixart,pmw3610";
+        compatible = "pixart,pmw3610-efogtech";
         status = "disabled";
         reg = <0>;
         spi-max-frequency = <4000000>;
@@ -43,10 +43,14 @@
 
 &trackball {
     status = "okay";
-    motion-gpios = <&gpio0 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-    res-cpi = <2600>;
-    zephyr,axis-x = <INPUT_REL_X>;
-    zephyr,axis-y = <INPUT_REL_Y>;
-    invert-y;
+    irq-gpios = <&gpio0 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+    cpi = <2600>;
+    evt-type = <INPUT_EV_REL>;
+    x-input-code = <INPUT_REL_X>;
+    y-input-code = <INPUT_REL_Y>;
+    y-invert;
     force-awake;
+    force-high-performance;
+    usb-rate-ms = <2>;
+    ble-rate-ms = <2>;
 };

@@ -1,5 +1,7 @@
 #include "roBa_matrix.dtsi"
 #include "roBakesb_addr.dtsi"
+#include <input/processors.dtsi>
+#include <dt-bindings/zmk/input_transform.h>
 
 / {
     chosen {
@@ -13,6 +15,20 @@
         rows = <0>;
         events = <0>;
     };
+
+    left_encoder: encoder_left {
+        compatible = "alps,ec11";
+        a-gpios = <&xiao_d 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        b-gpios = <&xiao_d 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        steps = <12>;
+        status = "disabled";
+    };
+
+    sensors: sensors {
+        compatible = "zmk,keymap-sensors";
+        sensors = <&left_encoder>;
+        triggers-per-rotation = <10>;
+    };
 };
 
 &roba_physical_layout {
@@ -25,6 +41,16 @@
 
 &trackball_listener {
     status = "okay";
+
+    scroll {
+        layers = <10>;
+        input-processors = <&zip_xy_scaler 1 10>, <&zip_xy_to_scroll_mapper>;
+    };
+
+    snipe {
+        layers = <11>;
+        input-processors = <&zip_xy_scaler 1 3>;
+    };
 };
 
 /* nice_nano already defines zephyr_udc0: &usbd { status = "okay" } in its

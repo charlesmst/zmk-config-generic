@@ -26,7 +26,9 @@ EXTRA_MODULES=(
     "$ZMK_APP/module"
     "$ZMK_APP/keymap-module"
     "$WORKSPACE/modules/zmk/tri-state"
+    "$WORKSPACE/modules/zmk/input-processor-accel"
     "$WORKSPACE/zmk-feature-split-esb"
+    "$WORKSPACE/zmk-pmw3610-driver"
     "$REPO_DIR"
 )
 

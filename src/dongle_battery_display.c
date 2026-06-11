@@ -8,13 +8,16 @@
 #include <zmk/battery.h>
 #include <zmk/event_manager.h>
 #include <zmk/events/battery_state_changed.h>
+#include <zmk/keymap.h>
+#include <zmk/events/layer_state_changed.h>
+
+#ifdef CONFIG_ZMK_BLE
 #include <zmk/endpoints.h>
 #include <zmk/endpoints_types.h>
 #include <zmk/events/endpoint_changed.h>
 #include <zmk/ble.h>
 #include <zmk/events/ble_active_profile_changed.h>
-#include <zmk/keymap.h>
-#include <zmk/events/layer_state_changed.h>
+#endif
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -25,7 +28,11 @@ LV_FONT_DECLARE(dongle_icons);
 #define ICON_RIGHT_KB "\xEE\x80\x82"
 #define ICON_MOUSE    "\xEE\x80\x83"
 
+#ifdef CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS
 #define NUM_PERIPHERALS CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS
+#else
+#define NUM_PERIPHERALS 2
+#endif
 #define NUM_LABELS      (1 + NUM_PERIPHERALS)
 
 BUILD_ASSERT(NUM_PERIPHERALS <= 3, "dongle_battery_display supports up to 3 peripherals");
@@ -42,13 +49,15 @@ static lv_obj_t *conn_label;
 static lv_obj_t *layer_label;
 
 struct display_state {
-    uint8_t            bat_levels[NUM_LABELS];
-    bool               bat_valid[NUM_LABELS];
+    uint8_t bat_levels[NUM_LABELS];
+    bool    bat_valid[NUM_LABELS];
+    uint8_t active_layer;
+#ifdef CONFIG_ZMK_BLE
     enum zmk_transport transport;
     int                ble_profile;
     bool               ble_connected;
     bool               ble_bonded;
-    uint8_t            active_layer;
+#endif
 };
 
 K_MUTEX_DEFINE(state_mutex);
@@ -61,7 +70,7 @@ static void update_display(struct k_work *work) {
 
     char buf[24];
 
-    /* Connection label: USB symbol or WiFi symbol with profile + status */
+#ifdef CONFIG_ZMK_BLE
     if (s.transport == ZMK_TRANSPORT_USB) {
         strncpy(buf, LV_SYMBOL_USB, sizeof(buf));
     } else if (s.ble_bonded) {
@@ -73,6 +82,9 @@ static void update_display(struct k_work *work) {
     } else {
         snprintf(buf, sizeof(buf), LV_SYMBOL_WIFI " %d " LV_SYMBOL_SETTINGS, s.ble_profile + 1);
     }
+#else
+    strncpy(buf, LV_SYMBOL_USB, sizeof(buf));
+#endif
     if (strcmp(lv_label_get_text(conn_label), buf) != 0) {
         lv_label_set_text(conn_label, buf);
     }
@@ -136,6 +148,7 @@ static int peripheral_bat_listener(const zmk_event_t *eh) {
     return ZMK_EV_EVENT_BUBBLE;
 }
 
+#ifdef CONFIG_ZMK_BLE
 static void refresh_ble_state(void) {
     struct zmk_endpoint_instance ep = zmk_endpoints_selected();
     k_mutex_lock(&state_mutex, K_FOREVER);
@@ -157,6 +170,7 @@ static int ble_profile_listener(const zmk_event_t *eh) {
     schedule_update();
     return ZMK_EV_EVENT_BUBBLE;
 }
+#endif
 
 static int layer_listener(const zmk_event_t *eh) {
     const struct zmk_layer_state_changed *ev = as_zmk_layer_state_changed(eh);
@@ -175,11 +189,13 @@ ZMK_SUBSCRIPTION(dongle_bat_display, zmk_battery_state_changed);
 ZMK_LISTENER(peripheral_bat_display, peripheral_bat_listener);
 ZMK_SUBSCRIPTION(peripheral_bat_display, zmk_peripheral_battery_state_changed);
 
+#ifdef CONFIG_ZMK_BLE
 ZMK_LISTENER(endpoint_display, endpoint_listener);
 ZMK_SUBSCRIPTION(endpoint_display, zmk_endpoint_changed);
 
 ZMK_LISTENER(ble_profile_display, ble_profile_listener);
 ZMK_SUBSCRIPTION(ble_profile_display, zmk_ble_active_profile_changed);
+#endif
 
 ZMK_LISTENER(layer_display, layer_listener);
 ZMK_SUBSCRIPTION(layer_display, zmk_layer_state_changed);
@@ -207,7 +223,9 @@ lv_obj_t *zmk_display_status_screen(void) {
     dstate.bat_valid[0]  = true;
     dstate.active_layer  = zmk_keymap_highest_layer_active();
     k_mutex_unlock(&state_mutex);
+#ifdef CONFIG_ZMK_BLE
     refresh_ble_state();
+#endif
 
     k_work_submit_to_queue(zmk_display_work_q(), &update_work);
 

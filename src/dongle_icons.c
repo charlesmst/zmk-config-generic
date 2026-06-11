@@ -63,8 +63,6 @@ static const lv_font_fmt_txt_cmap_t dongle_icons_cmaps[] = {
     },
 };
 
-static lv_font_fmt_txt_glyph_cache_t dongle_icons_cache;
-
 static const lv_font_fmt_txt_dsc_t dongle_icons_dsc = {
     .glyph_bitmap  = dongle_icons_bitmap,
     .glyph_dsc     = dongle_icons_glyph_dsc,
@@ -75,7 +73,6 @@ static const lv_font_fmt_txt_dsc_t dongle_icons_dsc = {
     .bpp           = 1,
     .kern_classes  = 0,
     .bitmap_format = 0,
-    .cache         = &dongle_icons_cache,
 };
 
 const lv_font_t dongle_icons = {

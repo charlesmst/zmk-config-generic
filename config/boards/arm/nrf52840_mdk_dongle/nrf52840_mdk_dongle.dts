@@ -141,7 +141,17 @@ xiao_serial: &uart0 {};
 &adc {
 	status = "okay";
 };
-@@ -101,57 +155,58 @@
+
+&gpiote {
+	status = "okay";
+};
+
+&gpio0 {
+	status = "okay";
+};
+
+&gpio1 {
+	status = "okay";
 };
 
 &uart0 {
@@ -197,7 +207,7 @@ xiao_serial: &uart0 {};
 	};
 };
 
-&usbd {
+zephyr_udc0: &usbd {
 	compatible = "nordic,nrf-usbd";
 	status = "okay";
 };

@@ -17,3 +17,5 @@ firmware
 build_roba_kesb/roBakesb_dongle
 build_roba_kesb/roBakesb_left
 build_roba_kesb/roBakesb_right
+build_roba_kesb/roBakesb_dongle_mdk
+*.log

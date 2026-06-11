@@ -46,3 +46,7 @@
 &roba_physical_layout {
     kscan = <&kscan0>;
 };
+
+&esb_link {
+    retransmit-delay-us = <600>;
+};

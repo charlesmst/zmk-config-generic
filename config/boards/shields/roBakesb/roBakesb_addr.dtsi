@@ -11,7 +11,7 @@
 / {
     esb_link: esb_link {
         compatible = "zmk,split-esb";
-        base-address = [E7 E7 E7 E7];
+        base-address = [E7 E3 A7 E8];
         address-length = <4>;
         hop-channels = [18 19 31 32 4A 4B 4C 4D 4E 4F 50];
 
@@ -30,7 +30,7 @@
         };
 
         tx-power-dbm = <4>;
-        retransmit-count = <6>;
+        retransmit-count = <8>;
         retransmit-delay-us = <600>;
         use-fast-ramp-up;
         bitrate-kbps = <2000>;

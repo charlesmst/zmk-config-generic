@@ -14,3 +14,6 @@ zmk-input-processor-xyz
 zmk-pmw3610-driver
 .west
 firmware
+build_roba_kesb/roBakesb_dongle
+build_roba_kesb/roBakesb_left
+build_roba_kesb/roBakesb_right

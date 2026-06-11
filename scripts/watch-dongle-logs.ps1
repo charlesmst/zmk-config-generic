@@ -1,5 +1,5 @@
 param(
-    [string]$LogPath = "$env:USERPROFILE\Downloads\charybdis_dongle.log",
+    [string]$LogPath = "$env:USERPROFILE\Downloads\damex_dongle.log",
     [string[]]$PortName,
     [int]$BaudRate = 115200
 )
@@ -87,6 +87,7 @@ function Show-DriverHint {
 # Per-port monitor loop — runs in its own runspace
 $portScript = {
     param($portName, $baudRate, $logPath)
+    $logPath = "$logPath.$portName.log"
 
     while ($true) {
         $port = $null
@@ -98,7 +99,9 @@ $portScript = {
             $port.Open()
             $port.DiscardInBuffer()
             Start-Sleep -Milliseconds 200
-            [Console]::WriteLine("--- connected $portName ---")
+            $msg = "--- connected $portName ---"
+            [Console]::WriteLine($msg)
+            [System.IO.File]::AppendAllText($logPath, $msg + "`n")
 
             $lineBuffer = ""
             while ($true) {
@@ -129,11 +132,15 @@ $portScript = {
         # If the device was unplugged, exit the runspace instead of looping forever.
         $portExists = [bool](Get-CimInstance Win32_SerialPort -Filter "DeviceID='$portName'" -ErrorAction SilentlyContinue)
         if (-not $portExists) {
-            [Console]::WriteLine("--- $portName gone, stopping monitor ---")
+            $msg = "--- $portName gone, stopping monitor ---"
+            [Console]::WriteLine($msg)
+            [System.IO.File]::AppendAllText($logPath, $msg + "`n")
             return
         }
 
-        [Console]::WriteLine("--- $portName disconnected, retrying ---")
+        $msg = "--- $portName disconnected, retrying ---"
+        [Console]::WriteLine($msg)
+        [System.IO.File]::AppendAllText($logPath, $msg + "`n")
         Start-Sleep -Seconds 1
     }
 }
@@ -149,7 +156,7 @@ function Start-PortMonitor {
     [void]$ps.BeginInvoke()
 }
 
-Write-Host "Logging to $LogPath"
+Write-Host "Logging to $LogPath.<PORTNAME>.log (one file per port)"
 Write-Host "Watching ZMK dongle logs. Ctrl-C to stop."
 
 # ── startup diagnostic ──────────────────────────────────────────────────────

@@ -38,6 +38,10 @@
     kscan = <&kscan0>;
 };
 
+&esb_link {
+    retransmit-delay-us = <870>;
+};
+
 &trackball_split {
     status = "okay";
     device = <&trackball>;
@@ -46,3 +50,4 @@
 &trackball {
     spi-max-frequency = <2000000>;
 };
+

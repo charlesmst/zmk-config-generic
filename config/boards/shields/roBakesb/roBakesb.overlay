@@ -1,5 +1,6 @@
 #include "roBa_matrix.dtsi"
 #include "roBakesb_addr.dtsi"
+#include "roBakesb_lariska_transform.dtsi"
 #include <input/processors.dtsi>
 #include <dt-bindings/zmk/input_transform.h>
 
@@ -16,6 +17,8 @@
         events = <0>;
     };
 
+    /* Placeholder encoder at slot 0 so lariska_encoder lands at slot 1.
+     * Events for slot 0 come from the left keyboard peripheral (real ec11). */
     left_encoder: encoder_left {
         compatible = "alps,ec11";
         a-gpios = <&xiao_d 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
@@ -24,10 +27,30 @@
         status = "disabled";
     };
 
+    /* Placeholder encoder at slot 1; real events come from lariska QDEC. */
+    lariska_encoder: lariska_encoder_ph {
+        compatible = "alps,ec11";
+        a-gpios = <&xiao_d 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        b-gpios = <&xiao_d 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        steps = <48>;
+        status = "disabled";
+    };
+
     sensors: sensors {
         compatible = "zmk,keymap-sensors";
-        sensors = <&left_encoder>;
-        triggers-per-rotation = <10>;
+        sensors = <&left_encoder &lariska_encoder>;
+        left_enc_cfg: left_enc_cfg {
+            triggers-per-rotation = <10>;
+        };
+        lariska_enc_cfg: lariska_enc_cfg {
+            triggers-per-rotation = <24>;
+        };
+    };
+
+    mouse_input_listener: mouse_input_listener {
+        compatible = "zmk,input-listener";
+        status = "okay";
+        device = <&mouse_split>;
     };
 };
 
@@ -39,12 +62,16 @@
     status = "okay";
 };
 
+&mouse_split {
+    status = "okay";
+};
+
 &trackball_listener {
     status = "okay";
 
     scroll {
         layers = <10>;
-        input-processors = <&zip_xy_scaler 1 10>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>,  <&zip_xy_to_scroll_mapper>;
+        input-processors = <&zip_xy_scaler 1 10>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>;
     };
 
     snipe {

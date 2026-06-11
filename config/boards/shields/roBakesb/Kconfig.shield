@@ -6,3 +6,6 @@ config SHIELD_ROBAKESB_LEFT
 
 config SHIELD_ROBAKESB_RIGHT
     def_bool $(shields_list_contains,roBakesb_right)
+
+config SHIELD_ROBAKESB_LARISKA
+    def_bool $(shields_list_contains,roBakesb_lariska)

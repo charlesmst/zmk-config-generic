@@ -10,6 +10,8 @@ manifest:
       url-base: https://github.com/nrfconnect
     - name: urob
       url-base: https://github.com/urob
+    - name: ggrocer
+      url-base: https://github.com/greengrocer98
 
   projects:
     - name: zmk
@@ -21,6 +23,14 @@ manifest:
       remote: charlesmst
       repo-path: zmk-pmw3610-driver-efog
       revision: zmk0.4
+
+    - name: zmk-paw3395-driver
+      remote: charlesmst
+      revision: feat/dynamic-paw3395-report-rate
+
+    - name: zmk-vfx-rgbled-indicator
+      remote: ggrocer
+      revision: main
 
     - name: zmk-input-processor-accel
       remote: charlesmst

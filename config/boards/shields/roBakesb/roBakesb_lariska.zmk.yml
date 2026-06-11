@@ -1,0 +1,8 @@
+file_format: "1"
+id: roBakesb_lariska
+name: roBa KESB Lariska
+type: shield
+url: https://github.com/charlesmst/zmk-config-generic
+features:
+  - keys
+  - pointer

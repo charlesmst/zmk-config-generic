@@ -1,0 +1,155 @@
+/* Lariska mouse as ESB peripheral (peripheral ID 2, pipe 2) for the roBakesb system.
+ * Runs on nice_nano v2.
+ * Pins identical to the standalone lariska firmware.
+ */
+
+#include "roBa_matrix.dtsi"
+#include "roBakesb_addr.dtsi"
+#include "roBakesb_lariska_transform.dtsi"
+#include "mouse_leds.dtsi"
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/ {
+    chosen {
+        zmk,battery   = &vbatt;
+        zmk,kscan     = &lariska_kscan;
+        zmk,backlight = &backlight;
+        zmk,physical-layout = &roba_physical_layout;
+        zmk,esb-self  = &esb_lariska;
+    };
+
+    /* 5-button GPIO-direct scanner for the mouse buttons */
+    lariska_kscan: lariska_kscan {
+        compatible = "zmk,kscan-gpio-direct";
+        wakeup-source;
+        input-gpios
+            = <&gpio0 30 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio0 28 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio0  2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio0  3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            ;
+    };
+
+    vbatt: vbatt {
+        compatible = "zmk,battery-voltage-divider";
+        io-channels = <&adc 7>;
+        output-ohms = <400000>;
+        full-ohms   = <(1000000 + 400000)>;
+    };
+
+    /* Disabled placeholder at slot 0 so lariska_encoder lands at slot 1.
+     * Slot 0 sensor events come from the left keyboard peripheral. */
+    _ph_enc: _ph_enc {
+        compatible = "alps,ec11";
+        a-gpios = <&gpio0 31 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        b-gpios = <&gpio0 31 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        steps = <1>;
+        status = "disabled";
+    };
+
+    sensors: sensors {
+        compatible = "zmk,keymap-sensors";
+        sensors = <&_ph_enc &lariska_encoder>;
+        ph_enc_cfg: ph_enc_cfg {
+            triggers-per-rotation = <10>;
+        };
+        lariska_enc_cfg: lariska_enc_cfg {
+            triggers-per-rotation = <24>;
+        };
+    };
+};
+
+/* The GPIO-direct kscan uses a 1-row × 5-col virtual matrix.
+ * col-offset = 11 maps local cols 0-4 → global cols 11-15,
+ * so the extended transform finds them at indices 43-47. */
+&default_transform {
+    col-offset = <11>;
+};
+
+/* Point physical layout at the real kscan so button events are dispatched */
+&roba_physical_layout {
+    kscan = <&lariska_kscan>;
+};
+
+/* Connect PAW3395 to the mouse_split so the dongle receives pointer events */
+&mouse_split {
+    status = "okay";
+    device = <&mou0>;
+};
+
+/* QDEC hardware encoder (same pin assignment as standalone lariska firmware) */
+&pinctrl {
+    qdec_default: qdec_default {
+        group1 {
+            psels = <NRF_PSEL(QDEC_A, 0, 1)>,
+                    <NRF_PSEL(QDEC_B, 0, 0)>;
+        };
+    };
+    qdec_sleep: qdec_sleep {
+        group1 {
+            psels = <NRF_PSEL(QDEC_A, 0, 1)>,
+                    <NRF_PSEL(QDEC_B, 0, 0)>;
+            low-power-enable;
+        };
+    };
+};
+
+/* Assign lariska_encoder to qdec0 so it sits at sensor index 1 */
+lariska_encoder: &qdec0 {
+    status = "okay";
+    led-pre = <0>;
+    steps   = <48>;
+    pinctrl-0    = <&qdec_default>;
+    pinctrl-1    = <&qdec_sleep>;
+    pinctrl-names = "default", "sleep";
+};
+
+/* PAW3395 SPI (same pins as standalone lariska firmware) */
+&pinctrl {
+    spi2_default: spi2_default {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK,  0, 6)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 5)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 4)>;
+        };
+    };
+    spi2_sleep: spi2_sleep {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK,  0, 6)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 5)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 4)>;
+            low-power-enable;
+        };
+    };
+};
+
+&spi2 {
+    compatible = "nordic,nrf-spim";
+    status = "okay";
+    pinctrl-0 = <&spi2_default>;
+    pinctrl-1 = <&spi2_sleep>;
+    pinctrl-names = "default", "sleep";
+    cs-gpios = <&gpio0 27 GPIO_ACTIVE_LOW>;
+
+    mou0: pd@0 {
+        compatible = "pixart,paw3395";
+        status = "okay";
+        label = "MOU0";
+        reg = <0>;
+        spi-max-frequency = <4000000>;
+        irq-gpios = <&gpio0 7 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        cpi = <1600>;
+        invert-x;
+        evt-type = <INPUT_EV_REL>;
+        x-input-code = <INPUT_REL_X>;
+        y-input-code = <INPUT_REL_Y>;
+        /* usb-rate-ms = 1ms at 1000 Hz, ble-rate-ms = 8ms at ~120 Hz.
+         * The central broadcasts USB/BLE state; driver adjusts automatically. */
+        usb-rate-ms = <1>;
+        ble-rate-ms = <8>;
+        /* DPI cycle button on bottom of mouse: cycles through report rates. */
+        rate-cycle-gpios = <&gpio1 15 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        rate-cycle-rates-ms = <8 4 1>;
+    };
+};

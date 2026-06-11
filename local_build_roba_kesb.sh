@@ -28,6 +28,8 @@ EXTRA_MODULES=(
     "$WORKSPACE/modules/zmk/tri-state"
     "$WORKSPACE/zmk-feature-split-esb"
     "$WORKSPACE/zmk-pmw3610-driver"
+    "$WORKSPACE/zmk-paw3395-driver"
+    "$WORKSPACE/zmk-vfx-rgbled-indicator"
     "$REPO_DIR"
 )
 

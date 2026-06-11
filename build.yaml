@@ -24,3 +24,8 @@ include:
     shield: roBakesb_right
     snippet: zmk-usb-logging
     artifact-name: roBakesb_right
+
+  - board: nice_nano@2.0.0//zmk
+    shield: roBakesb_lariska
+    snippet: zmk-usb-logging
+    artifact-name: roBakesb_lariska

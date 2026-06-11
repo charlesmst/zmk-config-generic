@@ -41,6 +41,10 @@ manifest:
       remote: urob
       revision: main
 
+    - name: zmk-behavior-stepped-scroll
+      remote: damex
+      revision: main
+
     - name: zmk-feature-split-esb
       remote: damex
       revision: pass-battery-events-for-esb-only-central

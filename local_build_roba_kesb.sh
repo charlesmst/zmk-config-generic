@@ -30,6 +30,7 @@ EXTRA_MODULES=(
     "$WORKSPACE/zmk-pmw3610-driver"
     "$WORKSPACE/zmk-paw3395-driver"
     "$WORKSPACE/zmk-vfx-rgbled-indicator"
+    "$WORKSPACE/zmk-behavior-stepped-scroll"
     "$REPO_DIR"
 )
 

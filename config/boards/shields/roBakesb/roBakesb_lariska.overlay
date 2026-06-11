@@ -58,6 +58,7 @@
             triggers-per-rotation = <24>;
         };
     };
+
 };
 
 /* The GPIO-direct kscan uses a 1-row × 5-col virtual matrix.
@@ -152,4 +153,9 @@ lariska_encoder: &qdec0 {
         rate-cycle-gpios = <&gpio1 15 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
         rate-cycle-rates-ms = <8 4 1>;
     };
+};
+
+&esb_link {
+    retransmit-delay-us = <465>;
+    retransmit-count = <3>;
 };

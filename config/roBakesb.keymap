@@ -46,36 +46,13 @@
         tap-ms = <20>;
         bindings = <&msc SCRL_UP>, <&msc SCRL_DOWN>;
     };
-    /* lariska_mouse_wheel: default-layer scroll via lariska encoder.
-     * Inverted relative to mouse_wheel because the scroll direction is
-     * physically reversed on the lariska side-scroll wheel. */
-    lariska_mouse_wheel: lariska_mouse_wheel {
+    /* One discrete REL_WHEEL tick per encoder detent via zmk-behavior-stepped-scroll.
+     * stepped_scroll is defined in the dongle overlay; stepped_scroll_il routes
+     * its events to HID. This replaces the old lariska_ec_s input-two-axis approach. */
+    lariska_scroll: lariska_scroll {
         compatible = "zmk,behavior-sensor-rotate";
         #sensor-binding-cells = <0>;
-        tap-ms = <20>;
-        bindings = <&msc SCRL_DOWN>, <&msc SCRL_UP>;
-    };
-    /* lariska_ec_s / lariska_ec_s_il / lariska_wheel:
-     * The input-two-axis trick that makes the lariska scroll encoder work
-     * reliably in all non-default layers. The encoder produces MOVE_Y events
-     * which the input-listener converts to REL_WHEEL HID scroll. */
-    lariska_ec_s: lariska_ec_s {
-        compatible = "zmk,behavior-input-two-axis";
-        #binding-cells = <1>;
-        x-input-code = <INPUT_REL_HWHEEL>;
-        y-input-code = <INPUT_REL_WHEEL>;
-        time-to-max-speed-ms = <100>;
-        acceleration-exponent = <0>;
-    };
-    lariska_ec_s_il: lariska_ec_s_il {
-        compatible = "zmk,input-listener";
-        device = <&lariska_ec_s>;
-    };
-    lariska_wheel: lariska_wheel {
-        compatible = "zmk,behavior-sensor-rotate";
-        #sensor-binding-cells = <0>;
-        tap-ms = <65>;
-        bindings = <&lariska_ec_s MOVE_Y(-37)>, <&lariska_ec_s MOVE_Y(37)>;
+        bindings = <&stepped_scroll (-1)>, <&stepped_scroll 1>;
     };
     alt_tab_encoder: alt_tab_encoder {
         compatible = "zmk,behavior-sensor-rotate";
@@ -365,7 +342,7 @@
  &flush_mods          &trans               &kp LC(UP)           MO_TOG(MOUSE)        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)
  LARISKA_BTNS
             >;
-            sensor-bindings = <&mouse_wheel &lariska_mouse_wheel>;
+            sensor-bindings = <&mouse_wheel &lariska_scroll>;
         };
 
         windows {
@@ -377,7 +354,7 @@
  &flush_mods          &trans               &kp LG(DOT)          MO_TOG(MOUSE)        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)
  LARISKA_BTNS
             >;
-            sensor-bindings = <&mouse_wheel &lariska_mouse_wheel>;
+            sensor-bindings = <&mouse_wheel &lariska_scroll>;
         };
 
         gaming_layer {
@@ -389,7 +366,7 @@
  &flush_mods          &tog GAMIN           &mo GAMFN            &kp LALT             &mo LOGAM            &kp SPACE            &to WINDO            &mo SYMBO            &trans
  LARISKA_BTNS
             >;
-            sensor-bindings = <&rot_kp PG_UP PG_DN &lariska_wheel>;
+            sensor-bindings = <&rot_kp PG_UP PG_DN &lariska_scroll>;
         };
 
         lower_layer {
@@ -401,7 +378,7 @@
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
  LARISKA_BTNS
             >;
-            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN &lariska_wheel>;
+            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN &lariska_scroll>;
         };
 
         raise_layer {
@@ -413,7 +390,7 @@
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
  LARISKA_BTNS
             >;
-            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN &lariska_wheel>;
+            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN &lariska_scroll>;
         };
 
         gaming_lower {
@@ -424,7 +401,7 @@
  &trans               &trans               &trans               &kp LALT             &trans               &trans               &trans               &trans               &trans
  LARISKA_BTNS
             >;
-            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN &lariska_wheel>;
+            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN &lariska_scroll>;
         };
 
         super_layer {
@@ -458,7 +435,7 @@
  &trans                         &trans                         &trans                         &trans                         &trans                         &kp LG(SPACE)        &trans                         &trans                         &trans
  LARISKA_BTNS
             >;
-            sensor-bindings = <&rot_kp LC(RIGHT) LC(LEFT) &lariska_wheel>;
+            sensor-bindings = <&rot_kp LC(RIGHT) LC(LEFT) &lariska_scroll>;
         };
 
         tiling_win_layer {
@@ -470,7 +447,7 @@
  &trans               &trans               &trans               &trans                      &trans                         &kp LGUI     &trans                         &trans                         &trans
  LARISKA_BTNS
             >;
-            sensor-bindings = <&alt_tab_encoder &lariska_wheel>;
+            sensor-bindings = <&alt_tab_encoder &lariska_scroll>;
         };
 
         scroll {

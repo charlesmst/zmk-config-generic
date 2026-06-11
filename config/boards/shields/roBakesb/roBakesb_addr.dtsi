@@ -69,4 +69,13 @@
         status = "disabled";
         device = <&trackball_split>;
     };
+
+    /* Defined here so all targets (dongle + every peripheral) resolve
+     * &stepped_scroll from the shared roBakesb.keymap. The dongle's overlay
+     * also adds stepped_scroll_il which routes the events to HID. */
+    stepped_scroll: stepped_scroll {
+        compatible = "zmk,behavior-stepped-scroll";
+        #binding-cells = <1>;
+        input-code = <INPUT_REL_WHEEL>;
+    };
 };

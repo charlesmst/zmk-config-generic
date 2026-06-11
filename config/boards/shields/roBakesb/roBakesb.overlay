@@ -52,6 +52,12 @@
         status = "okay";
         device = <&mouse_split>;
     };
+
+    /* Routes stepped_scroll events (one REL_WHEEL tick per detent) to HID. */
+    stepped_scroll_il: stepped_scroll_il {
+        compatible = "zmk,input-listener";
+        device = <&stepped_scroll>;
+    };
 };
 
 &roba_physical_layout {

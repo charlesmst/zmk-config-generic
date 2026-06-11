@@ -44,7 +44,7 @@
 
     scroll {
         layers = <10>;
-        input-processors = <&zip_xy_scaler 1 10>, <&zip_xy_to_scroll_mapper>;
+        input-processors = <&zip_xy_scaler 1 10>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>,  <&zip_xy_to_scroll_mapper>;
     };
 
     snipe {

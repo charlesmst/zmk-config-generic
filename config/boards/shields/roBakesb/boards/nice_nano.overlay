@@ -1,4 +1,4 @@
-/* nice_nano doesn't define xiao_d natively — alias it to pro_micro. */
+/* Alias xiao_d to pro_micro for old-workspace ZMK (board name: nice_nano). */
 xiao_d: &pro_micro {};
 
 /* Pinctrl for i2c0 (P0.17=SDA, P0.20=SCL) is already defined in the
@@ -8,8 +8,6 @@ xiao_d: &pro_micro {};
     oled: sh1106@3c {
         compatible = "sinowealth,sh1106";
         reg = <0x3c>;
-        /* 128 (not 129): LVGL9's mono rounder ORs x2 with 0x7, so a
-         * non-8-divisible width overflows the framebuffer on full flush. */
         width = <128>;
         height = <64>;
         segment-offset = <2>;

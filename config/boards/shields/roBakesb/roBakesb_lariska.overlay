@@ -145,10 +145,6 @@ lariska_encoder: &qdec0 {
         evt-type = <INPUT_EV_REL>;
         x-input-code = <INPUT_REL_X>;
         y-input-code = <INPUT_REL_Y>;
-        /* usb-rate-ms = 1ms at 1000 Hz, ble-rate-ms = 8ms at ~120 Hz.
-         * The central broadcasts USB/BLE state; driver adjusts automatically. */
-        usb-rate-ms = <1>;
-        ble-rate-ms = <8>;
         /* DPI cycle button on bottom of mouse: cycles through report rates. */
         rate-cycle-gpios = <&gpio1 15 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
         rate-cycle-rates-ms = <8 4 1>;

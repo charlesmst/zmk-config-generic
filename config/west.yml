@@ -25,8 +25,8 @@ manifest:
       revision: zmk0.4
 
     - name: zmk-paw3395-driver
-      remote: charlesmst
-      revision: feat/dynamic-paw3395-report-rate
+      remote: ggrocer
+      revision: main
 
     - name: zmk-vfx-rgbled-indicator
       remote: ggrocer

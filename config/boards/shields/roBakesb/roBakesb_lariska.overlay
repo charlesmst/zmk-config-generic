@@ -152,6 +152,11 @@ lariska_encoder: &qdec0 {
 };
 
 &esb_link {
-    retransmit-delay-us = <465>;
-    retransmit-count = <3>;
+    /* Balance two pressures at 1000 Hz: a failing ACK packet blocks the TX FIFO
+     * for (count+1) x delay (mouse events queue behind it), while a fully failed
+     * keepalive adds the max penalty toward a sweep hop (and every hop risks a
+     * busy-radio retune). 4 keeps the blocking window ~3.7 ms (FIFO holds 8)
+     * without making total keepalive failure common. */
+    retransmit-count = <4>;
+    retransmit-delay-us = <733>;
 };

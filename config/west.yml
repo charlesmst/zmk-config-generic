@@ -38,8 +38,8 @@ manifest:
 
     - name: zmk-tri-state
       path: modules/zmk/tri-state
-      remote: urob
-      revision: main
+      remote: charlesmst
+      revision: feat/hold-start
 
     - name: zmk-behavior-stepped-scroll
       remote: damex

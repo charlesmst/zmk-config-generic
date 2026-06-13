@@ -22,3 +22,5 @@ build_roba_kesb/roBakesb_dongle_mdk
 build_roba_kesb/roBakesb_lariska
 zmk-paw3395-driver
 zmk-vfx-rgbled-indicator
+zmk-behavior-stepped-scroll
+zmk-trackball-gestures-module

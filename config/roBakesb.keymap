@@ -27,8 +27,16 @@
 
 #define KEY_AFTER_B &kp LA(SPACE)
 
-/* Lariska mouse button bindings appended to every layer (positions 43-47). */
-#define LARISKA_BTNS &mkp LCLK &mkp RCLK &mkp MCLK &mkp MB4 &mkp MB5
+/* Lariska mouse button bindings appended to every layer (positions 43-47):
+ * LCLK RCLK MCLK MB4 MB5.
+ * Per-OS variants make MB5 a hold-tap: hold = momentary tiling layer (alt-tab /
+ * mission-control on the scroll wheel), tap = normal MB5 click. */
+#define LARISKA_BTNS       &mkp LCLK &mkp RCLK &mkp MCLK &mkp MB4 &mkp MB5
+#define LARISKA_BTNS_MAC   &mkp LCLK &mkp RCLK &mkp MCLK &mkp MB4 &mo_mkp TILIN MB5
+#define LARISKA_BTNS_WIN   &mkp LCLK &mkp RCLK &mkp MCLK &mkp MB4 &mo_mkp TILWI MB5
+/* Inside the held tiling layers MB4 takes on the OS overview action. */
+#define LARISKA_BTNS_TILIN &mkp LCLK &mkp RCLK &mkp MCLK &kp LC(UP)  &mkp MB5
+#define LARISKA_BTNS_TILWI &mkp LCLK &mkp RCLK &mkp MCLK &kp LG(TAB) &mkp MB5
 
 / {
     cursor_move: cursor_move {
@@ -59,7 +67,15 @@
         label = "ALT_TAB_ENC";
         #sensor-binding-cells = <0>;
         tap-ms = <5>;
-        bindings = <&swap_enc>, <&kp LS(TAB)>;
+        bindings = <&swap_enc_rev>, <&swap_enc>;
+    };
+    /* Mouse-wheel space navigation for the Mac tiling layer. */
+    lariska_ws: lariska_ws {
+        compatible = "zmk,behavior-sensor-rotate";
+        label = "LARISKA_WS";
+        #sensor-binding-cells = <0>;
+        tap-ms = <5>;
+        bindings = <&kp LC(LEFT)>, <&kp LC(RIGHT)>;
     };
     rot_kp: sensor_rotate_kp {
         compatible = "zmk,behavior-sensor-rotate-var";
@@ -125,6 +141,16 @@
             tapping-term-ms = <200>;
             bindings = <&mo>, <&tog>;
         };
+        /* Hold = momentary layer, tap = mouse-button click (for MB5). */
+        mo_mkp: behavior_mo_mkp {
+            compatible = "zmk,behavior-hold-tap";
+            label = "MO_MKP";
+            #binding-cells = <2>;
+            flavor = "hold-preferred";
+            tapping-term-ms = <150>;
+            quick-tap-ms = <0>;
+            bindings = <&mo>, <&mkp>;
+        };
         td_alt: tap_dance_0 {
             compatible = "zmk,behavior-tap-dance";
             #binding-cells = <0>;
@@ -142,22 +168,53 @@
             compatible = "zmk,behavior-tri-state";
             label = "SWAPPER";
             #binding-cells = <0>;
-            bindings = <&kt LALT>, <&kp TAB>, <&kt LALT>;
+            bindings = <&kp LALT>, <&kp TAB>, <&kp LALT>;
+            hold-start;
             ignored-key-positions = <23>;
+        };
+        /* Reverse alt-tab on the X-position key (pos 23). hold-start makes both
+         * swap and swap_rev hold a ref-counted LALT, so either can start the
+         * alt-tab from cold and they compose while cycling. */
+        swap_rev: swap_rev {
+            compatible = "zmk,behavior-tri-state";
+            label = "SWAPPER_REV";
+            #binding-cells = <0>;
+            bindings = <&kp LALT>, <&kp LS(TAB)>, <&kp LALT>;
+            hold-start;
+            ignored-key-positions = <11>;
         };
 
         swapmac: swappermac {
             compatible = "zmk,behavior-tri-state";
             label = "SWAPPERMAC";
             #binding-cells = <0>;
-            bindings = <&kt LGUI>, <&kp TAB>, <&kt LGUI>;
+            bindings = <&kp LGUI>, <&kp TAB>, <&kp LGUI>;
+            hold-start;
             ignored-key-positions = <22>;
+        };
+        /* Reverse cmd-tab on the Z-position key (pos 22); mirrors swap_rev. */
+        swapmac_rev: swapmac_rev {
+            compatible = "zmk,behavior-tri-state";
+            label = "SWAPPERMAC_REV";
+            #binding-cells = <0>;
+            bindings = <&kp LGUI>, <&kp LS(TAB)>, <&kp LGUI>;
+            hold-start;
+            ignored-key-positions = <24>;
         };
         swap_enc: swap_enc {
             compatible = "zmk,behavior-tri-state";
             label = "SWAPPER_ENC";
             #binding-cells = <0>;
             bindings = <&kt LALT>, <&kp TAB>, <&kt LALT>;
+        };
+        /* Reverse-direction swapper. Shares the alt-hold with swap_enc via the
+         * sensor's virtual key position (tri-state state is keyed by position),
+         * so alt-tab engages no matter which way the wheel is turned first. */
+        swap_enc_rev: swap_enc_rev {
+            compatible = "zmk,behavior-tri-state";
+            label = "SWAPPER_ENC_REV";
+            #binding-cells = <0>;
+            bindings = <&kt LALT>, <&kp LS(TAB)>, <&kt LALT>;
         };
         w1: w1 {
             compatible = "zmk,behavior-tri-state";
@@ -340,7 +397,7 @@
  &lt TILIN A          &hm LCTRL S          &hm LALT D           &hm LGUI F           &kp G                &kp LG(LS(N4))       &deskhop_gaming      &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILIN SEMI
  &kp Z                &kp X                &kp C                &kp V                &kp B                KEY_AFTER_B          &deskhop_normal      &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH
  &flush_mods          &trans               &kp LC(UP)           MO_TOG(MOUSE)        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)
- LARISKA_BTNS
+ LARISKA_BTNS_MAC
             >;
             sensor-bindings = <&mouse_wheel &lariska_scroll>;
         };
@@ -352,7 +409,7 @@
  &lt TILWI A          &hm LCTRL S          &hm LALT D           &hm LGUI F           &kp G                &kp PSCRN            &deskhop_gaming      &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILWI SEMI
  &kp Z                &kp X                &kp C                &kp V                &kp B                &tog GAMIN           &deskhop_normal      &kp N                &kp M                &kp COMMA            &kp DOT              &kp FSLH
  &flush_mods          &trans               &kp LG(DOT)          MO_TOG(MOUSE)        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)
- LARISKA_BTNS
+ LARISKA_BTNS_WIN
             >;
             sensor-bindings = <&mouse_wheel &lariska_scroll>;
         };
@@ -431,11 +488,11 @@
             bindings = <
  &hs LC(LA(LS(N1))) LA(LS(N1))  &hs LC(LA(LS(N2))) LA(LS(N2))  &hs LC(LA(LS(N3))) LA(LS(N3))  &hs LC(LA(LS(N4))) LA(LS(N4))  &hs LC(LA(LS(N5))) LA(LS(N5))     &hs LC(LA(LS(N6))) LA(LS(N6))  &hs LC(LA(LS(N7))) LA(LS(N7))  &hs LC(LA(LS(N8))) LA(LS(N8))  &hs LC(LA(LS(N9))) LA(LS(N9))  &trans
  &trans                         &kp LC(F4)                     &hs LC(LA(LS(E))) LA(LS(E))    &hs LC(LA(LS(R))) LA(LS(R))    &hs LC(LA(LS(T))) LA(LS(T))    &trans  &trans     &trans                         &trans                         &trans                         &trans                         &trans
- &kp LS(TAB)                    &kp LS(LC(F4))                 &swapmac                       &trans                         &trans                         &trans  &trans     &trans                         &trans                         &trans                         &trans                         &trans
+ &swapmac_rev                   &kp LS(LC(F4))                 &swapmac                       &trans                         &trans                         &trans  &trans     &trans                         &trans                         &trans                         &trans                         &trans
  &trans                         &trans                         &trans                         &trans                         &trans                         &kp LG(SPACE)        &trans                         &trans                         &trans
- LARISKA_BTNS
+ LARISKA_BTNS_TILIN
             >;
-            sensor-bindings = <&rot_kp LC(RIGHT) LC(LEFT) &lariska_scroll>;
+            sensor-bindings = <&rot_kp LC(LEFT) LC(RIGHT) &lariska_ws>;
         };
 
         tiling_win_layer {
@@ -443,11 +500,11 @@
             bindings = <
  &w1                  &w2                  &w3                  &w4                  &w5                  &w6                  &w7                  &w8                  &w9                  &trans
  &trans               &swap                &hs LC(LA(LS(E))) LA(LS(E)) &hs LC(LA(LS(R))) LA(LS(R)) &hs LC(LA(LS(T))) LA(LS(T))  &trans  &trans    &trans       &trans      &trans      &trans                         &trans
- &kp LA(LS(D))        &kp LS(TAB)          &kp LA(LS(D))               &trans                      &trans                       &trans  &trans    &trans       &trans      &trans                      &trans                      &trans
+ &kp LA(LS(D))        &swap_rev            &kp LA(LS(D))               &trans                      &trans                       &trans  &trans    &trans       &trans      &trans                      &trans                      &trans
  &trans               &trans               &trans               &trans                      &trans                         &kp LGUI     &trans                         &trans                         &trans
- LARISKA_BTNS
+ LARISKA_BTNS_TILWI
             >;
-            sensor-bindings = <&alt_tab_encoder &lariska_scroll>;
+            sensor-bindings = <&alt_tab_encoder &alt_tab_encoder>;
         };
 
         scroll {

@@ -63,6 +63,12 @@
         compatible = "zmk,input-listener";
         device = <&stepped_scroll>;
     };
+
+    /* Routes stepped_hscroll (REL_HWHEEL) events to HID for the MB4-hold layer. */
+    stepped_hscroll_il: stepped_hscroll_il {
+        compatible = "zmk,input-listener";
+        device = <&stepped_hscroll>;
+    };
 };
 
 &roba_physical_layout {

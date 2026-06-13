@@ -78,4 +78,12 @@
         #binding-cells = <1>;
         input-code = <INPUT_REL_WHEEL>;
     };
+
+    /* Horizontal variant of stepped_scroll for the MB4-hold scroll layer.
+     * Routed to HID by stepped_hscroll_il in the dongle overlay. */
+    stepped_hscroll: stepped_hscroll {
+        compatible = "zmk,behavior-stepped-scroll";
+        #binding-cells = <1>;
+        input-code = <INPUT_REL_HWHEEL>;
+    };
 };

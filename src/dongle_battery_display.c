@@ -11,14 +11,6 @@
 #include <zmk/keymap.h>
 #include <zmk/events/layer_state_changed.h>
 
-#ifdef CONFIG_ZMK_BLE
-#include <zmk/endpoints.h>
-#include <zmk/endpoints_types.h>
-#include <zmk/events/endpoint_changed.h>
-#include <zmk/ble.h>
-#include <zmk/events/ble_active_profile_changed.h>
-#endif
-
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 /* Custom device icons from dongle_icons.c (U+E000–U+E003, Private Use Area) */
@@ -27,6 +19,18 @@ LV_FONT_DECLARE(dongle_icons);
 #define ICON_LEFT_KB  "\xEE\x80\x81"
 #define ICON_RIGHT_KB "\xEE\x80\x82"
 #define ICON_MOUSE    "\xEE\x80\x83"
+
+/* Large OS / game logos from os_logos.c (U+E010–U+E012), keyed off base layer */
+LV_FONT_DECLARE(os_logos);
+#define LOGO_APPLE "\xEE\x80\x90"
+#define LOGO_WIN   "\xEE\x80\x91"
+#define LOGO_PUBG  "\xEE\x80\x92"
+
+/* Base layers that select which logo to draw (see roBakesb.keymap). */
+#define LAYER_WINDOWS 1
+#define LAYER_GAMING  2
+
+static const char *logo_syms[3] = { LOGO_APPLE, LOGO_WIN, LOGO_PUBG };
 
 /* One row per device: dongle + left KB + right KB + mouse. The mouse battery
  * is not delivered over ESB yet, so its row stays at "-- " until that lands. */
@@ -40,23 +44,28 @@ static const char *label_syms[NUM_LABELS] = {
 };
 
 static lv_obj_t *bat_labels[NUM_LABELS];
-static lv_obj_t *conn_label;
-static lv_obj_t *layer_label;
+static lv_obj_t *logo_label;
 
 struct display_state {
     uint8_t bat_levels[NUM_LABELS];
     bool    bat_valid[NUM_LABELS];
-    uint8_t active_layer;
-#ifdef CONFIG_ZMK_BLE
-    enum zmk_transport transport;
-    int                ble_profile;
-    bool               ble_connected;
-    bool               ble_bonded;
-#endif
+    uint8_t os_logo;
 };
 
 K_MUTEX_DEFINE(state_mutex);
 static struct display_state dstate;
+
+/* Which logo matches the current base layer. Momentary layers stack on top of
+ * the &to-selected base, so the base stays active and we test it directly. */
+static uint8_t current_os_logo(void) {
+    if (zmk_keymap_layer_active(LAYER_GAMING)) {
+        return 2; /* PUBG */
+    }
+    if (zmk_keymap_layer_active(LAYER_WINDOWS)) {
+        return 1; /* Windows */
+    }
+    return 0; /* Mac */
+}
 
 static void update_display(struct k_work *work) {
     k_mutex_lock(&state_mutex, K_FOREVER);
@@ -65,35 +74,10 @@ static void update_display(struct k_work *work) {
 
     char buf[24];
 
-#ifdef CONFIG_ZMK_BLE
-    if (s.transport == ZMK_TRANSPORT_USB) {
-        strncpy(buf, LV_SYMBOL_USB, sizeof(buf));
-    } else if (s.ble_bonded) {
-        if (s.ble_connected) {
-            snprintf(buf, sizeof(buf), LV_SYMBOL_WIFI " %d " LV_SYMBOL_OK, s.ble_profile + 1);
-        } else {
-            snprintf(buf, sizeof(buf), LV_SYMBOL_WIFI " %d " LV_SYMBOL_CLOSE, s.ble_profile + 1);
-        }
-    } else {
-        snprintf(buf, sizeof(buf), LV_SYMBOL_WIFI " %d " LV_SYMBOL_SETTINGS, s.ble_profile + 1);
-    }
-#else
-    strncpy(buf, LV_SYMBOL_USB, sizeof(buf));
-#endif
-    if (strcmp(lv_label_get_text(conn_label), buf) != 0) {
-        lv_label_set_text(conn_label, buf);
-    }
-
-    /* Layer label */
-    const char *name = zmk_keymap_layer_name(s.active_layer);
-    char layer_buf[10];
-    if (name == NULL) {
-        snprintf(layer_buf, sizeof(layer_buf), "L%u", s.active_layer);
-    } else {
-        snprintf(layer_buf, sizeof(layer_buf), "%s", name);
-    }
-    if (strcmp(lv_label_get_text(layer_label), layer_buf) != 0) {
-        lv_label_set_text(layer_label, layer_buf);
+    /* OS / game logo for the active base layer */
+    const char *logo = logo_syms[s.os_logo < 3 ? s.os_logo : 0];
+    if (strcmp(lv_label_get_text(logo_label), logo) != 0) {
+        lv_label_set_text(logo_label, logo);
     }
 
     /* Battery labels: NNN% then the device icon on the right (or "-- icon"). */
@@ -143,35 +127,11 @@ static int peripheral_bat_listener(const zmk_event_t *eh) {
     return ZMK_EV_EVENT_BUBBLE;
 }
 
-#ifdef CONFIG_ZMK_BLE
-static void refresh_ble_state(void) {
-    struct zmk_endpoint_instance ep = zmk_endpoints_selected();
-    k_mutex_lock(&state_mutex, K_FOREVER);
-    dstate.transport     = ep.transport;
-    dstate.ble_profile   = (ep.transport == ZMK_TRANSPORT_BLE) ? ep.ble.profile_index : dstate.ble_profile;
-    dstate.ble_connected = zmk_ble_active_profile_is_connected();
-    dstate.ble_bonded    = !zmk_ble_active_profile_is_open();
-    k_mutex_unlock(&state_mutex);
-}
-
-static int endpoint_listener(const zmk_event_t *eh) {
-    refresh_ble_state();
-    schedule_update();
-    return ZMK_EV_EVENT_BUBBLE;
-}
-
-static int ble_profile_listener(const zmk_event_t *eh) {
-    refresh_ble_state();
-    schedule_update();
-    return ZMK_EV_EVENT_BUBBLE;
-}
-#endif
-
 static int layer_listener(const zmk_event_t *eh) {
     const struct zmk_layer_state_changed *ev = as_zmk_layer_state_changed(eh);
     if (ev) {
         k_mutex_lock(&state_mutex, K_FOREVER);
-        dstate.active_layer = zmk_keymap_highest_layer_active();
+        dstate.os_logo = current_os_logo();
         k_mutex_unlock(&state_mutex);
         schedule_update();
     }
@@ -184,27 +144,17 @@ ZMK_SUBSCRIPTION(dongle_bat_display, zmk_battery_state_changed);
 ZMK_LISTENER(peripheral_bat_display, peripheral_bat_listener);
 ZMK_SUBSCRIPTION(peripheral_bat_display, zmk_peripheral_battery_state_changed);
 
-#ifdef CONFIG_ZMK_BLE
-ZMK_LISTENER(endpoint_display, endpoint_listener);
-ZMK_SUBSCRIPTION(endpoint_display, zmk_endpoint_changed);
-
-ZMK_LISTENER(ble_profile_display, ble_profile_listener);
-ZMK_SUBSCRIPTION(ble_profile_display, zmk_ble_active_profile_changed);
-#endif
-
 ZMK_LISTENER(layer_display, layer_listener);
 ZMK_SUBSCRIPTION(layer_display, zmk_layer_state_changed);
 
 lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_t *screen = lv_obj_create(NULL);
 
-    conn_label = lv_label_create(screen);
-    lv_obj_set_pos(conn_label, 0, 0);
-    lv_label_set_text(conn_label, LV_SYMBOL_USB);
-
-    layer_label = lv_label_create(screen);
-    lv_obj_set_pos(layer_label, 0, 48);
-    lv_label_set_text(layer_label, "---");
+    /* Large OS/game logo filling the left side of the screen. */
+    logo_label = lv_label_create(screen);
+    lv_obj_set_style_text_font(logo_label, &os_logos, LV_PART_MAIN);
+    lv_obj_set_pos(logo_label, 6, 10);
+    lv_label_set_text(logo_label, LOGO_APPLE);
 
     for (int i = 0; i < NUM_LABELS; i++) {
         bat_labels[i] = lv_label_create(screen);
@@ -216,11 +166,8 @@ lv_obj_t *zmk_display_status_screen(void) {
     k_mutex_lock(&state_mutex, K_FOREVER);
     dstate.bat_levels[0] = zmk_battery_state_of_charge();
     dstate.bat_valid[0]  = true;
-    dstate.active_layer  = zmk_keymap_highest_layer_active();
+    dstate.os_logo       = current_os_logo();
     k_mutex_unlock(&state_mutex);
-#ifdef CONFIG_ZMK_BLE
-    refresh_ble_state();
-#endif
 
     k_work_submit_to_queue(zmk_display_work_q(), &update_work);
 

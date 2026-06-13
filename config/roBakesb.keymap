@@ -71,13 +71,21 @@
         tap-ms = <5>;
         bindings = <&swap_enc_rev>, <&swap_enc>;
     };
+    /* Inverted alt-tab for the left keyboard encoder (TILWI slot 0 only). */
+    alt_tab_encoder_inv: alt_tab_encoder_inv {
+        compatible = "zmk,behavior-sensor-rotate";
+        label = "ALT_TAB_ENC_INV";
+        #sensor-binding-cells = <0>;
+        tap-ms = <5>;
+        bindings = <&swap_enc>, <&swap_enc_rev>;
+    };
     /* Mouse-wheel space navigation for the Mac tiling layer. */
     lariska_ws: lariska_ws {
         compatible = "zmk,behavior-sensor-rotate";
         label = "LARISKA_WS";
         #sensor-binding-cells = <0>;
         tap-ms = <5>;
-        bindings = <&kp LC(LEFT)>, <&kp LC(RIGHT)>;
+        bindings = <&kp LC(RIGHT)>, <&kp LC(LEFT)>;
     };
     rot_kp: sensor_rotate_kp {
         compatible = "zmk,behavior-sensor-rotate-var";
@@ -506,7 +514,7 @@
  &trans               &trans               &trans               &trans                      &trans                         &kp LGUI     &trans                         &trans                         &trans
  LARISKA_BTNS_TILWI
             >;
-            sensor-bindings = <&alt_tab_encoder &alt_tab_encoder>;
+            sensor-bindings = <&alt_tab_encoder_inv &alt_tab_encoder>;
         };
 
         scroll {

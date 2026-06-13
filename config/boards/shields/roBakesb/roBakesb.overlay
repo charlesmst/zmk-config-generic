@@ -40,7 +40,12 @@
         compatible = "zmk,keymap-sensors";
         sensors = <&left_encoder &lariska_encoder>;
         left_enc_cfg: left_enc_cfg {
-            triggers-per-rotation = <10>;
+            /* This encoder yields 4 pulses (4 * 30 = 120 deg) per detent, so
+             * trigger_degrees must be 120 -> 360/120 = 3 for exactly one tick
+             * per detent with zero remainder. (tpr=4 gave trigger_degrees=90, a
+             * 30-deg remainder that drifted to a double every 3rd detent: the
+             * observed "1, 1, 2".) */
+            triggers-per-rotation = <3>;
         };
         lariska_enc_cfg: lariska_enc_cfg {
             triggers-per-rotation = <24>;

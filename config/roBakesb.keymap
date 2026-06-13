@@ -47,12 +47,14 @@
         time-to-max-speed-ms = <0>;
         acceleration-exponent = <0>;
     };
+    /* Keyboard rotary encoder scroll: one discrete REL_WHEEL tick per detent
+     * via stepped_scroll (same as the mouse wheel) instead of accelerated &msc,
+     * so it feels predictable. cw = up, matching the old &msc SCRL_UP. */
     mouse_wheel: mouse_wheel {
         compatible = "zmk,behavior-sensor-rotate";
         label = "MOUSE_WHEEL";
         #sensor-binding-cells = <0>;
-        tap-ms = <20>;
-        bindings = <&msc SCRL_UP>, <&msc SCRL_DOWN>;
+        bindings = <&stepped_scroll 1>, <&stepped_scroll (-1)>;
     };
     /* One discrete REL_WHEEL tick per encoder detent via zmk-behavior-stepped-scroll.
      * stepped_scroll is defined in the dongle overlay; stepped_scroll_il routes

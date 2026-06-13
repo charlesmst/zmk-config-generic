@@ -39,7 +39,8 @@
     sensors: sensors {
         compatible = "zmk,keymap-sensors";
         sensors = <&left_encoder>;
-        triggers-per-rotation = <10>;
+        /* 4 pulses/detent -> tpr 3 = one tick per detent; see roBakesb.overlay. */
+        triggers-per-rotation = <3>;
     };
 };
 

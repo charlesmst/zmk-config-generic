@@ -7,8 +7,9 @@ LV_FONT_DECLARE(lv_font_montserrat_12);
  * Mapped to Unicode Private Use Area U+E000–U+E003 so they can be
  * embedded directly in lv_label text strings alongside normal glyphs.
  *
- * The font chains to lv_font_montserrat_12 as a fallback, so ASCII
- * text and existing LVGL symbols (battery, wifi, etc.) all still render.
+ * The font chains to lv_font_montserrat_12 as a fallback, so ASCII text
+ * and the LVGL symbols (battery, wifi, etc.) render in the same font as
+ * the rest of the status screen.
  *
  * UTF-8 macros (defined in dongle_battery_display.c):
  *   U+E000 "\xEE\x80\x80"  dongle  – chip body + USB-A plug below

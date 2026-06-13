@@ -28,16 +28,11 @@ LV_FONT_DECLARE(dongle_icons);
 #define ICON_RIGHT_KB "\xEE\x80\x82"
 #define ICON_MOUSE    "\xEE\x80\x83"
 
-#ifdef CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS
-#define NUM_PERIPHERALS CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS
-#else
-#define NUM_PERIPHERALS 2
-#endif
-#define NUM_LABELS      (1 + NUM_PERIPHERALS)
+/* One row per device: dongle + left KB + right KB + mouse. The mouse battery
+ * is not delivered over ESB yet, so its row stays at "-- " until that lands. */
+#define NUM_LABELS 4
 
-BUILD_ASSERT(NUM_PERIPHERALS <= 3, "dongle_battery_display supports up to 3 peripherals");
-
-static const char *label_syms[4] = {
+static const char *label_syms[NUM_LABELS] = {
     ICON_DONGLE,
     ICON_LEFT_KB,
     ICON_RIGHT_KB,
@@ -101,12 +96,12 @@ static void update_display(struct k_work *work) {
         lv_label_set_text(layer_label, layer_buf);
     }
 
-    /* Battery labels: [device icon][battery icon]NNN% or [device icon] -- */
+    /* Battery labels: NNN% then the device icon on the right (or "-- icon"). */
     for (int i = 0; i < NUM_LABELS; i++) {
         if (s.bat_valid[i]) {
-            snprintf(buf, sizeof(buf), "%s%3u%%", label_syms[i], s.bat_levels[i]);
+            snprintf(buf, sizeof(buf), "%3u%% %s", s.bat_levels[i], label_syms[i]);
         } else {
-            snprintf(buf, sizeof(buf), "%s --", label_syms[i]);
+            snprintf(buf, sizeof(buf), "-- %s", label_syms[i]);
         }
         if (strcmp(lv_label_get_text(bat_labels[i]), buf) != 0) {
             lv_label_set_text(bat_labels[i], buf);

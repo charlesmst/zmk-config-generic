@@ -15,20 +15,20 @@ LV_FONT_DECLARE(lv_font_montserrat_12);
  *   U+E000 "\xEE\x80\x80"  dongle  – chip body + USB-A plug below
  *   U+E001 "\xEE\x80\x81"  left KB – keyboard grid + left arrow ←
  *   U+E002 "\xEE\x80\x82"  right KB – keyboard grid + right arrow →
- *   U+E003 "\xEE\x80\x83"  mouse   – top-down oval, buttons + scroll wheel
+ *   U+E003 "\xEE\x80\x83"  mouse   – corded top-down mouse + scroll wheel
  *
  * Pixel layout (col 0 = MSB = leftmost):
  *
  *  Dongle           Left KB          Right KB         Mouse
- *  ........         ########         ########         .######.
- *  ########         #.#.#.#.         #.#.#.#.         ##.#.##.
- *  #......#         ########         ########         ##.#.##.
- *  #.####.#         #.#.#.#.         #.#.#.#.         #######.
- *  #.####.#         ########         ########         #.###.#.
- *  #......#         ########         ########         #.###.#.
- *  ########         ........         ........         #.....#.
- *  ..####..         .#......         ......#.         .#####..
- *  ..####..         .######.         .######.         ..###...
+ *  ........         ########         ########         ...##...
+ *  ########         #.#.#.#.         #.#.#.#.         ....#...
+ *  #......#         ########         ########         ..####..
+ *  #.####.#         #.#.#.#.         #.#.#.#.         .######.
+ *  #.####.#         ########         ########         .##.###.
+ *  #......#         ########         ########         .##.###.
+ *  ########         ........         ........         .######.
+ *  ..####..         .#......         ......#.         .######.
+ *  ..####..         .######.         .######.         ..####..
  *  ........         .#......         ......#.         ........
  */
 static const uint8_t dongle_icons_bitmap[] = {
@@ -39,7 +39,7 @@ static const uint8_t dongle_icons_bitmap[] = {
     /* U+E002  Right keyboard */
     0xFF, 0xAA, 0xFF, 0xAA, 0xFF, 0xFF, 0x00, 0x02, 0x7E, 0x02,
     /* U+E003  Mouse */
-    0x7E, 0xD6, 0xD6, 0xFE, 0xBA, 0xBA, 0x82, 0x7C, 0x38, 0x00,
+    0x18, 0x08, 0x3C, 0x7E, 0x6E, 0x6E, 0x7E, 0x7E, 0x3C, 0x00,
 };
 
 /* glyph 0 is the "not found" sentinel required by LVGL */

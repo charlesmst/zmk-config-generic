@@ -82,6 +82,8 @@ config ROBA_DONGLE_BATTERY_DISPLAY
     depends on ZMK_SPLIT_ROLE_CENTRAL && ZMK_DISPLAY && ZMK_BATTERY_REPORTING
     depends on ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
     select LV_USE_LABEL
+    select LV_USE_ARC
+    select LV_USE_LINE
     select LV_USE_THEME_MONO
     help
       Custom OLED status screen showing battery % for the dongle and each

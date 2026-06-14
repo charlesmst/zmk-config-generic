@@ -102,13 +102,23 @@ static void schedule_update(void) {
     }
 }
 
+static bool set_battery_state(uint8_t index, uint8_t level) {
+    bool changed;
+
+    k_mutex_lock(&state_mutex, K_FOREVER);
+    changed = !dstate.bat_valid[index] || dstate.bat_levels[index] != level;
+    if (changed) {
+        dstate.bat_levels[index] = level;
+        dstate.bat_valid[index] = true;
+    }
+    k_mutex_unlock(&state_mutex);
+
+    return changed;
+}
+
 static int dongle_bat_listener(const zmk_event_t *eh) {
     const struct zmk_battery_state_changed *ev = as_zmk_battery_state_changed(eh);
-    if (ev) {
-        k_mutex_lock(&state_mutex, K_FOREVER);
-        dstate.bat_levels[0] = ev->state_of_charge;
-        dstate.bat_valid[0]  = true;
-        k_mutex_unlock(&state_mutex);
+    if (ev && set_battery_state(0, ev->state_of_charge)) {
         schedule_update();
     }
     return ZMK_EV_EVENT_BUBBLE;
@@ -117,11 +127,8 @@ static int dongle_bat_listener(const zmk_event_t *eh) {
 static int peripheral_bat_listener(const zmk_event_t *eh) {
     const struct zmk_peripheral_battery_state_changed *ev =
         as_zmk_peripheral_battery_state_changed(eh);
-    if (ev && ev->source >= 1 && ev->source < NUM_LABELS) {
-        k_mutex_lock(&state_mutex, K_FOREVER);
-        dstate.bat_levels[ev->source] = ev->state_of_charge;
-        dstate.bat_valid[ev->source]  = true;
-        k_mutex_unlock(&state_mutex);
+    if (ev && ev->source >= 1 && ev->source < NUM_LABELS &&
+        set_battery_state(ev->source, ev->state_of_charge)) {
         schedule_update();
     }
     return ZMK_EV_EVENT_BUBBLE;
@@ -130,10 +137,19 @@ static int peripheral_bat_listener(const zmk_event_t *eh) {
 static int layer_listener(const zmk_event_t *eh) {
     const struct zmk_layer_state_changed *ev = as_zmk_layer_state_changed(eh);
     if (ev) {
+        uint8_t os_logo = current_os_logo();
+        bool changed;
+
         k_mutex_lock(&state_mutex, K_FOREVER);
-        dstate.os_logo = current_os_logo();
+        changed = dstate.os_logo != os_logo;
+        if (changed) {
+            dstate.os_logo = os_logo;
+        }
         k_mutex_unlock(&state_mutex);
-        schedule_update();
+
+        if (changed) {
+            schedule_update();
+        }
     }
     return ZMK_EV_EVENT_BUBBLE;
 }

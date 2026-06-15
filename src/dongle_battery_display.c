@@ -10,6 +10,7 @@
 #include <zmk/events/battery_state_changed.h>
 #include <zmk/keymap.h>
 #include <zmk/events/layer_state_changed.h>
+#include <zmk/events/split_esb_peripheral_changed.h>
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -60,6 +61,10 @@ static bool low_blink_visible = true;
 struct display_state {
     uint8_t bat_levels[NUM_LABELS];
     bool    bat_valid[NUM_LABELS];
+    /* ESB link presence per row. Row 0 is the dongle itself (always present);
+     * rows 1..3 follow the peripheral connection events and start hidden until
+     * the central reports the peripheral connected. */
+    bool    connected[NUM_LABELS];
     uint8_t os_logo;
 };
 
@@ -141,6 +146,15 @@ static void update_display(struct k_work *work) {
             continue;
         }
 
+        /* A disconnected peripheral hides its whole slot — device icon, value
+         * arc, and the dashed ring — so the layout reads as "not here". */
+        if (!s.connected[i]) {
+            set_obj_hidden(bat_arcs[i], true);
+            set_obj_hidden(bat_icon_labels[i], true);
+            set_dash_ring_hidden(i, true);
+            continue;
+        }
+
         uint8_t level;
         bool valid;
         level = s.bat_valid[i] ? s.bat_levels[i] : 0;
@@ -218,6 +232,19 @@ static bool set_battery_state(uint8_t index, uint8_t level) {
     return changed;
 }
 
+static bool set_connected_state(uint8_t index, bool connected) {
+    bool changed;
+
+    k_mutex_lock(&state_mutex, K_FOREVER);
+    changed = dstate.connected[index] != connected;
+    if (changed) {
+        dstate.connected[index] = connected;
+    }
+    k_mutex_unlock(&state_mutex);
+
+    return changed;
+}
+
 static int dongle_bat_listener(const zmk_event_t *eh) {
     const struct zmk_battery_state_changed *ev = as_zmk_battery_state_changed(eh);
     if (ev && set_battery_state(0, ev->state_of_charge)) {
@@ -226,11 +253,26 @@ static int dongle_bat_listener(const zmk_event_t *eh) {
     return ZMK_EV_EVENT_BUBBLE;
 }
 
+/* Peripheral source is the ESB pipe (0=left, 1=right, 2=mouse). Display rows
+ * reserve row 0 for the dongle, so a peripheral lives on row pipe+1. */
 static int peripheral_bat_listener(const zmk_event_t *eh) {
     const struct zmk_peripheral_battery_state_changed *ev =
         as_zmk_peripheral_battery_state_changed(eh);
-    if (ev && ev->source >= 1 && ev->source < NUM_LABELS &&
-        set_battery_state(ev->source, ev->state_of_charge)) {
+    if (ev && ev->source < NUM_LABELS - 1 &&
+        set_battery_state(ev->source + 1, ev->state_of_charge)) {
+        schedule_update();
+    }
+    return ZMK_EV_EVENT_BUBBLE;
+}
+
+/* ESB peripheral connect/disconnect. Source is the ESB pipe; it shares the
+ * battery event's numbering, so a peripheral's ring and battery land on the
+ * same row (pipe+1). Row 0 (the dongle) is never a peripheral source. */
+static int peripheral_conn_listener(const zmk_event_t *eh) {
+    const struct zmk_split_esb_peripheral_changed *ev =
+        as_zmk_split_esb_peripheral_changed(eh);
+    if (ev && ev->source < NUM_LABELS - 1 &&
+        set_connected_state(ev->source + 1, ev->connected)) {
         schedule_update();
     }
     return ZMK_EV_EVENT_BUBBLE;
@@ -261,6 +303,9 @@ ZMK_SUBSCRIPTION(dongle_bat_display, zmk_battery_state_changed);
 
 ZMK_LISTENER(peripheral_bat_display, peripheral_bat_listener);
 ZMK_SUBSCRIPTION(peripheral_bat_display, zmk_peripheral_battery_state_changed);
+
+ZMK_LISTENER(peripheral_conn_display, peripheral_conn_listener);
+ZMK_SUBSCRIPTION(peripheral_conn_display, zmk_split_esb_peripheral_changed);
 
 ZMK_LISTENER(layer_display, layer_listener);
 ZMK_SUBSCRIPTION(layer_display, zmk_layer_state_changed);
@@ -308,6 +353,9 @@ lv_obj_t *zmk_display_status_screen(void) {
     k_mutex_lock(&state_mutex, K_FOREVER);
     dstate.bat_levels[0] = zmk_battery_state_of_charge();
     dstate.bat_valid[0]  = true;
+    /* The dongle row is always present; peripherals stay hidden until their
+     * connection event fires. */
+    dstate.connected[0]  = true;
     dstate.os_logo       = current_os_logo();
     k_mutex_unlock(&state_mutex);
 

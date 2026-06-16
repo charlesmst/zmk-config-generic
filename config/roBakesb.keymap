@@ -415,7 +415,7 @@
  &kp Q                &kp W                &kp E                &kp R                &kp T                &kp Y                &kp U                &kp I                &kp O                &kp P
  &lt TILIN A          &hm LCTRL S          &hm LALT D           &hm LGUI F           &kp G                &kp LG(LS(N4))       &deskhop_gaming      &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILIN SEMI
  &kp Z                &kp X                &kp C                &kp V                &kp B                KEY_AFTER_B          &deskhop_normal      &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH
- &flush_mods          &trans               &kp LC(UP)           MO_TOG(MOUSE)        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)
+ &flush_mods          &trans               &kp LC(UP)           &mo MOUSE            &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)
  LARISKA_BTNS_MAC
             >;
             sensor-bindings = <&mouse_wheel &lariska_scroll>;
@@ -427,7 +427,7 @@
  &kp Q                &kp W                &kp E                &kp R                &kp T                &kp Y                &kp U                &kp I                &kp O                &kp P
  &lt TILWI A          &hm LCTRL S          &hm LALT D           &hm LGUI F           &kp G                &kp PSCRN            &deskhop_gaming      &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILWI SEMI
  &kp Z                &kp X                &kp C                &kp V                &kp B                &tog GAMIN           &deskhop_normal      &kp N                &kp M                &kp COMMA            &kp DOT              &kp FSLH
- &flush_mods          &trans               &kp LG(DOT)          MO_TOG(MOUSE)        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)
+ &flush_mods          &trans               &kp LG(DOT)          &mo MOUSE        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO                MO_TOG(MOUSE)
  LARISKA_BTNS_WIN
             >;
             sensor-bindings = <&mouse_wheel &lariska_scroll>;

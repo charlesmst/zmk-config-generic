@@ -34,12 +34,15 @@ LV_FONT_DECLARE(os_logos);
 #define LOGO_APPLE "\xEE\x80\x90"
 #define LOGO_WIN   "\xEE\x80\x91"
 #define LOGO_PUBG  "\xEE\x80\x92"
+#define LOGO_MOUSE "\xEE\x80\x93"
 
-/* Base layers that select which logo to draw (see roBakesb.keymap). */
+/* Layers that select which logo to draw (see roBakesb.keymap). The mouse layer
+ * stacks on top of whatever base is active and takes priority on the display. */
 #define LAYER_WINDOWS 1
 #define LAYER_GAMING  2
+#define LAYER_MOUSE   7
 
-static const char *logo_syms[3] = { LOGO_APPLE, LOGO_WIN, LOGO_PUBG };
+static const char *logo_syms[4] = { LOGO_APPLE, LOGO_WIN, LOGO_PUBG, LOGO_MOUSE };
 
 /* One row per device: dongle + left KB + right KB + mouse. The mouse battery
  * is not delivered over ESB yet, so its row stays at "-- " until that lands. */
@@ -139,6 +142,9 @@ static bool any_low_battery(void) {
 /* Which logo matches the current base layer. Momentary layers stack on top of
  * the &to-selected base, so the base stays active and we test it directly. */
 static uint8_t current_os_logo(void) {
+    if (zmk_keymap_layer_active(LAYER_MOUSE)) {
+        return 3; /* Mouse */
+    }
     if (zmk_keymap_layer_active(LAYER_GAMING)) {
         return 2; /* PUBG */
     }
@@ -185,7 +191,7 @@ static void update_display(struct k_work *work) {
     }
 
     /* OS / game logo for the active base layer */
-    const char *logo = logo_syms[s.os_logo < 3 ? s.os_logo : 0];
+    const char *logo = logo_syms[s.os_logo < 4 ? s.os_logo : 0];
     if (strcmp(lv_label_get_text(logo_label), logo) != 0) {
         lv_label_set_text(logo_label, logo);
     }

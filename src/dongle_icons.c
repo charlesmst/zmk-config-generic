@@ -16,6 +16,9 @@ LV_FONT_DECLARE(lv_font_montserrat_12);
  *   U+E001 "\xEE\x80\x81"  left KB – keyboard grid + left arrow ←
  *   U+E002 "\xEE\x80\x82"  right KB – keyboard grid + right arrow →
  *   U+E003 "\xEE\x80\x83"  mouse   – corded top-down mouse + scroll wheel
+ *   U+E004..E008            signal bars, 0..4 lit (ascending cellular bars).
+ *                           Unlit bars keep a baseline dot so the gauge always
+ *                           shows four positions.
  *
  * Pixel layout (col 0 = MSB = leftmost):
  *
@@ -40,6 +43,16 @@ static const uint8_t dongle_icons_bitmap[] = {
     0xFF, 0xAA, 0xFF, 0xAA, 0xFF, 0xFF, 0x00, 0x02, 0x7E, 0x02,
     /* U+E003  Mouse */
     0x18, 0x08, 0x3C, 0x7E, 0x6E, 0x6E, 0x7E, 0x7E, 0x3C, 0x00,
+    /* U+E004  Signal 0 bars (all four baseline dots only) */
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55,
+    /* U+E005  Signal 1 bar */
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x40, 0x55,
+    /* U+E006  Signal 2 bars */
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x10, 0x50, 0x50, 0x55,
+    /* U+E007  Signal 3 bars */
+    0x00, 0x00, 0x00, 0x04, 0x04, 0x14, 0x14, 0x54, 0x54, 0x55,
+    /* U+E008  Signal 4 bars */
+    0x00, 0x01, 0x01, 0x05, 0x05, 0x15, 0x15, 0x55, 0x55, 0x55,
 };
 
 /* glyph 0 is the "not found" sentinel required by LVGL */
@@ -49,13 +62,18 @@ static const lv_font_fmt_txt_glyph_dsc_t dongle_icons_glyph_dsc[] = {
     {.bitmap_index = 10, .adv_w = 144, .box_w = 8, .box_h = 10, .ofs_x = 0, .ofs_y = 0},
     {.bitmap_index = 20, .adv_w = 144, .box_w = 8, .box_h = 10, .ofs_x = 0, .ofs_y = 0},
     {.bitmap_index = 30, .adv_w = 144, .box_w = 8, .box_h = 10, .ofs_x = 0, .ofs_y = 0},
+    {.bitmap_index = 40, .adv_w = 144, .box_w = 8, .box_h = 10, .ofs_x = 0, .ofs_y = 0},
+    {.bitmap_index = 50, .adv_w = 144, .box_w = 8, .box_h = 10, .ofs_x = 0, .ofs_y = 0},
+    {.bitmap_index = 60, .adv_w = 144, .box_w = 8, .box_h = 10, .ofs_x = 0, .ofs_y = 0},
+    {.bitmap_index = 70, .adv_w = 144, .box_w = 8, .box_h = 10, .ofs_x = 0, .ofs_y = 0},
+    {.bitmap_index = 80, .adv_w = 144, .box_w = 8, .box_h = 10, .ofs_x = 0, .ofs_y = 0},
 };
 
 /* FORMAT0_TINY: contiguous range, glyph_id = glyph_id_start + (cp - range_start) */
 static const lv_font_fmt_txt_cmap_t dongle_icons_cmaps[] = {
     {
         .range_start       = 0xE000,
-        .range_length      = 4,
+        .range_length      = 9,
         .glyph_id_start    = 1,
         .unicode_list      = NULL,
         .glyph_id_ofs_list = NULL,

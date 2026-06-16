@@ -11,6 +11,7 @@
 #include <zmk/keymap.h>
 #include <zmk/events/layer_state_changed.h>
 #include <zmk/events/split_esb_peripheral_changed.h>
+#include <zmk_split_esb.h>
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -20,6 +21,13 @@ LV_FONT_DECLARE(dongle_icons);
 #define ICON_LEFT_KB  "\xEE\x80\x81"
 #define ICON_RIGHT_KB "\xEE\x80\x82"
 #define ICON_MOUSE    "\xEE\x80\x83"
+
+/* Signal-strength bars, 0..4 lit (U+E004–U+E008, see dongle_icons.c) */
+#define SIG_BARS_0 "\xEE\x80\x84"
+#define SIG_BARS_1 "\xEE\x80\x85"
+#define SIG_BARS_2 "\xEE\x80\x86"
+#define SIG_BARS_3 "\xEE\x80\x87"
+#define SIG_BARS_4 "\xEE\x80\x88"
 
 /* Large OS / game logos from os_logos.c (U+E010–U+E012), keyed off base layer */
 LV_FONT_DECLARE(os_logos);
@@ -44,11 +52,23 @@ static const char *logo_syms[3] = { LOGO_APPLE, LOGO_WIN, LOGO_PUBG };
 #define BAT_DASH_COUNT 8
 #define BAT_LOW_BLINK_THRESHOLD 25
 
+/* Per-peripheral RF signal display. Bars replace the battery ring + device icon
+ * for that slot; the dongle slot (row 0) is the central and has no link RSSI.
+ * DONGLE_SIGNAL_BARS_ALWAYS=1 keeps bars up at all times (observation mode);
+ * set it to 0 to show the device icon on an excellent link and bars only when
+ * the link is below excellent. */
+#define DONGLE_SIGNAL_BARS_ALWAYS 0
+#define SIGNAL_EXCELLENT_BARS     4
+
 static const char *label_syms[NUM_LABELS] = {
     ICON_DONGLE,
     ICON_LEFT_KB,
     ICON_RIGHT_KB,
     ICON_MOUSE,
+};
+
+static const char *sig_bars_syms[5] = {
+    SIG_BARS_0, SIG_BARS_1, SIG_BARS_2, SIG_BARS_3, SIG_BARS_4,
 };
 
 static lv_obj_t *bat_arcs[NUM_LABELS];
@@ -65,6 +85,9 @@ struct display_state {
      * rows 1..3 follow the peripheral connection events and start hidden until
      * the central reports the peripheral connected. */
     bool    connected[NUM_LABELS];
+    /* Last received signal per slot, dBm (negative); 0 = no sample yet. Slot 0
+     * is the dongle and has no peripheral link, so it stays unused. */
+    int8_t  rssi_dbm[NUM_LABELS];
     uint8_t os_logo;
 };
 
@@ -125,6 +148,33 @@ static uint8_t current_os_logo(void) {
     return 0; /* Mac */
 }
 
+/* Map received signal (negative dBm) to 0..4 bars. 0 dBm is the "no sample /
+ * out of range" sentinel and reads as 0 bars, not full. */
+static uint8_t rssi_to_bars(int8_t dbm) {
+    if (dbm == 0) {
+        return 0;
+    }
+    if (dbm >= -60) {
+        return 4;
+    }
+    if (dbm >= -70) {
+        return 3;
+    }
+    if (dbm >= -80) {
+        return 2;
+    }
+    if (dbm >= -90) {
+        return 1;
+    }
+    return 0;
+}
+
+static void set_label_text(lv_obj_t *label, const char *text) {
+    if (strcmp(lv_label_get_text(label), text) != 0) {
+        lv_label_set_text(label, text);
+    }
+}
+
 static void update_display(struct k_work *work) {
     k_mutex_lock(&state_mutex, K_FOREVER);
     struct display_state s = dstate;
@@ -155,6 +205,18 @@ static void update_display(struct k_work *work) {
             continue;
         }
 
+        /* Pick the center glyph: peripheral slots (1..) can show signal bars
+         * nested inside the battery ring; the dongle (slot 0) has no link RSSI,
+         * so it always keeps its device icon. The ring keeps showing battery. */
+        const char *center_sym = label_syms[i];
+        if (i >= 1) {
+            uint8_t bars = rssi_to_bars(s.rssi_dbm[i]);
+            if (DONGLE_SIGNAL_BARS_ALWAYS || bars < SIGNAL_EXCELLENT_BARS) {
+                center_sym = sig_bars_syms[bars];
+            }
+        }
+        set_label_text(bat_icon_labels[i], center_sym);
+
         uint8_t level;
         bool valid;
         level = s.bat_valid[i] ? s.bat_levels[i] : 0;
@@ -173,14 +235,41 @@ static void update_display(struct k_work *work) {
 
 K_WORK_DEFINE(update_work, update_display);
 
+/* Poll each connected peripheral's link RSSI (there is no event for it) and
+ * fold it into the display state. Returns true when a slot's bar level changed,
+ * so the caller only redraws on a visible difference. */
+static bool poll_signal(void) {
+    bool changed = false;
+
+    k_mutex_lock(&state_mutex, K_FOREVER);
+    for (int i = 1; i < NUM_LABELS; i++) {
+        if (!dstate.connected[i]) {
+            continue;
+        }
+        int8_t dbm = zmk_split_esb_pipe_rssi_dbm(i - 1);
+        if (rssi_to_bars(dbm) != rssi_to_bars(dstate.rssi_dbm[i])) {
+            changed = true;
+        }
+        dstate.rssi_dbm[i] = dbm;
+    }
+    k_mutex_unlock(&state_mutex);
+
+    return changed;
+}
+
 static void blink_work_cb(struct k_work *work) {
     ARG_UNUSED(work);
 
+    bool need_update = poll_signal();
+
     if (any_low_battery()) {
         low_blink_visible = !low_blink_visible;
-        schedule_update();
+        need_update = true;
     } else {
         low_blink_visible = true;
+    }
+    if (need_update) {
+        schedule_update();
     }
     k_work_reschedule(&blink_work, K_SECONDS(1));
 }

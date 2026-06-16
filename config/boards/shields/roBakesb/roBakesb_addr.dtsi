@@ -15,7 +15,7 @@
         base-address = [E7 E3 A7 E8];
         address-length = <4>;
         hop-channels = [18 31 4A 50];
-        hop-threshold = <6>;
+        hop-threshold = <16>;
 
         peripherals {
             esb_left: peripheral_left {

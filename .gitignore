@@ -20,7 +20,9 @@ build_roba_kesb/roBakesb_right
 build_roba_kesb/roBakesb_dongle_mdk
 *.log
 build_roba_kesb/roBakesb_lariska
+build_charybdis/
 zmk-paw3395-driver
 zmk-vfx-rgbled-indicator
 zmk-behavior-stepped-scroll
 zmk-trackball-gestures-module
+zmk-feature-sensor_rotation

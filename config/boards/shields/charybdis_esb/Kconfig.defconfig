@@ -1,0 +1,39 @@
+if SHIELD_CHARYBDIS_ESB
+
+config ZMK_KEYBOARD_NAME
+    default "Charybdis ESB"
+
+config ZMK_SPLIT
+    default y
+
+endif # SHIELD_CHARYBDIS_ESB
+
+if SHIELD_CHARYBDIS_ESB_LEFT
+
+config ZMK_KEYBOARD_NAME
+    default "Charybdis ESB L"
+
+config ZMK_SPLIT
+    default y
+
+endif # SHIELD_CHARYBDIS_ESB_LEFT
+
+if SHIELD_CHARYBDIS_ESB_RIGHT
+
+config ZMK_KEYBOARD_NAME
+    default "Charybdis ESB R"
+
+config ZMK_SPLIT
+    default y
+
+endif # SHIELD_CHARYBDIS_ESB_RIGHT
+
+if SHIELD_CHARYBDIS_ESB_LARISKA
+
+config ZMK_KEYBOARD_NAME
+    default "Charybdis ESB Lariska"
+
+config ZMK_SPLIT
+    default y
+
+endif # SHIELD_CHARYBDIS_ESB_LARISKA

@@ -1,0 +1,64 @@
+#include "charybdis_matrix.dtsi"
+#include "charybdis_esb_addr.dtsi"
+#include "charybdis_trackball.dtsi"
+#include <behaviors/input_processor_sigmoid_accel.dtsi>
+#include <input/processors/sensor_rotation.dtsi>
+
+/ {
+    chosen {
+        zmk,kscan = &kscan0;
+        zmk,physical-layout = &charybdis_physical_layout;
+        zmk,esb-self = &esb_right;
+    };
+
+    kscan0: kscan {
+        compatible = "zmk,kscan-gpio-matrix";
+        wakeup-source;
+        diode-direction = "row2col";
+        row-gpios
+            = <&pro_micro 18 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 5 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 4 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 9 GPIO_ACTIVE_HIGH>
+            ;
+        col-gpios
+            = <&pro_micro 20 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&pro_micro 10 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&pro_micro 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&pro_micro 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&pro_micro 8 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            ;
+    };
+};
+
+&default_transform {
+    col-offset = <5>;
+};
+
+&charybdis_physical_layout {
+    kscan = <&kscan0>;
+};
+
+&esb_link {
+    retransmit-delay-us = <870>;
+};
+
+/* Orientation: rotate the raw trackball vector by a true angle (5deg steps)
+ * before acceleration. Tune rotation-angle on hardware. If the cursor is
+ * mirrored (handedness wrong) rather than just rotated, add a single
+ * y-invert to &trackball in charybdis_trackball.dtsi. */
+&sensor_rotation {
+    /* Ball is mounted ~15deg off (moving up drifts right); -15 compensates.
+     * Module normalizes negatives (-15 -> 345). 5deg steps. */
+    rotation-angle = <(-15)>;
+};
+
+&trackball_split {
+    status = "okay";
+    device = <&trackball>;
+    input-processors = <&sensor_rotation &sigmoid_accel>;
+};
+
+&sigmoid_accel {
+    cpi = <2600>;
+};

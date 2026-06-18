@@ -1,0 +1,94 @@
+/*
+ * Shared ESB link identity for the charybdis_esb dongle and all peripherals.
+ * Every side must include the same base address, channel set, and peripheral
+ * table. Each peripheral overlay selects its own entry with zmk,esb-self.
+ *
+ * The RF identity here is DISTINCT from the roBakesb system (different
+ * base-address, prefixes, and hop-channels) so both can run side by side
+ * without colliding.
+ *
+ * The trackball_listener is disabled here; the dongle overlay enables it.
+ * The right peripheral overlay assigns device = <&trackball> to trackball_split.
+ * The (optional) lariska peripheral assigns device = <&mou0> to mouse_split.
+ */
+
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/ {
+    esb_link: esb_link {
+        compatible = "zmk,split-esb";
+        base-address = [C4 D1 B2 9A];
+        address-length = <4>;
+        hop-channels = [0C 27 3E 4C];
+        hop-threshold = <16>;
+
+        peripherals {
+            esb_left: peripheral_left {
+                pipe = <0>;
+                prefix = <0xC4>;
+                weight = <1>;
+            };
+
+            esb_right: peripheral_right {
+                pipe = <1>;
+                prefix = <0xC3>;
+                weight = <1>;
+            };
+
+            esb_lariska: peripheral_lariska {
+                pipe = <2>;
+                prefix = <0xC2>;
+                weight = <1>;
+            };
+        };
+
+        tx-power-dbm = <8>;
+        retransmit-count = <8>;
+        retransmit-delay-us = <600>;
+        use-fast-ramp-up;
+        bitrate-kbps = <2000>;
+        lossy-codes
+            = <INPUT_EV_REL INPUT_REL_X>
+            , <INPUT_EV_REL INPUT_REL_Y>;
+    };
+
+    split_inputs {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        trackball_split: trackball_split@0 {
+            compatible = "zmk,input-split";
+            reg = <0>;
+            status = "disabled";
+        };
+
+        mouse_split: mouse_split@1 {
+            compatible = "zmk,input-split";
+            reg = <1>;
+            status = "disabled";
+        };
+    };
+
+    trackball_listener: trackball_listener {
+        compatible = "zmk,input-listener";
+        status = "disabled";
+        device = <&trackball_split>;
+    };
+
+    /* Defined here so all targets (dongle + every peripheral) resolve
+     * &stepped_scroll from the shared charybdis_esb.keymap. The dongle's overlay
+     * also adds stepped_scroll_il which routes the events to HID. */
+    stepped_scroll: stepped_scroll {
+        compatible = "zmk,behavior-stepped-scroll";
+        #binding-cells = <1>;
+        input-code = <INPUT_REL_WHEEL>;
+    };
+
+    /* Horizontal variant of stepped_scroll. Routed to HID by stepped_hscroll_il
+     * in the dongle overlay. */
+    stepped_hscroll: stepped_hscroll {
+        compatible = "zmk,behavior-stepped-scroll";
+        #binding-cells = <1>;
+        input-code = <INPUT_REL_HWHEEL>;
+    };
+};

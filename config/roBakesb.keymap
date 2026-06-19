@@ -73,6 +73,13 @@
         #sensor-binding-cells = <0>;
         bindings = <&stepped_hscroll (-1)>, <&stepped_hscroll 1>;
     };
+    /* Fast vertical scroll (3x) for the MB4-hold layer: 3 REL_WHEEL ticks
+     * per detent, same direction as lariska_scroll. */
+    lariska_scroll_3x: lariska_scroll_3x {
+        compatible = "zmk,behavior-sensor-rotate";
+        #sensor-binding-cells = <0>;
+        bindings = <&stepped_scroll (-3)>, <&stepped_scroll 3>;
+    };
     alt_tab_encoder: alt_tab_encoder {
         compatible = "zmk,behavior-sensor-rotate";
         label = "ALT_TAB_ENC";
@@ -575,7 +582,7 @@
         };
 
         hscroll_layer {
-            label = "H-Scroll";
+            label = "Fast Scroll";
             bindings = <
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
@@ -583,7 +590,7 @@
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
  LARISKA_BTNS_HSC
             >;
-            sensor-bindings = <&mouse_wheel &lariska_hscroll>;
+            sensor-bindings = <&mouse_wheel &lariska_scroll_3x>;
         };
     };
 };

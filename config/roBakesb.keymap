@@ -30,15 +30,16 @@
 
 /* Lariska mouse button bindings appended to every layer (positions 43-47):
  * LCLK RCLK MCLK MB4 MB5.
- * Per-OS variants make MB5 a hold-tap: hold = momentary tiling layer (alt-tab /
- * mission-control on the scroll wheel), tap = normal MB5 click. */
+ * Per-OS variants make MB5 a tap-dance: tap = normal MB5 click, hold =
+ * momentary tiling layer (alt-tab / mission-control on the scroll wheel),
+ * double-tap = OS overview (mission control on mac / task view on win). */
 #define LARISKA_BTNS       &mkp LCLK &mkp RCLK &mkp MCLK &mkp MB4 &mkp MB5
-#define LARISKA_BTNS_MAC   &mkp LCLK &mkp RCLK &mkp MCLK &mo_mkp HSCRL MB4 &mo_mkp TILIN MB5
-#define LARISKA_BTNS_WIN   &mkp LCLK &mkp RCLK &mkp MCLK &mo_mkp HSCRL MB4 &mo_mkp TILWI MB5
+#define LARISKA_BTNS_MAC   &mkp LCLK &mkp RCLK &mkp MCLK &mo_mkp HSCRL MB4 &td_mb5_mac
+#define LARISKA_BTNS_WIN   &mkp LCLK &mkp RCLK &mkp MCLK &mo_mkp HSCRL MB4 &td_mb5_win
 /* Inside the held tiling layers MB4 takes on the OS overview action. */
 #define LARISKA_BTNS_TILIN &mkp LCLK &mkp RCLK &mkp MCLK &kp LC(UP)  &mkp MB5
 #define LARISKA_BTNS_TILWI &mkp LCLK &mkp RCLK &mkp MCLK &kp LG(TAB) &mkp MB5
-/* MB4-hold horizontal-scroll layer: clicks stay normal, MB4 held. */
+/* MB4-hold fast-scroll layer: clicks stay normal, MB4 held. */
 #define LARISKA_BTNS_HSC   &mkp LCLK &mkp RCLK &mkp MCLK &trans &mkp MB5
 
 / {
@@ -189,6 +190,23 @@
             #binding-cells = <0>;
             tapping-term-ms = <200>;
             bindings = <MO_TOG(MOUSE)>, <&to GAMIN>;
+        };
+
+        /* Lariska MB5 tap-dance: tap = MB5 click, hold = momentary tiling
+         * layer, double-tap = OS overview (mission control / task view).
+         * Binding 0 is the existing hold-tap, so it still resolves tap-vs-hold;
+         * binding 1 fires only on the second tap. */
+        td_mb5_mac: td_mb5_mac {
+            compatible = "zmk,behavior-tap-dance";
+            #binding-cells = <0>;
+            tapping-term-ms = <200>;
+            bindings = <&mo_mkp TILIN MB5>, <&kp LC(UP)>;
+        };
+        td_mb5_win: td_mb5_win {
+            compatible = "zmk,behavior-tap-dance";
+            #binding-cells = <0>;
+            tapping-term-ms = <200>;
+            bindings = <&mo_mkp TILWI MB5>, <&kp LG(TAB)>;
         };
         swap: swapper {
             compatible = "zmk,behavior-tri-state";

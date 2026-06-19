@@ -19,7 +19,6 @@
         compatible = "zmk,split-esb";
         base-address = [C4 D1 B2 9A];
         address-length = <4>;
-        hop-channels = [0C 27 3E 4C];
         hop-threshold = <16>;
 
         peripherals {

@@ -24,23 +24,35 @@
 #define SCROL 10
 #define SNIPE 11
 #define GAMFN 12
-#define HSCRL 13
+#define FSCRL 13
+#define HSCRL 14
 
 #define KEY_AFTER_B &kp LA(SPACE)
 
 /* Lariska mouse button bindings appended to every layer (positions 43-47):
  * LCLK RCLK MCLK MB4 MB5.
- * Per-OS variants make MB5 a tap-dance: tap = normal MB5 click, hold =
- * momentary tiling layer (alt-tab / mission-control on the scroll wheel),
- * double-tap = OS overview (mission control on mac / task view on win). */
+ * MB4 is a tap-dance: tap = normal MB4 click, hold = momentary fast-scroll
+ * layer (FSCRL), double-tap = OS overview (mission control on mac / task view
+ * on win). MB5 is a hold-tap: tap = normal MB5 click, hold = momentary tiling
+ * layer (alt-tab on the scroll wheel) -- instant, no tap-dance delay.
+ * Holding MB4 + MB5 together activates the horizontal-scroll layer (HSCRL):
+ * the second button is &trans on the first button's layer, so it falls through
+ * to its base hold; with both holds down, conditional_layers turns on HSCRL. */
 #define LARISKA_BTNS       &mkp LCLK &mkp RCLK &mkp MCLK &mkp MB4 &mkp MB5
-#define LARISKA_BTNS_MAC   &mkp LCLK &mkp RCLK &mkp MCLK &mo_mkp HSCRL MB4 &td_mb5_mac
-#define LARISKA_BTNS_WIN   &mkp LCLK &mkp RCLK &mkp MCLK &mo_mkp HSCRL MB4 &td_mb5_win
-/* Inside the held tiling layers MB4 takes on the OS overview action. */
-#define LARISKA_BTNS_TILIN &mkp LCLK &mkp RCLK &mkp MCLK &kp LC(UP)  &mkp MB5
-#define LARISKA_BTNS_TILWI &mkp LCLK &mkp RCLK &mkp MCLK &kp LG(TAB) &mkp MB5
-/* MB4-hold fast-scroll layer: clicks stay normal, MB4 held. */
-#define LARISKA_BTNS_HSC   &mkp LCLK &mkp RCLK &mkp MCLK &trans &mkp MB5
+#define LARISKA_BTNS_MAC   &mkp LCLK &mkp RCLK &mkp MCLK &td_mb4_mac &mo_mkp TILIN MB5
+#define LARISKA_BTNS_WIN   &mkp LCLK &mkp RCLK &mkp MCLK &td_mb4_win &mo_mkp TILWI MB5
+/* Inside the held tiling layers MB4 is &trans so a second MB4 press falls
+ * through to the base MB4 hold (mo_mkp FSCRL via the tap-dance); FSCRL + the
+ * tiling layer then trigger HSCRL through conditional_layers.
+ * (OS overview now lives on the MB4 double-tap.) */
+#define LARISKA_BTNS_TILIN &mkp LCLK &mkp RCLK &mkp MCLK &trans &mkp MB5
+#define LARISKA_BTNS_TILWI &mkp LCLK &mkp RCLK &mkp MCLK &trans &mkp MB5
+/* MB4-hold fast-scroll layer (FSCRL): clicks stay normal, MB4 held. MB5 is
+ * &trans so it falls through to the base MB5 hold (tiling); FSCRL + tiling
+ * then trigger HSCRL. */
+#define LARISKA_BTNS_HSC   &mkp LCLK &mkp RCLK &mkp MCLK &trans &trans
+/* MB4 + MB5 held: both fall through (&trans) so the holds persist. */
+#define LARISKA_BTNS_HSCRL &mkp LCLK &mkp RCLK &mkp MCLK &trans &trans
 
 / {
     cursor_move: cursor_move {
@@ -74,12 +86,12 @@
         #sensor-binding-cells = <0>;
         bindings = <&stepped_hscroll (-1)>, <&stepped_hscroll 1>;
     };
-    /* Fast vertical scroll (3x) for the MB4-hold layer: 3 REL_WHEEL ticks
+    /* Fast vertical scroll (4x) for the MB4-hold layer: 4 REL_WHEEL ticks
      * per detent, same direction as lariska_scroll. */
-    lariska_scroll_3x: lariska_scroll_3x {
+    lariska_scroll_4x: lariska_scroll_4x {
         compatible = "zmk,behavior-sensor-rotate";
         #sensor-binding-cells = <0>;
-        bindings = <&stepped_scroll (-3)>, <&stepped_scroll 3>;
+        bindings = <&stepped_scroll (-4)>, <&stepped_scroll 4>;
     };
     alt_tab_encoder: alt_tab_encoder {
         compatible = "zmk,behavior-sensor-rotate";
@@ -120,6 +132,17 @@
         tri_layer_gaming {
             if-layers = <SYMBO LOGAM>;
             then-layer = <SUPER>;
+        };
+
+        /* MB4 (FSCRL) + MB5 (tiling) held together -> horizontal scroll. */
+        hscroll_mac {
+            if-layers = <FSCRL TILIN>;
+            then-layer = <HSCRL>;
+        };
+
+        hscroll_win {
+            if-layers = <FSCRL TILWI>;
+            then-layer = <HSCRL>;
         };
     };
 
@@ -192,21 +215,22 @@
             bindings = <MO_TOG(MOUSE)>, <&to GAMIN>;
         };
 
-        /* Lariska MB5 tap-dance: tap = MB5 click, hold = momentary tiling
-         * layer, double-tap = OS overview (mission control / task view).
+        /* Lariska MB4 tap-dance: tap = MB4 click, hold = momentary fast-scroll
+         * layer (FSCRL), double-tap = OS overview (mission control / task view).
          * Binding 0 is the existing hold-tap, so it still resolves tap-vs-hold;
-         * binding 1 fires only on the second tap. */
-        td_mb5_mac: td_mb5_mac {
+         * binding 1 fires only on the second tap. The tap-dance delay lands on
+         * the scroll layer (not on MB5's alt-tab, which is now instant). */
+        td_mb4_mac: td_mb4_mac {
             compatible = "zmk,behavior-tap-dance";
             #binding-cells = <0>;
             tapping-term-ms = <200>;
-            bindings = <&mo_mkp TILIN MB5>, <&kp LC(UP)>;
+            bindings = <&mo_mkp FSCRL MB4>, <&kp LC(UP)>;
         };
-        td_mb5_win: td_mb5_win {
+        td_mb4_win: td_mb4_win {
             compatible = "zmk,behavior-tap-dance";
             #binding-cells = <0>;
             tapping-term-ms = <200>;
-            bindings = <&mo_mkp TILWI MB5>, <&kp LG(TAB)>;
+            bindings = <&mo_mkp FSCRL MB4>, <&kp LG(TAB)>;
         };
         swap: swapper {
             compatible = "zmk,behavior-tri-state";
@@ -599,7 +623,7 @@
             sensor-bindings = <&rot_kp PG_UP PG_DN &rot_kp C_VOL_DN C_VOL_UP>;
         };
 
-        hscroll_layer {
+        fast_scroll_layer {
             label = "Fast Scroll";
             bindings = <
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
@@ -608,7 +632,19 @@
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
  LARISKA_BTNS_HSC
             >;
-            sensor-bindings = <&mouse_wheel &lariska_scroll_3x>;
+            sensor-bindings = <&mouse_wheel &lariska_scroll_4x>;
+        };
+
+        hscroll_layer {
+            label = "H-Scroll";
+            bindings = <
+ &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
+ &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
+ &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
+ &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
+ LARISKA_BTNS_HSCRL
+            >;
+            sensor-bindings = <&mouse_wheel &lariska_hscroll>;
         };
     };
 };

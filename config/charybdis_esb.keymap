@@ -411,7 +411,7 @@
                                 &trans    &trans    &trans       &trans    &trans
             LARISKA_BTNS
             >;
-            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN>;
+            sensor-bindings = <&rot_kp C_VOL_DN C_VOL_UP>;
         };
 
         raise_layer {
@@ -423,7 +423,7 @@
                                  &trans    &trans     &trans       &trans     &trans
             LARISKA_BTNS
             >;
-            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN>;
+            sensor-bindings = <&rot_kp C_VOL_DN C_VOL_UP>;
         };
 
         gaming_lower {
@@ -435,7 +435,7 @@
                            &mo GAMFN  &trans  &trans    &trans    &trans
             LARISKA_BTNS
             >;
-            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN>;
+            sensor-bindings = <&rot_kp C_VOL_DN C_VOL_UP>;
         };
 
         super_layer {
@@ -459,7 +459,7 @@
             LARISKA_BTNS
             >;
             /* Lariska encoder = volume on the mouse layer. */
-            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN>;
+            sensor-bindings = <&rot_kp C_VOL_DN C_VOL_UP>;
         };
 
         tiling_layer {
@@ -518,7 +518,7 @@
             LARISKA_BTNS
             >;
             /* Lariska encoder = volume on the gaming fn layer. */
-            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN>;
+            sensor-bindings = <&rot_kp C_VOL_DN C_VOL_UP>;
         };
     };
 };

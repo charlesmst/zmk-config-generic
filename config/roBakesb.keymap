@@ -512,7 +512,7 @@
             >;
             /* Keyboard encoder stays mouse-wheel; Lariska encoder = volume so
              * volume is reachable from the trackball without the roBa encoder. */
-            sensor-bindings = <&mouse_wheel &rot_kp C_VOL_UP C_VOL_DN>;
+            sensor-bindings = <&mouse_wheel &rot_kp C_VOL_DN C_VOL_UP>;
         };
 
         tiling_layer {
@@ -571,7 +571,7 @@
  LARISKA_BTNS
             >;
             /* Lariska encoder = volume on the gaming fn layer. */
-            sensor-bindings = <&rot_kp PG_UP PG_DN &rot_kp C_VOL_UP C_VOL_DN>;
+            sensor-bindings = <&rot_kp PG_UP PG_DN &rot_kp C_VOL_DN C_VOL_UP>;
         };
 
         hscroll_layer {

@@ -412,6 +412,7 @@
             timeout-ms = <50>;
             key-positions = <21 22 23>;
             bindings = <&tog GAMIN>;
+            layers = <GAMIN WINDO>;
         };
     };
 

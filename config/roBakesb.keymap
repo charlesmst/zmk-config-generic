@@ -404,6 +404,15 @@
             key-positions = <31 32 33 34>;
             bindings = <&tog MOUSE>;
         };
+        /* On the Windows layer, X+C+V together toggle the gaming layer
+         * (mirrors the charybdis combo). Restricted to WINDO so it never
+         * fires while typing on Mac/default. */
+        combo_gaming {
+            timeout-ms = <50>;
+            key-positions = <23 24 25>;
+            layers = <WINDO GAMIN>;
+            bindings = <&tog GAMIN>;
+        };
     };
 
     keymap {
@@ -438,7 +447,7 @@
             bindings = <
  &kp TAB              &kp Q                &kp W                &kp E                &kp R                &kp Y                &kp U                &kp I                &kp O                &kp P
  &kp LCTRL            &kp A                &kp S                &kp D                &kp F                &kp PSCRN            &trans               &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILIN SEMI
- &kp LSHFT            &kp Z                &kp X                &kp C                &kp V                &kp B                &trans               &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH
+ &kp LSHFT            &kp Z                &kp X                &kp C                &kp V                &none                &trans               &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH
  &flush_mods          &tog GAMIN           &mo GAMFN            &kp LALT             &mo LOGAM            &kp SPACE            &to WINDO            &mo SYMBO            &trans
  LARISKA_BTNS
             >;
@@ -475,7 +484,7 @@
  &kp GRAVE            &kp N1               &kp N2               &kp N3               &kp N4               &kp N6               &kp N7               &kp N8               &kp N9               &kp N0
  &kp ESC              &trans               &trans               &trans               &kp G                &trans               &trans               &kp LEFT             &kp DOWN             &kp UP               &kp RIGHT            &kp BSPC
  &trans               &kp M                &kp N5               &kp T                &kp B                &tog GAMIN           &trans               &kp HOME             &kp PG_DN            &kp PG_UP            &kp END              &kp DEL
- &trans               &trans               &trans               &kp LALT             &trans               &trans               &trans               &trans               &trans
+ &trans               &trans               &trans               &mo GAMFN            &trans               &trans               &trans               &trans               &trans
  LARISKA_BTNS
             >;
             sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN &lariska_scroll>;
@@ -501,6 +510,9 @@
  &trans               &trans               &trans               &dmouse              &trans               &trans               &dmouse              &mkp MB1             &trans
  LARISKA_BTNS
             >;
+            /* Keyboard encoder stays mouse-wheel; Lariska encoder = volume so
+             * volume is reachable from the trackball without the roBa encoder. */
+            sensor-bindings = <&mouse_wheel &rot_kp C_VOL_UP C_VOL_DN>;
         };
 
         tiling_layer {
@@ -558,6 +570,8 @@
  &sk_forever LCTRL    &kp EQUAL            &trans               &trans               &trans               &trans               &trans               &trans               &trans
  LARISKA_BTNS
             >;
+            /* Lariska encoder = volume on the gaming fn layer. */
+            sensor-bindings = <&rot_kp PG_UP PG_DN &rot_kp C_VOL_UP C_VOL_DN>;
         };
 
         hscroll_layer {

@@ -23,6 +23,7 @@
 #define TILWI 9
 #define SCROL 10
 #define SNIPE 11
+#define GAMFN 12
 
 /* Lariska (optional) mouse button bindings appended to every layer
  * (positions 35-39): LCLK RCLK MCLK MB4 MB5.
@@ -81,6 +82,14 @@
     };
 
     behaviors {
+        sk_forever: sk_forever {
+            compatible = "zmk,behavior-sticky-key";
+            #binding-cells = <1>;
+            bindings = <&kp>;
+            ignore-modifiers;
+            release-after-ms = <600000>;
+        };
+
         hm: homerow_mods {
             compatible = "zmk,behavior-hold-tap";
             label = "HOMEROW_MODS";
@@ -423,7 +432,7 @@
 &kp GRAVE  &kp N1  &kp N2  &kp N3  &kp N4    &kp N6    &kp N7     &kp N8     &kp N9     &kp N0
 &kp ESC    &trans  &trans  &trans  &kp G     &kp LEFT  &kp DOWN   &kp UP     &kp RIGHT  &kp BSPC
 &trans     &kp M   &kp N5  &kp T   &kp B     &kp HOME  &kp PG_DN  &kp PG_UP  &kp END    &kp DEL
-                           &kp LALT  &trans  &trans    &trans    &trans
+                           &mo GAMFN  &trans  &trans    &trans    &trans
             LARISKA_BTNS
             >;
             sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN>;
@@ -449,6 +458,8 @@
                                            &trans          &trans    &trans       &dmouse       &mkp MB1
             LARISKA_BTNS
             >;
+            /* Lariska encoder = volume on the mouse layer. */
+            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN>;
         };
 
         tiling_layer {
@@ -495,6 +506,19 @@
                         &trans  &trans    &trans  &trans  &trans
             LARISKA_BTNS
             >;
+        };
+
+        game_fn_layer {
+            label = "Game Fn";
+            bindings = <
+&kp F1   &kp F2   &kp F3   &kp F4   &kp F5     &trans  &trans  &trans  &trans  &trans
+&kp F6   &kp F7   &kp F8   &kp F9   &kp F10    &trans  &trans  &trans  &trans  &trans
+&kp F11  &kp F12  &kp Y    &kp H    &kp N      &trans  &trans  &trans  &trans  &trans
+                        &trans  &trans    &trans  &trans  &trans
+            LARISKA_BTNS
+            >;
+            /* Lariska encoder = volume on the gaming fn layer. */
+            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN>;
         };
     };
 };

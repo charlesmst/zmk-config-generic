@@ -53,7 +53,7 @@ manifest:
 
     - name: zmk-feature-split-esb
       remote: damex
-      revision: implement-adaptive-channel-hopping
+      revision: v0.3.2 
       import: true
 
   self:

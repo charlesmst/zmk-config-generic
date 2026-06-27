@@ -1,3 +1,19 @@
+name: Build
+
+# Vendored copy of ZMK's official reusable user-config build workflow
+# (zmkfirmware/zmk/.github/workflows/build-user-config.yml). It is copied in
+# rather than referenced via `uses:` so we can insert the one step the upstream
+# workflow lacks: `west patch`, which the damex zmk-feature-split-esb module
+# requires to apply its sdk-nrf/Zephyr Kconfig patches before building.
+#
+# Differences from upstream (kept as small as possible):
+#   1. Trigger + inlined input defaults (this is a standalone workflow).
+#   2. A "West Patch" step after "West Update".
+#   3. The copied config/zephyr/module.yml is removed: this repo is itself a
+#      Zephyr module loaded in-place via ZMK_EXTRA_MODULES, and that duplicate
+#      module definition uses relative paths (../Kconfig) that don't resolve in
+#      the isolated workspace. See the "Copy config files" step for details.
+
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
@@ -15,20 +31,23 @@ jobs:
         id: fetch
         run: |
           matrix_content=$(yq -oj -I0 'build.yaml')
+
           if [ -z "$matrix_content" ] || [ "$matrix_content" = "null" ]; then
+            echo "::notice file=build.yaml,title=Empty build matrix file::To add a keyboard to the build, see https://zmk.dev/docs/user-setup#add-a-keyboard."
             echo "has_valid_build_matrix=false" >> $GITHUB_OUTPUT
           else
             echo "build_matrix=$matrix_content" >> $GITHUB_ENV
             echo "has_valid_build_matrix=true" >> $GITHUB_OUTPUT
+            echo "$matrix_content"
           fi
 
   build:
     runs-on: ubuntu-latest
+    if: needs.matrix.outputs.has_valid_build_matrix == 'true'
     container:
       image: zmkfirmware/zmk-build-arm:stable
     needs: matrix
-    if: needs.matrix.outputs.has_valid_build_matrix == 'true'
-    name: Build (${{ matrix.board }}, ${{ matrix.shield }})
+    name: Build
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.matrix.outputs.build_matrix) }}
@@ -37,68 +56,100 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create build directory
-        run: echo "build_dir=$(mktemp -d)" >> $GITHUB_ENV
+        run: |
+          echo "build_dir=$(mktemp -d)" >> $GITHUB_ENV
 
       - name: Prepare variables
+        shell: bash -x {0}
         env:
           board: ${{ matrix.board }}
           shield: ${{ matrix.shield }}
-          snippet: ${{ matrix.snippet }}
           artifact_name: ${{ matrix.artifact-name }}
-        shell: bash -x {0}
+          snippet: ${{ matrix.snippet }}
         run: |
-          base_dir="${TMPDIR:-/tmp}/zmk-config"
-          mkdir -p "${base_dir}"
-          echo "base_dir=${base_dir}" >> $GITHUB_ENV
-          echo "zephyr_version=${ZEPHYR_VERSION}" >> $GITHUB_ENV
-          if [ -n "${snippet}" ]; then
-            echo "extra_west_args=-S \"${snippet}\"" >> $GITHUB_ENV
+          # This repo carries a top-level zephyr/module.yml, so it is itself a
+          # Zephyr module. Build the west workspace in an isolated temp dir so
+          # west's own zephyr/ checkout does not collide with the repo's
+          # zephyr/ module dir, and load the repo as an extra module.
+          if [ -e zephyr/module.yml ]; then
+            export zmk_load_arg=" -DZMK_EXTRA_MODULES='${GITHUB_WORKSPACE}'"
+            base_dir="${TMPDIR:-/tmp}/zmk-config"
+            mkdir -p "${base_dir}"
+          else
+            base_dir="${GITHUB_WORKSPACE}"
           fi
-          echo "extra_cmake_args=${shield:+-DSHIELD=\"$shield\"}" >> $GITHUB_ENV
+
+          if [ -n "${snippet}" ]; then
+            extra_west_args="-S \"${snippet}\""
+          fi
+
+          echo "base_dir=${base_dir}" >> $GITHUB_ENV
+          echo "config_dir=${base_dir}/config" >> $GITHUB_ENV
+          echo "zephyr_version=${ZEPHYR_VERSION}" >> $GITHUB_ENV
+          echo "extra_west_args=${extra_west_args}" >> $GITHUB_ENV
+          echo "extra_cmake_args=${shield:+-DSHIELD=\"$shield\"}${zmk_load_arg}" >> $GITHUB_ENV
           echo "display_name=${shield:+$shield - }${board}" >> $GITHUB_ENV
           echo "artifact_name=${artifact_name:-${shield:+$shield-}${board//\//_}-zmk}" >> $GITHUB_ENV
 
       - name: Copy config files to isolated temporary directory
         run: |
-          mkdir -p "${{ env.base_dir }}/config"
-          cp -R config/* "${{ env.base_dir }}/config/"
+          if [ "${{ env.base_dir }}" != "${GITHUB_WORKSPACE}" ]; then
+            mkdir -p "${{ env.config_dir }}"
+            cp -R config/* "${{ env.config_dir }}/"
+          fi
+          # The repo is loaded in-place as a Zephyr module via
+          # ZMK_EXTRA_MODULES=${GITHUB_WORKSPACE}; that module (zephyr/module.yml,
+          # board_root: config) is the authoritative source for the boards,
+          # shields and src/ it describes. Drop the copies of anything it
+          # already provides so they don't clash:
+          #   - config/zephyr/module.yml: a duplicate "roBa" module definition
+          #     whose relative paths (../Kconfig) don't resolve in the temp dir.
+          #   - config/boards: defined again via board_root, which makes Zephyr
+          #     report custom boards as "defined multiple times".
+          # The copy keeps only what ZMK_CONFIG needs (west.yml, *.keymap,
+          # *.conf). This matches the local build, where the root module wins.
+          rm -rf "${{ env.config_dir }}/zephyr" "${{ env.config_dir }}/boards"
 
       - name: Cache west modules
         uses: actions/cache@v4
         continue-on-error: true
+        env:
+          cache_name: cache-zephyr-${{ env.zephyr_version }}-modules
         with:
-          path: ${{ env.base_dir }}/modules/
-          key: ${{ runner.os }}-build-${{ env.zephyr_version }}-modules-${{ hashFiles('**/west.yml', '**/build.yaml') }}
+          path: |
+            ${{ env.base_dir }}/modules/
+            ${{ env.base_dir }}/tools/
+            ${{ env.base_dir }}/zephyr/
+            ${{ env.base_dir }}/bootloader/
+            ${{ env.base_dir }}/zmk/
+          key: ${{ runner.os }}-build-${{ env.cache_name }}-${{ hashFiles('**/west.yml', '**/build.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.zephyr_version }}-modules-
+            ${{ runner.os }}-build-${{ env.cache_name }}-
             ${{ runner.os }}-build-
+            ${{ runner.os }}-
 
       - name: West Init
         working-directory: ${{ env.base_dir }}
-        run: west init -l "${{ env.base_dir }}/config"
+        run: west init -l "${{ env.config_dir }}"
 
       - name: West Update
         working-directory: ${{ env.base_dir }}
         run: west update --fetch-opt=--filter=tree:0
 
-      - name: Apply NRF SDK patches from ESB module
+      # --- Only functional addition vs. upstream build-user-config.yml ---
+      # The damex zmk-feature-split-esb module ships sdk-nrf/Zephyr Kconfig
+      # patches that must be applied to the freshly-updated workspace before
+      # building. See https://github.com/damex/zmk-feature-split-esb#install
+      - name: West Patch (apply damex ESB patches)
+        working-directory: ${{ env.base_dir }}
+        run: west patch -sm zmk-feature-split-esb apply
+
+      - name: Check ZMK revision
         working-directory: ${{ env.base_dir }}
         run: |
-          esb_dir=$(west list -f "{abspath}" zmk-feature-split-esb 2>/dev/null || true)
-          if [ -d "${esb_dir}/zephyr/patches/nrf" ]; then
-            echo "Applying NRF patches from ${esb_dir}/zephyr/patches/nrf"
-            west patch -sm zmk-feature-split-esb clean || true
-            west patch -sm zmk-feature-split-esb apply -r
-          else
-            echo "No patches dir found (esb_dir=${esb_dir})"
-          fi
-          # damex's CMakeLists applies -Wduplicated-branches + -Werror which fires
-          # as a false positive on Zephyr's cbprintf_internal.h macro expansion,
-          # and -fanalyzer which is very slow. Strip both.
-          if [ -f "${esb_dir}/CMakeLists.txt" ]; then
-            sed -i '/-Wduplicated-branches\|-fanalyzer/d' "${esb_dir}/CMakeLists.txt"
-            echo "Patched ESB CMakeLists.txt (removed -Wduplicated-branches, -fanalyzer)"
-          fi
+          zmk_revision=$(west list -f "{revision}" zmk)
+          echo "zmk_revision=${zmk_revision}" >> $GITHUB_ENV
+          echo "ZMK revision: ${zmk_revision}"
 
       - name: West Zephyr export
         working-directory: ${{ env.base_dir }}
@@ -107,35 +158,67 @@ jobs:
       - name: West Build (${{ env.display_name }})
         working-directory: ${{ env.base_dir }}
         shell: sh -x {0}
-        run: west build -s zmk/app -d "${{ env.build_dir }}" -b "${{ matrix.board }}" ${{ env.extra_west_args }} -- -DZMK_CONFIG=${{ env.base_dir }}/config ${{ env.extra_cmake_args }} ${{ matrix.cmake-args }}
+        run: west build -s zmk/app -d "${{ env.build_dir }}" -b "${{ matrix.board }}" ${{ env.extra_west_args }} -- -DZMK_CONFIG="${{ env.config_dir }}" ${{ env.extra_cmake_args }} ${{ matrix.cmake-args }}
+
+      - name: Warn about building from main if build fails
+        if: failure() && env.zmk_revision == 'main'
+        run: |
+          echo "# Consider Pinning ZMK" >> $GITHUB_STEP_SUMMARY
+          echo "Your recent build failure might be the result of breaking changes made to ZMK's main branch." >> $GITHUB_STEP_SUMMARY
+          echo "Consider [pinning your ZMK version](https://zmk.dev/blog/2025/06/20/pinned-zmk) to a release for increased stability." >> $GITHUB_STEP_SUMMARY
+          echo "See also the [list of released versions](https://github.com/zmkfirmware/zmk/releases)." >> $GITHUB_STEP_SUMMARY
+          echo "If you wish to stay on main, check the most recent pending release PR for breaking changes. [Our blog](https://zmk.dev/blog) may have upgrade information if breaking changes are significant." >> $GITHUB_STEP_SUMMARY
 
       - name: ${{ env.display_name }} Kconfig file
-        if: ${{ !cancelled() }}
         run: |
-          if [ -f "${{ env.build_dir }}/zephyr/.config" ]; then
+          if [ -f "${{ env.build_dir }}/zephyr/.config" ]
+          then
             grep -v -e "^#" -e "^$" "${{ env.build_dir }}/zephyr/.config" | sort
+          else
+            echo "No Kconfig output"
           fi
+        if: ${{ !cancelled() }}
 
       - name: ${{ env.display_name }} Devicetree file
-        if: ${{ !cancelled() }}
         run: |
-          if [ -f "${{ env.build_dir }}/zephyr/zephyr.dts" ]; then
+          if [ -f "${{ env.build_dir }}/zephyr/zephyr.dts" ]
+          then
             cat "${{ env.build_dir }}/zephyr/zephyr.dts"
+          elif [ -f "${{ env.build_dir }}/zephyr/zephyr.dts.pre" ]
+          then
+            cat -s "${{ env.build_dir }}/zephyr/zephyr.dts.pre"
+          else
+            echo "No Devicetree output"
           fi
+        if: ${{ !cancelled() }}
 
       - name: Rename artifacts
+        shell: sh -x {0}
         run: |
-          mkdir -p "${{ env.build_dir }}/artifacts"
-          if [ -f "${{ env.build_dir }}/zephyr/zmk.uf2" ]; then
+          mkdir "${{ env.build_dir }}/artifacts"
+          if [ -f "${{ env.build_dir }}/zephyr/zmk.uf2" ]
+          then
             cp "${{ env.build_dir }}/zephyr/zmk.uf2" "${{ env.build_dir }}/artifacts/${{ env.artifact_name }}.uf2"
-          fi
-          if [ -f "${{ env.build_dir }}/zephyr/zmk.hex" ]; then
-            cp "${{ env.build_dir }}/zephyr/zmk.hex" "${{ env.build_dir }}/artifacts/${{ env.artifact_name }}.hex"
+          elif [ -f "${{ env.build_dir }}/zephyr/zmk.bin" ]
+          then
+            cp "${{ env.build_dir }}/zephyr/zmk.bin" "${{ env.build_dir }}/artifacts/${{ env.artifact_name }}.bin"
           fi
 
       - name: Archive (${{ env.display_name }})
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.artifact_name }}
-          path: ${{ env.build_dir }}/artifacts/
-          if-no-files-found: ignore
+          name: artifact-${{ env.artifact_name }}
+          path: ${{ env.build_dir }}/artifacts
+
+  merge:
+    runs-on: ubuntu-latest
+    if: needs.matrix.outputs.has_valid_build_matrix == 'true'
+    needs: build
+    name: Merge Output Artifacts
+    steps:
+      - name: Merge Artifacts
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: firmware
+          pattern: artifact-*
+          delete-merged: true

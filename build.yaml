@@ -42,6 +42,12 @@ include:
     snippet: zmk-usb-logging
     artifact-name: charybdis_esb_dongle_mdk
 
+  # Charybdis ESB dongle on Holyiot nRF52840 dongle (no OLED)
+  - board: holyiot_dongle_1k
+    shield: charybdis_esb
+    snippet: zmk-usb-logging
+    artifact-name: charybdis_esb_dongle_holyiot
+
   - board: nice_nano@2.0.0//zmk
     shield: charybdis_esb_left
     snippet: zmk-usb-logging

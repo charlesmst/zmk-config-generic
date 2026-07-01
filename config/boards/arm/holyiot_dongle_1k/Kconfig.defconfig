@@ -5,10 +5,13 @@ if BOARD_HOLYIOT_DONGLE_1K
 config BOARD
     default "holyiot_dongle_1k"
 
+config SOC_NRF52840_QIAA
+    default y
+
 config USB_NRFX
     default y
 
 config USB_DEVICE_STACK
     default y
 
-endif
+endif # BOARD_HOLYIOT_DONGLE_1K

@@ -1,0 +1,6 @@
+board:
+  name: holyiot_dongle_1k
+  full_name: Holyiot YJ-16019 nRF52840 Dongle
+  vendor: holyiot
+  socs:
+  - name: nrf52840

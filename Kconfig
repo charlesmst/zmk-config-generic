@@ -40,9 +40,13 @@ endif
 
 config ROBA_PERIPHERAL_BATTERY_LED
     bool "Peripheral battery low indicator LED"
-    depends on ZMK_SPLIT_ROLE_CENTRAL && ZMK_SPLIT_BLE_CENTRAL_BATTERY_LEVEL_FETCHING
+    depends on ZMK_SPLIT_ROLE_CENTRAL && !ZMK_SPLIT_BLE_CENTRAL_BATTERY_LEVEL_FETCHING
     help
       Blink the red LED when a peripheral reports a low battery level.
+      The ESB central raises peripheral_battery_state_changed itself and
+      only does so while BLE's own battery-level fetching is disabled
+      (see zmk-feature-split-esb central.c), so this depends on that
+      Kconfig being off rather than on.
 
 if ROBA_PERIPHERAL_BATTERY_LED
 

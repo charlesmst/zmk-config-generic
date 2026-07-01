@@ -25,9 +25,15 @@ static const struct gpio_dt_spec led_red   = GPIO_DT_SPEC_GET(LED_RED_NODE,   gp
 static const struct gpio_dt_spec led_green = GPIO_DT_SPEC_GET(LED_GREEN_NODE, gpios);
 static const struct gpio_dt_spec led_blue  = GPIO_DT_SPEC_GET(LED_BLUE_NODE,  gpios);
 
-/* peripheral 0 → red, peripheral 1 → blue */
-static const struct gpio_dt_spec *peripheral_led[] = { &led_red, &led_blue };
-BUILD_ASSERT(ARRAY_SIZE(peripheral_led) == 2, "update peripheral_led for your peripheral count");
+/* ESB pipe order (see dongle_battery_display.c): 0 = left keyboard → red,
+ * 1 = right keyboard → green, 2 = mouse (lariska) → blue.
+ *
+ * The ESB transport doesn't set CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS
+ * (that symbol lives under ZMK_SPLIT_BLE, which this project disables) — its
+ * peripheral count instead comes from the ESB address list at build time, so
+ * this array size is the source of truth for how many peripherals we track. */
+static const struct gpio_dt_spec *peripheral_led[] = { &led_red, &led_green, &led_blue };
+#define PERIPHERAL_LED_COUNT ARRAY_SIZE(peripheral_led)
 
 #define LOW_BATTERY_THRESHOLD CONFIG_ROBA_PERIPHERAL_BATTERY_LED_THRESHOLD
 /* Clear only when battery rises 5% above the threshold to avoid bouncing */
@@ -45,8 +51,8 @@ static struct k_work_delayable layer_led_timeout_work;
 #endif
 static int blinks_remaining;
 /* Per-peripheral low state; index = ev->source */
-static bool peripheral_low[CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS];
-static uint8_t last_battery_level[CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS];
+static bool peripheral_low[PERIPHERAL_LED_COUNT];
+static uint8_t last_battery_level[PERIPHERAL_LED_COUNT];
 
 static void set_rgb(bool red_on, bool green_on, bool blue_on) {
     gpio_pin_set_dt(&led_red, red_on);
@@ -55,7 +61,7 @@ static void set_rgb(bool red_on, bool green_on, bool blue_on) {
 }
 
 static bool any_low(void) {
-    for (int i = 0; i < CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS; i++) {
+    for (int i = 0; i < PERIPHERAL_LED_COUNT; i++) {
         if (peripheral_low[i]) {
             return true;
         }
@@ -116,7 +122,7 @@ static void boot_green_off_cb(struct k_work *work) {
 
 static void blink_work_cb(struct k_work *work) {
     if (blinks_remaining <= 0) {
-        for (int i = 0; i < CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS; i++) {
+        for (int i = 0; i < PERIPHERAL_LED_COUNT; i++) {
             gpio_pin_set_dt(peripheral_led[i], 0);
         }
 #if IS_ENABLED(CONFIG_ROBA_LAYER_LED)
@@ -125,7 +131,7 @@ static void blink_work_cb(struct k_work *work) {
 #endif
         return;
     }
-    for (int i = 0; i < CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS; i++) {
+    for (int i = 0; i < PERIPHERAL_LED_COUNT; i++) {
         if (peripheral_low[i]) {
             gpio_pin_toggle_dt(peripheral_led[i]);
         }
@@ -137,7 +143,7 @@ static void blink_work_cb(struct k_work *work) {
 static void repeat_work_cb(struct k_work *work) {
     if (!any_low()) {
         LOG_WRN("Battery OK, stopping blink");
-        for (int i = 0; i < CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS; i++) {
+        for (int i = 0; i < PERIPHERAL_LED_COUNT; i++) {
             gpio_pin_set_dt(peripheral_led[i], 0);
         }
 #if IS_ENABLED(CONFIG_ROBA_LAYER_LED)
@@ -147,7 +153,7 @@ static void repeat_work_cb(struct k_work *work) {
     }
     /* Clear all LEDs to start blink from a known-off state. */
     set_rgb(false, false, false);
-    for (int i = 0; i < CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS; i++) {
+    for (int i = 0; i < PERIPHERAL_LED_COUNT; i++) {
         if (peripheral_low[i]) {
             LOG_WRN("Peripheral %d battery LOW: last reported %d%%", i, last_battery_level[i]);
         }
@@ -160,7 +166,7 @@ static void repeat_work_cb(struct k_work *work) {
 static int peripheral_battery_led_listener(const zmk_event_t *eh) {
     const struct zmk_peripheral_battery_state_changed *ev =
         as_zmk_peripheral_battery_state_changed(eh);
-    if (ev == NULL || ev->source >= CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS) {
+    if (ev == NULL || ev->source >= PERIPHERAL_LED_COUNT) {
         return ZMK_EV_EVENT_BUBBLE;
     }
 

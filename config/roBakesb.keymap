@@ -247,7 +247,9 @@
             #binding-cells = <0>;
             bindings = <&kp LALT>, <&kp TAB>, <&kp LALT>;
             hold-start;
-            ignored-key-positions = <23>;
+            /* 23 = swap_rev; 43-45 = Lariska LCLK/RCLK/MCLK so a click doesn't
+             * end the alt-tab hold. */
+            ignored-key-positions = <23 43 44 45>;
         };
         /* Reverse alt-tab on the X-position key (pos 23). hold-start makes both
          * swap and swap_rev hold a ref-counted LALT, so either can start the
@@ -258,7 +260,7 @@
             #binding-cells = <0>;
             bindings = <&kp LALT>, <&kp LS(TAB)>, <&kp LALT>;
             hold-start;
-            ignored-key-positions = <11>;
+            ignored-key-positions = <11 43 44 45>;
         };
 
         swapmac: swappermac {
@@ -267,7 +269,7 @@
             #binding-cells = <0>;
             bindings = <&kp LGUI>, <&kp TAB>, <&kp LGUI>;
             hold-start;
-            ignored-key-positions = <22>;
+            ignored-key-positions = <22 43 44 45>;
         };
         /* Reverse cmd-tab on the Z-position key (pos 22); mirrors swap_rev. */
         swapmac_rev: swapmac_rev {
@@ -276,13 +278,16 @@
             #binding-cells = <0>;
             bindings = <&kp LGUI>, <&kp LS(TAB)>, <&kp LGUI>;
             hold-start;
-            ignored-key-positions = <24>;
+            ignored-key-positions = <24 43 44 45>;
         };
+        /* ignored-key-positions 43-45 = Lariska LCLK/RCLK/MCLK, so clicking
+         * mid-cycle doesn't interrupt the encoder-driven alt-tab hold. */
         swap_enc: swap_enc {
             compatible = "zmk,behavior-tri-state";
             label = "SWAPPER_ENC";
             #binding-cells = <0>;
             bindings = <&kt LALT>, <&kp TAB>, <&kt LALT>;
+            ignored-key-positions = <43 44 45>;
         };
         /* Reverse-direction swapper. Shares the alt-hold with swap_enc via the
          * sensor's virtual key position (tri-state state is keyed by position),
@@ -292,6 +297,7 @@
             label = "SWAPPER_ENC_REV";
             #binding-cells = <0>;
             bindings = <&kt LALT>, <&kp LS(TAB)>, <&kt LALT>;
+            ignored-key-positions = <43 44 45>;
         };
         w1: w1 {
             compatible = "zmk,behavior-tri-state";

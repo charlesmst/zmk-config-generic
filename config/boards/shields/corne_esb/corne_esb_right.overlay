@@ -1,0 +1,53 @@
+#include "corne_esb_matrix.dtsi"
+#include "corne_esb_addr.dtsi"
+
+/ {
+    chosen {
+        zmk,kscan = &kscan0;
+        zmk,physical-layout = &corne_esb_physical_layout;
+        zmk,esb-self = &esb_right;
+    };
+
+    /* Standard corne (crkbd) pinout (right half col order mirrors the left),
+     * same debounce as the old corne-lp BLE config. */
+    kscan0: kscan {
+        compatible = "zmk,kscan-gpio-matrix";
+        wakeup-source;
+        diode-direction = "col2row";
+        debounce-press-ms = <1>;
+        debounce-release-ms = <5>;
+        row-gpios
+            = <&pro_micro 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&pro_micro 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&pro_micro 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&pro_micro 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            ;
+        col-gpios
+            = <&pro_micro 14 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 15 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 18 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 19 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 20 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 21 GPIO_ACTIVE_HIGH>
+            ;
+    };
+};
+
+&default_transform {
+    col-offset = <6>;
+};
+
+&corne_esb_physical_layout {
+    kscan = <&kscan0>;
+};
+
+&esb_link {
+    retransmit-delay-us = <870>;
+};
+
+/* nice!view bus, CS on pro_micro 0 (see corne_esb_left.overlay). Append the
+ * stock `nice_view` shield in build.yaml to add the panel + widgets. */
+nice_view_spi: &pro_micro_spi {
+    status = "okay";
+    cs-gpios = <&pro_micro 0 GPIO_ACTIVE_HIGH>;
+};

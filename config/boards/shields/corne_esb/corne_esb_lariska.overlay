@@ -1,0 +1,147 @@
+/* Lariska mouse as an OPTIONAL ESB peripheral (peripheral ID 2, pipe 2) for the
+ * corne_esb system. Runs on nice_nano v2. Pins identical to the standalone
+ * lariska firmware / roBakesb / charybdis_esb lariska.
+ *
+ * On the Corne there is no keyboard encoder, so the lariska QDEC encoder is
+ * the only sensor and sits at sensor index 0 (the central lists it at index 0).
+ */
+
+#include "corne_esb_matrix.dtsi"
+#include "corne_esb_addr.dtsi"
+#include "corne_esb_lariska_transform.dtsi"
+#include "mouse_leds.dtsi"
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/ {
+    chosen {
+        zmk,battery   = &vbatt;
+        zmk,kscan     = &lariska_kscan;
+        zmk,backlight = &backlight;
+        zmk,physical-layout = &corne_esb_physical_layout;
+        zmk,esb-self  = &esb_lariska;
+    };
+
+    /* 5-button GPIO-direct scanner for the mouse buttons */
+    lariska_kscan: lariska_kscan {
+        compatible = "zmk,kscan-gpio-direct";
+        wakeup-source;
+        input-gpios
+            = <&gpio0 30 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio0 28 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio0  2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio0  3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            ;
+    };
+
+    vbatt: vbatt {
+        compatible = "zmk,battery-voltage-divider";
+        io-channels = <&adc 7>;
+        output-ohms = <400000>;
+        full-ohms   = <(1000000 + 400000)>;
+    };
+
+    sensors: sensors {
+        compatible = "zmk,keymap-sensors";
+        sensors = <&lariska_encoder>;
+        lariska_enc_cfg: lariska_enc_cfg {
+            triggers-per-rotation = <24>;
+        };
+    };
+};
+
+/* The GPIO-direct kscan uses a 1-row × 5-col virtual matrix.
+ * col-offset = 12 maps local cols 0-4 → global cols 12-16,
+ * so the extended transform finds them at positions 42-46. */
+&default_transform {
+    col-offset = <12>;
+};
+
+/* Point physical layout at the real kscan so button events are dispatched */
+&corne_esb_physical_layout {
+    kscan = <&lariska_kscan>;
+};
+
+/* Connect PAW3395 to the mouse_split so the dongle receives pointer events */
+&mouse_split {
+    status = "okay";
+    device = <&mou0>;
+};
+
+/* QDEC hardware encoder (same pin assignment as standalone lariska firmware) */
+&pinctrl {
+    qdec_default: qdec_default {
+        group1 {
+            psels = <NRF_PSEL(QDEC_A, 0, 1)>,
+                    <NRF_PSEL(QDEC_B, 0, 0)>;
+        };
+    };
+    qdec_sleep: qdec_sleep {
+        group1 {
+            psels = <NRF_PSEL(QDEC_A, 0, 1)>,
+                    <NRF_PSEL(QDEC_B, 0, 0)>;
+            low-power-enable;
+        };
+    };
+};
+
+/* Assign lariska_encoder to qdec0 so it sits at sensor index 0 */
+lariska_encoder: &qdec0 {
+    status = "okay";
+    led-pre = <0>;
+    steps   = <48>;
+    pinctrl-0    = <&qdec_default>;
+    pinctrl-1    = <&qdec_sleep>;
+    pinctrl-names = "default", "sleep";
+};
+
+/* PAW3395 SPI (same pins as standalone lariska firmware) */
+&pinctrl {
+    spi2_default: spi2_default {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK,  0, 6)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 5)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 4)>;
+        };
+    };
+    spi2_sleep: spi2_sleep {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK,  0, 6)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 5)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 4)>;
+            low-power-enable;
+        };
+    };
+};
+
+&spi2 {
+    compatible = "nordic,nrf-spim";
+    status = "okay";
+    pinctrl-0 = <&spi2_default>;
+    pinctrl-1 = <&spi2_sleep>;
+    pinctrl-names = "default", "sleep";
+    cs-gpios = <&gpio0 27 GPIO_ACTIVE_LOW>;
+
+    mou0: pd@0 {
+        compatible = "pixart,paw3395";
+        status = "okay";
+        label = "MOU0";
+        reg = <0>;
+        spi-max-frequency = <4000000>;
+        irq-gpios = <&gpio0 7 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        cpi = <1600>;
+        invert-x;
+        evt-type = <INPUT_EV_REL>;
+        x-input-code = <INPUT_REL_X>;
+        y-input-code = <INPUT_REL_Y>;
+    };
+};
+
+&esb_link {
+    /* Balance two pressures at 1000 Hz: a failing ACK packet blocks the TX FIFO
+     * for (count+1) x delay (mouse events queue behind it), while a fully failed
+     * keepalive adds the max penalty toward a sweep hop. 4 keeps the blocking
+     * window ~3.7 ms (FIFO holds 8) without making total keepalive failure common. */
+    retransmit-count = <4>;
+    retransmit-delay-us = <733>;
+};

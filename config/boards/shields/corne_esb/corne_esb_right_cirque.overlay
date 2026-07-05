@@ -1,0 +1,81 @@
+/* Corne right half with a Cirque Pinnacle trackpad on the OLED header instead
+ * of a nice!view: SDA/SCL are the stock corne OLED I2C pins (&pro_micro_i2c),
+ * so a trackpad can be wired to the 4-pin OLED footprint. The Pinnacle driver
+ * additionally needs a data-ready line; that is taken from pro_micro 1
+ * (the nice!view adapter's default CS pin, unused on this variant since there
+ * is no display) — one extra wire beyond the OLED header.
+ *
+ * Trackpad motion is routed to the dongle through trackball_split (the same
+ * input-split the charybdis uses for its trackball), so the dongle-side
+ * SCROL/SNIPE layer processors apply.
+ */
+
+#include "corne_esb_matrix.dtsi"
+#include "corne_esb_addr.dtsi"
+
+/ {
+    chosen {
+        zmk,kscan = &kscan0;
+        zmk,physical-layout = &corne_esb_physical_layout;
+        zmk,esb-self = &esb_right;
+    };
+
+    kscan0: kscan {
+        compatible = "zmk,kscan-gpio-matrix";
+        wakeup-source;
+        diode-direction = "col2row";
+        debounce-press-ms = <1>;
+        debounce-release-ms = <5>;
+        row-gpios
+            = <&pro_micro 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&pro_micro 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&pro_micro 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&pro_micro 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            ;
+        col-gpios
+            = <&pro_micro 14 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 15 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 18 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 19 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 20 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 21 GPIO_ACTIVE_HIGH>
+            ;
+    };
+};
+
+&default_transform {
+    col-offset = <6>;
+};
+
+&corne_esb_physical_layout {
+    kscan = <&kscan0>;
+};
+
+&esb_link {
+    retransmit-delay-us = <870>;
+};
+
+/* Zephyr's in-tree cirque,pinnacle input driver (relative mode reports
+ * INPUT_REL_X/Y, tap = INPUT_BTN_TOUCH). HW_DR is active high when wired
+ * straight to the MCU pin. */
+&pro_micro_i2c {
+    status = "okay";
+
+    glidepoint0: glidepoint@2a {
+        compatible = "cirque,pinnacle";
+        reg = <0x2a>;
+        status = "okay";
+        data-ready-gpios = <&pro_micro 1 GPIO_ACTIVE_HIGH>;
+
+        data-mode = "relative";
+        sensitivity = "1x";
+        primary-tap-enable;
+        sleep-mode-enable;
+    };
+};
+
+/* Send trackpad motion to the dongle over ESB */
+&trackball_split {
+    status = "okay";
+    device = <&glidepoint0>;
+};

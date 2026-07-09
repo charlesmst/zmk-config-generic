@@ -21,6 +21,7 @@ build_roba_kesb/roBakesb_dongle_mdk
 *.log
 build_roba_kesb/roBakesb_lariska
 build_charybdis/
+build_corne/
 zmk-paw3395-driver
 zmk-vfx-rgbled-indicator
 zmk-behavior-stepped-scroll

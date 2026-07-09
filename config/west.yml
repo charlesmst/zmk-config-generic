@@ -34,6 +34,12 @@ manifest:
       remote: ggrocer
       revision: main
 
+    # charlesmst fork: adds a zmk_display_status_screen() prototype so the
+    # module's -Werror=missing-prototypes build passes against ZMK's K&R header.
+    - name: zmk-vfx-retro
+      remote: charlesmst
+      revision: compat/zmk-status-screen-prototype
+
     - name: zmk-input-processor-accel
       remote: charlesmst
       revision: main

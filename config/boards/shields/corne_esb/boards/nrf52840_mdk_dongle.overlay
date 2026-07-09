@@ -1,0 +1,5 @@
+/* No OLED on the MDK dongle: disable the sh1106 node the central overlay adds
+ * (i2c0 on the MDK is on different pins and no panel is attached). */
+&oled {
+    status = "disabled";
+};

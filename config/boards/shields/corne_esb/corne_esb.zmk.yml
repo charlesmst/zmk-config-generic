@@ -1,0 +1,15 @@
+file_format: "1"
+id: corne_esb
+name: Corne ESB
+type: shield
+url: https://github.com/foostan/crkbd
+requires: [pro_micro]
+features:
+  - keys
+  - pointer
+siblings:
+  - corne_esb
+  - corne_esb_left
+  - corne_esb_right
+  - corne_esb_right_cirque
+  - corne_esb_lariska

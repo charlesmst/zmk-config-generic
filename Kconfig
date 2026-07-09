@@ -97,6 +97,14 @@ config ROBA_DONGLE_BATTERY_DISPLAY
 if ROBA_DONGLE_BATTERY_DISPLAY
 endif # ROBA_DONGLE_BATTERY_DISPLAY
 
+config ROBA_ESB_PERIPHERAL_DISPLAY_COMPAT
+    bool
+    default y if ZMK_SPLIT_ESB && ZMK_SPLIT && !ZMK_SPLIT_ROLE_CENTRAL && ZMK_DISPLAY && !ZMK_SPLIT_BLE
+    help
+      Provide zmk_split_bt_peripheral_is_connected() on ESB split peripherals
+      with a display, so BLE-oriented peripheral status screens (nice!view
+      widgets) link. ESB is connectionless, so it always reports connected.
+
 config ROBA_PMW3610_PERIPHERAL_KEYMAP_COMPAT
     bool "PMW3610 split peripheral keymap compatibility"
     depends on ZMK_SPLIT && !ZMK_SPLIT_ROLE_CENTRAL

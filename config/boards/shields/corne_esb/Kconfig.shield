@@ -1,0 +1,14 @@
+config SHIELD_CORNE_ESB
+    def_bool $(shields_list_contains,corne_esb)
+
+config SHIELD_CORNE_ESB_LEFT
+    def_bool $(shields_list_contains,corne_esb_left)
+
+config SHIELD_CORNE_ESB_RIGHT
+    def_bool $(shields_list_contains,corne_esb_right)
+
+config SHIELD_CORNE_ESB_RIGHT_CIRQUE
+    def_bool $(shields_list_contains,corne_esb_right_cirque)
+
+config SHIELD_CORNE_ESB_LARISKA
+    def_bool $(shields_list_contains,corne_esb_lariska)

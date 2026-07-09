@@ -1,0 +1,11 @@
+/* No OLED on the Holyiot dongle, and the board has no i2c0 pinctrl (unlike
+ * nice_nano/MDK), so the central overlay's `&i2c0 { status = "okay"; ... }`
+ * fails Zephyr 4.1's nordic,nrf-twim binding (pinctrl-0 is required). Disable
+ * the whole bus, not just the sh1106 child node. */
+&i2c0 {
+    status = "disabled";
+};
+
+&oled {
+    status = "disabled";
+};

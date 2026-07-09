@@ -62,3 +62,43 @@ include:
     shield: charybdis_esb_lariska
     snippet: zmk-usb-logging
     artifact-name: charybdis_esb_lariska
+
+  # Corne ESB dongle setup (nice!nano v2 as USB central, OLED display)
+  - board: nice_nano@2.0.0//zmk
+    shield: corne_esb
+    snippet: zmk-usb-logging
+    artifact-name: corne_esb_dongle
+
+  # Corne ESB dongle on Makerdiary nRF52840 MDK USB Dongle (no OLED)
+  - board: nrf52840_mdk_dongle
+    shield: corne_esb
+    snippet: zmk-usb-logging
+    artifact-name: corne_esb_dongle_mdk
+
+  # Corne ESB dongle on Holyiot nRF52840 dongle (no OLED)
+  - board: holyiot_dongle_1k
+    shield: corne_esb
+    snippet: zmk-usb-logging
+    artifact-name: corne_esb_dongle_holyiot
+
+  # Corne halves with nice!view (stock shield stacked on top of ours)
+  - board: nice_nano@2.0.0//zmk
+    shield: corne_esb_left nice_view
+    snippet: zmk-usb-logging
+    artifact-name: corne_esb_left
+
+  - board: nice_nano@2.0.0//zmk
+    shield: corne_esb_right nice_view
+    snippet: zmk-usb-logging
+    artifact-name: corne_esb_right
+
+  # Right half with a Cirque trackpad on the OLED header (no display)
+  - board: nice_nano@2.0.0//zmk
+    shield: corne_esb_right_cirque
+    snippet: zmk-usb-logging
+    artifact-name: corne_esb_right_cirque
+
+  - board: nice_nano@2.0.0//zmk
+    shield: corne_esb_lariska
+    snippet: zmk-usb-logging
+    artifact-name: corne_esb_lariska

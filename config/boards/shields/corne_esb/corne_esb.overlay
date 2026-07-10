@@ -2,6 +2,7 @@
 #include "corne_esb_addr.dtsi"
 #include "corne_esb_lariska_transform.dtsi"
 #include <input/processors.dtsi>
+#include <behaviors/input_processor_sigmoid_accel.dtsi>
 #include <dt-bindings/zmk/input_transform.h>
 
 /* SH1106 OLED on the dongle's i2c0. Lives in the central shield overlay (not a
@@ -97,6 +98,7 @@
  * processors as charybdis so the trackpad behaves consistently if used. */
 &trackball_listener {
     status = "okay";
+    input-processors = <&sigmoid_accel>;
 
     scroll {
         layers = <10>;

@@ -45,9 +45,37 @@
     retransmit-delay-us = <870>;
 };
 
-/* nice!view bus, CS on pro_micro 0 (see corne_esb_left.overlay). Append the
- * stock `nice_view` shield in build.yaml to add the panel + widgets. */
-nice_view_spi: &pro_micro_spi {
+/* nice!view display bus — driven on spi0 remapped to the pro_micro D3/D2 pads
+ * (SCK P0.20, MOSI P0.17, MISO P0.25), CS on D0 (pro_micro 0). See
+ * corne_esb_left.overlay for the full rationale (the board's pro_micro_spi is
+ * spi1 on the wrong pads and leaves the panel showing "no-signal" static). */
+&pinctrl {
+    nice_view_spi_default: nice_view_spi_default {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 0, 20)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 17)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 25)>;
+        };
+    };
+    nice_view_spi_sleep: nice_view_spi_sleep {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 0, 20)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 17)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 25)>;
+            low-power-enable;
+        };
+    };
+};
+
+&pro_micro_i2c {
+    status = "disabled";
+};
+
+nice_view_spi: &spi0 {
+    compatible = "nordic,nrf-spim";
     status = "okay";
+    pinctrl-0 = <&nice_view_spi_default>;
+    pinctrl-1 = <&nice_view_spi_sleep>;
+    pinctrl-names = "default", "sleep";
     cs-gpios = <&pro_micro 0 GPIO_ACTIVE_HIGH>;
 };

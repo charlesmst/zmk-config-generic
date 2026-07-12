@@ -105,6 +105,16 @@ config ROBA_ESB_PERIPHERAL_DISPLAY_COMPAT
       with a display, so BLE-oriented peripheral status screens (nice!view
       widgets) link. ESB is connectionless, so it always reports connected.
 
+config ROBA_VFX_RETRO_ESB_LINK
+    bool "Feed ESB link stats into the vfx-retro status screen"
+    depends on VFX_RETRO && ZMK_SPLIT_ESB && !ZMK_SPLIT_ROLE_CENTRAL
+    default y
+    help
+      Override zmk-vfx-retro's __weak vfx_retro_link_get() so the retro
+      pixel-art status screen shows this peripheral's real central-link RSSI
+      and hop channel, read from the damex zmk-feature-split-esb transport
+      (zmk_split_esb_get_status), instead of the module's placeholder values.
+
 config ROBA_PMW3610_PERIPHERAL_KEYMAP_COMPAT
     bool "PMW3610 split peripheral keymap compatibility"
     depends on ZMK_SPLIT && !ZMK_SPLIT_ROLE_CENTRAL

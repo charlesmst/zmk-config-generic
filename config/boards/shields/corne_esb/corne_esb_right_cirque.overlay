@@ -71,6 +71,10 @@
         sensitivity = "1x";
         primary-tap-enable;
         sleep-mode-enable;
+
+        /* Vertical (Y) movement was mirrored on this build; the Pinnacle's
+         * hardware Y-invert bit works in relative mode too (see input_pinnacle.c). */
+        invert-y;
     };
 };
 

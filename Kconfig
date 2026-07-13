@@ -81,6 +81,26 @@ endif # ROBA_LAYER_LED
 
 endif
 
+config ROBA_SELF_BATTERY_LED
+    bool "Blink this device's own LED when its battery is low"
+    depends on ZMK_BATTERY && !ZMK_SPLIT_ROLE_CENTRAL
+    help
+      On a split peripheral (e.g. the XIAO BLE keyboard halves) blink the
+      onboard red LED (led0 alias) when this device's own battery drops to or
+      below the threshold. Mirrors the low-battery indication lariska shows.
+
+if ROBA_SELF_BATTERY_LED
+
+config ROBA_SELF_BATTERY_LED_THRESHOLD
+    int "Own-battery percentage threshold for low indicator"
+    default 25
+    help
+      Blink the LED when this device's battery is at or below this percentage.
+      Build a debug firmware with this set high (e.g. 95) to watch the blink
+      behaviour without draining the battery.
+
+endif # ROBA_SELF_BATTERY_LED
+
 config ROBA_DONGLE_BATTERY_DISPLAY
     bool "Dongle OLED battery display for all peripherals"
     depends on ZMK_SPLIT_ROLE_CENTRAL && ZMK_DISPLAY && ZMK_BATTERY_REPORTING

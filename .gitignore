@@ -29,3 +29,7 @@ zmk-behavior-button-direct
 zmk-trackball-gestures-module
 zmk-feature-sensor_rotation
 zmk-vfx-retro
+build_roba_kesb
+tmp-efog-pmw3610-driver
+tools
+.claude

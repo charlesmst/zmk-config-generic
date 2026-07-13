@@ -25,6 +25,21 @@ include:
     snippet: zmk-usb-logging
     artifact-name: roBakesb_right
 
+  # Debug builds: low-battery LED threshold forced to 95% so the blink triggers
+  # at normal charge. Flash these to verify the LED, then flash the real
+  # roBakesb_left / roBakesb_right (threshold 25%).
+  - board: xiao_ble//zmk
+    shield: roBakesb_left
+    snippet: zmk-usb-logging
+    cmake-args: -DCONFIG_ROBA_SELF_BATTERY_LED_THRESHOLD=95
+    artifact-name: roBakesb_left_ledtest
+
+  - board: xiao_ble//zmk
+    shield: roBakesb_right
+    snippet: zmk-usb-logging
+    cmake-args: -DCONFIG_ROBA_SELF_BATTERY_LED_THRESHOLD=95
+    artifact-name: roBakesb_right_ledtest
+
   - board: nice_nano@2.0.0//zmk
     shield: roBakesb_lariska
     snippet: zmk-usb-logging

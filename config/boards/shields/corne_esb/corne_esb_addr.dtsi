@@ -15,6 +15,7 @@
  */
 
 #include <zephyr/dt-bindings/input/input-event-codes.h>
+#include <dt-bindings/zmk/pointing.h>
 
 / {
     esb_link: esb_link {
@@ -89,5 +90,34 @@
         compatible = "zmk,behavior-stepped-scroll";
         #binding-cells = <1>;
         input-code = <INPUT_REL_HWHEEL>;
+    };
+
+    /* Drain-aware HID button behavior (zmk-behavior-button-direct): every
+     * release zeroes the button's HID press count. A release lost over ESB
+     * (retransmits exhausted under bad RSSI) leaves &mkp's count stuck >0 —
+     * button held until dongle power-cycle; with &bd the next release
+     * self-heals. Declared here so the shared keymap resolves &bd on every
+     * corne_esb target. */
+    bd: behavior_button_direct {
+        compatible = "zmk,behavior-button-direct";
+        #binding-cells = <1>;
+    };
+
+    /* Cirque tap gesture (BTN_TOUCH from the pinnacle driver) → left click
+     * via &bd instead of input_listener's raw button bookkeeping, so a lost
+     * touch-release cannot wedge the click. Wired into trackball_listener's
+     * input-processors by the dongle overlay.
+     *
+     * Custom processor (src/input_processor_tap_click.c), NOT the stock
+     * zmk,input-processor-behaviors: the stock one returns STOP, which drops
+     * the sync flag the pinnacle driver carries only on BTN_TOUCH — the
+     * listener then never flushes REL_X/Y and the pointer freezes. This one
+     * invokes &bd on touch transitions and lets the (neutralized) event
+     * continue so sync still flushes motion. */
+    cirque_tap_zip: cirque_tap_zip {
+        compatible = "roba,input-processor-tap-click";
+        #input-processor-cells = <0>;
+        code = <INPUT_BTN_TOUCH>;
+        bindings = <&bd LCLK>;
     };
 };

@@ -40,20 +40,23 @@
  * the second button is &trans on the first button's layer, so it falls through
  * to its base hold; with both holds down, conditional_layers turns on HSCRL.
  * When no Lariska is paired these positions simply never fire. */
-#define LARISKA_BTNS       &mkp LCLK &mkp RCLK &mkp MCLK &mo_mkp SCROL MB4 &mkp MB5
-#define LARISKA_BTNS_MAC   &mkp LCLK &mkp RCLK &mkp MCLK &td_mb4_mac &mo_mkp TILIN MB5
-#define LARISKA_BTNS_WIN   &mkp LCLK &mkp RCLK &mkp MCLK &td_mb4_win &mo_mkp TILWI MB5
+/* L/R clicks use &bd (drain-aware, zmk-behavior-button-direct, declared in
+ * corne_esb_addr.dtsi): a release lost over ESB self-heals on the next click
+ * instead of sticking the HID button until dongle restart. */
+#define LARISKA_BTNS       &bd LCLK &bd RCLK &mkp MCLK &mo_mkp SCROL MB4 &mkp MB5
+#define LARISKA_BTNS_MAC   &bd LCLK &bd RCLK &mkp MCLK &td_mb4_mac &mo_mkp TILIN MB5
+#define LARISKA_BTNS_WIN   &bd LCLK &bd RCLK &mkp MCLK &td_mb4_win &mo_mkp TILWI MB5
 /* Inside the held tiling layers MB4 is &trans so a second MB4 press falls
  * through to the base MB4 hold (mo_mkp SCROL via the tap-dance); SCROL + the
  * tiling layer then trigger HSCRL through conditional_layers.
  * (OS overview now lives on the MB4 double-tap.) */
-#define LARISKA_BTNS_TILIN &mkp LCLK &mkp RCLK &mkp MCLK &trans &mkp MB5
-#define LARISKA_BTNS_TILWI &mkp LCLK &mkp RCLK &mkp MCLK &trans &mkp MB5
+#define LARISKA_BTNS_TILIN &bd LCLK &bd RCLK &mkp MCLK &trans &mkp MB5
+#define LARISKA_BTNS_TILWI &bd LCLK &bd RCLK &mkp MCLK &trans &mkp MB5
 /* Inside the SCROL layer MB5 is &trans so it falls through to the base MB5
  * hold (mo_mkp TILIN/TILWI); SCROL + tiling then trigger HSCRL. */
-#define LARISKA_BTNS_SCRL  &mkp LCLK &mkp RCLK &mkp MCLK &mo_mkp SCROL MB4 &trans
+#define LARISKA_BTNS_SCRL  &bd LCLK &bd RCLK &mkp MCLK &mo_mkp SCROL MB4 &trans
 /* MB4 + MB5 held: both fall through (&trans) so the holds persist. */
-#define LARISKA_BTNS_HSCRL &mkp LCLK &mkp RCLK &mkp MCLK &trans &trans
+#define LARISKA_BTNS_HSCRL &bd LCLK &bd RCLK &mkp MCLK &trans &trans
 
 / {
     /* One discrete REL_WHEEL tick per Lariska encoder detent via

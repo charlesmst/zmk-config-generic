@@ -12,6 +12,7 @@
 
 #include "corne_esb_matrix.dtsi"
 #include "corne_esb_addr.dtsi"
+#include <behaviors/input_processor_cirque_gestures.dtsi>
 
 / {
     chosen {
@@ -55,9 +56,10 @@
     retransmit-delay-us = <870>;
 };
 
-/* Zephyr's in-tree cirque,pinnacle input driver (relative mode reports
- * INPUT_REL_X/Y, tap = INPUT_BTN_TOUCH). HW_DR is active high when wired
- * straight to the MCU pin. */
+/* Zephyr's in-tree cirque,pinnacle input driver. Absolute mode gives the
+ * right-edge scroll processor the touch start position; the processor converts
+ * normal movement back to relative X/Y before ESB forwarding. HW_DR is active
+ * high when wired straight to the MCU pin. */
 &pro_micro_i2c {
     status = "okay";
 
@@ -67,13 +69,15 @@
         status = "okay";
         data-ready-gpios = <&pro_micro 1 GPIO_ACTIVE_HIGH>;
 
-        data-mode = "relative";
+        data-mode = "absolute";
         sensitivity = "1x";
-        primary-tap-enable;
-        sleep-mode-enable;
+        clipping-enable;
+        scaling-enable;
+        scaling-x-resolution = <1024>;
+        scaling-y-resolution = <1024>;
 
-        /* Vertical (Y) movement was mirrored on this build; the Pinnacle's
-         * hardware Y-invert bit works in relative mode too (see input_pinnacle.c). */
+        /* Vertical (Y) movement was mirrored on this build; keep the hardware
+         * Y inversion before absolute deltas are turned into pointer/scroll. */
         invert-y;
     };
 };
@@ -82,4 +86,5 @@
 &trackball_split {
     status = "okay";
     device = <&glidepoint0>;
+    input-processors = <&cirque_gestures>;
 };

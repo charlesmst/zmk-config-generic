@@ -1,0 +1,30 @@
+/ {
+    input_processors {
+        compatible = "zmk,input-processors";
+
+        cirque_gestures: cirque_gestures {
+            compatible = "roba,input-processor-cirque-gestures";
+            #input-processor-cells = <0>;
+
+            width = <1024>;
+            height = <1024>;
+            right-scroll-percent = <18>;
+            scroll-divisor = <80>;
+            circular-scroll-degrees-per-tick = <12>;
+            edge-scroll-activation-threshold = <18>;
+            edge-scroll-tangent-percent = <125>;
+            edge-scroll-recover-threshold = <24>;
+            edge-scroll-recover-radial-percent = <150>;
+            pointer-deadzone = <2>;
+            pointer-multiplier = <1>;
+            pointer-divisor = <2>;
+            touch-timeout-ms = <50>;
+            invert-scroll;
+            invert-y;
+            tap-click;
+            suppress-movement-during-tap;
+            tap-timeout-ms = <180>;
+            tap-move-threshold = <35>;
+        };
+    };
+};

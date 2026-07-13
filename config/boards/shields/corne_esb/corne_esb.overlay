@@ -98,7 +98,9 @@
  * processors as charybdis so the trackpad behaves consistently if used. */
 &trackball_listener {
     status = "okay";
-    input-processors = <&sigmoid_accel>;
+    /* cirque_tap_zip intercepts BTN_TOUCH (tap = drain-aware left click via
+     * &bd) and passes REL_X/Y through to sigmoid_accel untouched. */
+    input-processors = <&cirque_tap_zip>, <&sigmoid_accel>;
 
     scroll {
         layers = <10>;
@@ -109,6 +111,16 @@
         layers = <11>;
         input-processors = <&zip_xy_scaler 1 3>;
     };
+};
+
+/* Pointer sensitivity/accel curve for the cirque trackpad (tuned on the
+ * feat/corne-vfx-retro worktree; previously only lived there uncommitted). */
+&sigmoid_accel {
+    cpi = <800>;
+    growth-rate = <50>;
+    offset = <80>;
+    limit = <150>;
+    limit-upper = <500>;
 };
 
 /* nice_nano already defines zephyr_udc0: &usbd { status = "okay" } in its

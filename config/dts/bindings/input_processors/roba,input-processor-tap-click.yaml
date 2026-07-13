@@ -1,0 +1,26 @@
+# Copyright (c) 2026 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+description: |
+  Sync-preserving tap-to-click input processor. Invokes a behavior on
+  transitions of one key code (e.g. BTN_TOUCH from a Cirque trackpad) and
+  then neutralizes the event instead of consuming it, so a sync flag carried
+  on that event still reaches the input listener's flush.
+
+  zmk,input-processor-behaviors is unusable for this: it returns STOP, and
+  input_listener drops STOPped events before the sync flush. The Cirque
+  pinnacle driver in relative mode with primary-tap-enable puts sync ONLY on
+  the BTN_TOUCH event of every packet, so STOPping it freezes all pointer
+  motion.
+
+compatible: "roba,input-processor-tap-click"
+
+include: ip_zero_param.yaml
+
+properties:
+  code:
+    type: int
+    required: true
+  bindings:
+    type: phandle-array
+    required: true

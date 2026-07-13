@@ -145,4 +145,26 @@ config ROBA_PMW3610_PERIPHERAL_KEYMAP_COMPAT
       ZMK keymap state, so layer-based PMW3610 modes cannot be evaluated
       there; the central still processes the shared keymap.
 
+config ROBA_INPUT_PROCESSOR_CIRQUE_GESTURES
+    bool "Cirque absolute-mode right-edge scroll input processor"
+    depends on ZMK_POINTING
+    default n
+    help
+      Convert absolute Cirque Pinnacle X/Y reports to relative pointer motion,
+      and turn touches that start in the right-side zone into vertical wheel
+      events. This fills the right-side vertical scroll gesture planned by
+      zmk-input-gestures for the Corne Cirque peripheral.
+
+config ROBA_INPUT_PROCESSOR_TAP_CLICK
+    bool "Sync-preserving tap-to-click input processor"
+    default y
+    depends on DT_HAS_ROBA_INPUT_PROCESSOR_TAP_CLICK_ENABLED
+    depends on ZMK_POINTING
+    help
+      Invoke a behavior on transitions of one key code (e.g. the Cirque
+      pinnacle's BTN_TOUCH tap gesture) while letting the event's sync flag
+      continue to the input listener. zmk,input-processor-behaviors returns
+      STOP, which drops the sync carried on BTN_TOUCH and freezes all
+      pointer motion from the trackpad.
+
 endmenu

@@ -1,0 +1,105 @@
+# Copyright 2026 Charles Stein
+# SPDX-License-Identifier: MIT
+
+description: Cirque absolute-mode pointer and right-edge scroll processor
+
+compatible: "roba,input-processor-cirque-gestures"
+
+include: base.yaml
+
+properties:
+  "#input-processor-cells":
+    type: int
+    required: true
+    const: 0
+
+  width:
+    type: int
+    default: 1024
+    description: Scaled absolute X range used to find the right-side scroll zone.
+
+  height:
+    type: int
+    default: 1024
+    description: Scaled absolute Y range used for circular edge-start scrolling.
+
+  right-scroll-percent:
+    type: int
+    default: 18
+    description: Width of the right-side vertical scroll zone, as a percentage.
+
+  scroll-divisor:
+    type: int
+    default: 80
+    description: Absolute Y units per emitted REL_WHEEL tick.
+
+  circular-scroll-degrees-per-tick:
+    type: int
+    default: 12
+    description: Angular degrees per emitted REL_WHEEL tick after scroll starts on the right edge.
+
+  edge-scroll-activation-threshold:
+    type: int
+    default: 18
+    description: Initial absolute movement needed before a right-edge touch commits to scroll or pointer.
+
+  edge-scroll-tangent-percent:
+    type: int
+    default: 125
+    description: Minimum tangential-to-radial movement percentage required to commit right-edge scroll.
+
+  edge-scroll-recover-threshold:
+    type: int
+    default: 24
+    description: Movement needed before an active scroll gesture can recover back to pointer mode.
+
+  edge-scroll-recover-radial-percent:
+    type: int
+    default: 150
+    description: Minimum radial-to-tangential movement percentage required to recover scroll to pointer.
+
+  pointer-deadzone:
+    type: int
+    default: 0
+    description: Absolute movement units to absorb before emitting normal pointer motion.
+
+  pointer-multiplier:
+    type: int
+    default: 1
+    description: Numerator for absolute delta to relative pointer movement.
+
+  pointer-divisor:
+    type: int
+    default: 1
+    description: Denominator for absolute delta to relative pointer movement.
+
+  touch-timeout-ms:
+    type: int
+    default: 50
+    description: Time without absolute X/Y reports after which a touch is considered ended.
+
+  invert-scroll:
+    type: boolean
+    description: Invert right-side vertical scroll direction.
+
+  invert-y:
+    type: boolean
+    description: Invert normal pointer Y movement after absolute-to-relative conversion.
+
+  tap-click:
+    type: boolean
+    description: Emit a left click for a short touch with little movement.
+
+  suppress-movement-during-tap:
+    type: boolean
+    description: Suppress pointer movement while a touch is still inside the tap dead zone.
+
+  tap-timeout-ms:
+    type: int
+    default: 180
+    description: Maximum touch duration, including touch-timeout-ms, to treat as a tap.
+
+  tap-move-threshold:
+    type: int
+    default: 35
+    description: Maximum absolute movement on either axis to still treat a touch as a tap.

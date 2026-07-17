@@ -144,6 +144,23 @@ jobs:
         working-directory: ${{ env.base_dir }}
         run: west patch -sm zmk-feature-split-esb apply
 
+      - name: Configure ESB beacon roster
+        working-directory: ${{ env.base_dir }}
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("zmk-feature-split-esb/src/hop_policy.h")
+          text = path.read_text()
+          old = "#define ESB_BEACON_PEER_COUNT 2"
+          new = "#define ESB_BEACON_PEER_COUNT 3"
+
+          if old in text:
+              path.write_text(text.replace(old, new, 1))
+          elif new not in text:
+              raise SystemExit(f"{path} does not define the expected ESB beacon peer count")
+          PY
+
       - name: Check ZMK revision
         working-directory: ${{ env.base_dir }}
         run: |

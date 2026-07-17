@@ -1,0 +1,6 @@
+/* The Holyiot dongle board provides a dummy pro_micro connector for shields
+ * that still reference XIAO-style xiao_d pins. These encoder nodes are disabled
+ * in the central dongle overlay, but devicetree still needs the phandles to
+ * resolve during preprocessing.
+ */
+xiao_d: &pro_micro {};

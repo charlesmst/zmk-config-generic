@@ -2,6 +2,11 @@
 include:
   - board: xiao_ble//zmk
     shield: settings_reset
+  # Roba ESB dongle on Holyiot nRF52840 dongle (no OLED)
+  - board: holyiot_dongle_1k
+    shield: roBakesb
+    snippet: zmk-usb-logging
+    artifact-name: roBakesb_dongle_holyiot
 
   # Damex ESB dongle setup (nice!nano v2 as USB central)
   - board: nice_nano@2.0.0//zmk

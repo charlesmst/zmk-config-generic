@@ -80,7 +80,11 @@ jobs:
           fi
 
           if [ -n "${snippet}" ]; then
-            extra_west_args="-S \"${snippet}\""
+            # snippet may be a space-separated list (e.g. "zmk-usb-logging
+            # studio-rpc-usb-uart"); west wants one -S flag per snippet.
+            for s in ${snippet}; do
+              extra_west_args="${extra_west_args} -S ${s}"
+            done
           fi
 
           echo "base_dir=${base_dir}" >> $GITHUB_ENV

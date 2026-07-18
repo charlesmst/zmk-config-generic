@@ -5,19 +5,19 @@ include:
   # Roba ESB dongle on Holyiot nRF52840 dongle (no OLED)
   - board: holyiot_dongle_1k
     shield: roBakesb
-    snippet: zmk-usb-logging
+    snippet: studio-rpc-usb-uart
     artifact-name: roBakesb_dongle_holyiot
 
   # Damex ESB dongle setup (nice!nano v2 as USB central)
   - board: nice_nano@2.0.0//zmk
     shield: roBakesb
-    snippet: zmk-usb-logging
+    snippet: zmk-usb-logging studio-rpc-usb-uart
     artifact-name: roBakesb_dongle
 
   # Damex ESB dongle on Makerdiary nRF52840 MDK USB Dongle
   - board: nrf52840_mdk_dongle
     shield: roBakesb
-    snippet: zmk-usb-logging
+    snippet: zmk-usb-logging studio-rpc-usb-uart
     artifact-name: roBakesb_dongle_mdk
 
   - board: xiao_ble//zmk
@@ -53,19 +53,19 @@ include:
   # Charybdis ESB dongle setup (nice!nano v2 as USB central, OLED display)
   - board: nice_nano@2.0.0//zmk
     shield: charybdis_esb
-    snippet: zmk-usb-logging
+    snippet: zmk-usb-logging studio-rpc-usb-uart
     artifact-name: charybdis_esb_dongle
 
   # Charybdis ESB dongle on Makerdiary nRF52840 MDK USB Dongle (no OLED)
   - board: nrf52840_mdk_dongle
     shield: charybdis_esb
-    snippet: zmk-usb-logging
+    snippet: zmk-usb-logging studio-rpc-usb-uart
     artifact-name: charybdis_esb_dongle_mdk
 
   # Charybdis ESB dongle on Holyiot nRF52840 dongle (no OLED)
   - board: holyiot_dongle_1k
     shield: charybdis_esb
-    snippet: zmk-usb-logging
+    snippet: studio-rpc-usb-uart
     artifact-name: charybdis_esb_dongle_holyiot
 
   - board: nice_nano@2.0.0//zmk
@@ -86,19 +86,19 @@ include:
   # Corne ESB dongle setup (nice!nano v2 as USB central, OLED display)
   - board: nice_nano@2.0.0//zmk
     shield: corne_esb
-    snippet: zmk-usb-logging
+    snippet: zmk-usb-logging studio-rpc-usb-uart
     artifact-name: corne_esb_dongle
 
   # Corne ESB dongle on Makerdiary nRF52840 MDK USB Dongle (no OLED)
   - board: nrf52840_mdk_dongle
     shield: corne_esb
-    snippet: zmk-usb-logging
+    snippet: zmk-usb-logging studio-rpc-usb-uart
     artifact-name: corne_esb_dongle_mdk
 
   # Corne ESB dongle on Holyiot nRF52840 dongle (no OLED)
   - board: holyiot_dongle_1k
     shield: corne_esb
-    snippet: zmk-usb-logging
+    snippet: studio-rpc-usb-uart
     artifact-name: corne_esb_dongle_holyiot
 
   # Corne halves with nice!view (stock shield stacked on top of ours)

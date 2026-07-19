@@ -65,7 +65,7 @@ include:
   # Charybdis ESB dongle on Holyiot nRF52840 dongle (no OLED)
   - board: holyiot_dongle_1k
     shield: charybdis_esb
-    snippet: studio-rpc-usb-uart
+    snippet: zmk-usb-logging studio-rpc-usb-uart
     artifact-name: charybdis_esb_dongle_holyiot
 
   - board: nice_nano@2.0.0//zmk

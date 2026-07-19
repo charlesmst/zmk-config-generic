@@ -162,6 +162,18 @@
             tapping-term-ms = <200>;
             bindings = <&mo>, <&tog>;
         };
+        /* Locking momentary layer: press activates+locks, release forcibly
+         * deactivates+unlocks. Used by dmouse to clear a layer that &tog left
+         * LOCKED (ZMK 0.4+ &tog sets the lock bit, and a plain &mo release is a
+         * non-forcing disable that refuses to turn a locked layer off). A
+         * press/release pair always ends with the layer OFF, regardless of its
+         * prior state, without disturbing the base layer. */
+        mo_l: behavior_mo_locking {
+            compatible = "zmk,behavior-momentary-layer";
+            #binding-cells = <1>;
+            display-name = "MO Locking";
+            locking;
+        };
         td_alt: tap_dance_0 {
             compatible = "zmk,behavior-tap-dance";
             #binding-cells = <0>;
@@ -312,7 +324,7 @@
             #binding-cells = <0>;
             wait-ms = <0>;
             tap-ms = <0>;
-            bindings = <&mo MOUSE>, <&mo SCROL>,  <&mo SNIPE>;
+            bindings = <&mo_l MOUSE>, <&mo_l SCROL>,  <&mo_l SNIPE>;
         };
         deskhop1: deskhop1 {
             label = "deskhop1";

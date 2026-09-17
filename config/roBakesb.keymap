@@ -212,6 +212,16 @@
             #binding-cells = <1>;
         };
 
+        /* Latching auto-clicker (roba,behavior-autoclick, src/behavior_autoclick.c).
+         * One press starts ~25 clicks/sec hands-free; pressing it again, or any
+         * other key, stops it. press-ms + interval-ms set the rate. */
+        autoclk: behavior_autoclick {
+            compatible = "roba,behavior-autoclick";
+            #binding-cells = <1>;
+            press-ms = <20>;
+            interval-ms = <20>;
+        };
+
         /* Hold = momentary layer, tap = mouse-button click (for MB5). */
         mo_mkp: behavior_mo_mkp {
             compatible = "zmk,behavior-hold-tap";
@@ -500,7 +510,7 @@
  &kp Q                &kp W                &kp E                &kp R                &kp T                &kp Y                &kp U                &kp I                &kp O                &kp P
  &lt TILIN A          &hm LCTRL S          &hm LALT D           &hm LGUI F           &kp G                &kp LG(LS(N4))       &deskhop_gaming      &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILIN SEMI
  &kp Z                &kp X                &kp C                &kp V                &kp B                KEY_AFTER_B          &deskhop_normal      &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH
- &flush_mods          &trans               &kp LC(UP)           &mo MOUSE            &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            MO_TOG(MOUSE)
+ &flush_mods          &trans               &kp LC(UP)           &mo MOUSE            &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO            &kp LC(CAPS)
  LARISKA_BTNS_MAC
             >;
             sensor-bindings = <&mouse_wheel &lariska_scroll>;
@@ -512,7 +522,7 @@
  &kp Q                &kp W                &kp E                &kp R                &kp T                &kp Y                &kp U                &kp I                &kp O                &kp P
  &lt TILWI A          &hm LCTRL S          &hm LALT D           &hm LGUI F           &kp G                &kp PSCRN            &deskhop_gaming      &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILWI SEMI
  &kp Z                &kp X                &kp C                &kp V                &kp B                &tog GAMIN           &deskhop_normal      &kp N                &kp M                &kp COMMA            &kp DOT              &kp FSLH
- &flush_mods          &trans               &kp LG(DOT)          &mo MOUSE        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO                MO_TOG(MOUSE)
+ &flush_mods          &trans               &kp LG(DOT)          &mo MOUSE        &mo NUMBE            &hm LSHFT SPACE      &hk RSHFT RET        &mo SYMBO                &kp LC(CAPS)
  LARISKA_BTNS_WIN
             >;
             sensor-bindings = <&mouse_wheel &lariska_scroll>;
@@ -522,9 +532,9 @@
             label = "Gaming";
             bindings = <
  &kp TAB              &kp Q                &kp W                &kp E                &kp R                &kp Y                &kp U                &kp I                &kp O                &kp P
- &kp LCTRL            &kp A                &kp S                &kp D                &kp F                &kp PSCRN            &trans               &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lt TILIN SEMI
+ &kp LCTRL            &kp A                &kp S                &kp D                &kp F                &kp PSCRN            &trans               &kp H                &hm LGUI J           &hm RALT K           &kp L                &lt TILIN SEMI
  &kp LSHFT            &kp Z                &kp X                &kp C                &kp V                &none                &trans               &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH
- &flush_mods          &tog GAMIN           &mo GAMFN            &kp LALT             &mo LOGAM            &kp SPACE            &to WINDO            &mo SYMBO            &trans
+ &flush_mods          &tog GAMIN           &kp J                &kp R                &mo LOGAM            &kp SPACE            &to WINDO            &mo SYMBO            &kp LC(CAPS)
  LARISKA_BTNS
             >;
             sensor-bindings = <&rot_kp PG_UP PG_DN &lariska_scroll>;
@@ -560,7 +570,7 @@
  &kp GRAVE            &kp N1               &kp N2               &kp N3               &kp N4               &kp N6               &kp N7               &kp N8               &kp N9               &kp N0
  &kp ESC              &trans               &trans               &trans               &kp G                &trans               &trans               &kp LEFT             &kp DOWN             &kp UP               &kp RIGHT            &kp BSPC
  &trans               &kp M                &kp N5               &kp T                &kp B                &tog GAMIN           &trans               &kp HOME             &kp PG_DN            &kp PG_UP            &kp END              &kp DEL
- &trans               &trans               &trans               &mo GAMFN            &trans               &trans               &trans               &trans               &trans
+ &trans               &trans               &trans               &mo GAMFN            &trans               &trans               &trans               &trans               &autoclk MB1
  LARISKA_BTNS
             >;
             sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN &lariska_scroll>;

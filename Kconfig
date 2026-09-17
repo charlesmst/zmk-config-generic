@@ -167,4 +167,15 @@ config ROBA_INPUT_PROCESSOR_TAP_CLICK
       STOP, which drops the sync carried on BTN_TOUCH and freezes all
       pointer motion from the trackpad.
 
+config ROBA_BEHAVIOR_AUTOCLICK
+    bool "Latching auto-clicker behavior"
+    default y
+    depends on DT_HAS_ROBA_BEHAVIOR_AUTOCLICK_ENABLED
+    depends on ZMK_POINTING
+    depends on !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
+    help
+      One press starts clicking a HID mouse button on a timer and keeps going
+      hands-free; pressing the same key again, or any other key, stops it.
+      Only the central owns the keymap, so the clicker is built there.
+
 endmenu

@@ -1,0 +1,29 @@
+# Copyright (c) 2026 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+description: |
+  Latching auto-clicker. One press starts clicking a HID button over and over
+  on a timer and keeps going hands-free; the next press of the same key, or a
+  press of any other key position, stops it.
+
+  Param1 is a HID button bit mask, same shape as &mkp and &bd: LCLK=BIT(0),
+  RCLK=BIT(1), MCLK=BIT(2), MB4=BIT(3), MB5=BIT(4), OR'd for multiple.
+
+  A ZMK macro cannot do this: macros run a fixed number of steps and hold the
+  behavior queue while they do, so a long click burst would freeze the rest of
+  the keyboard. This drives the clicks from a work item instead, so the
+  keyboard stays live while it runs.
+
+compatible: "roba,behavior-autoclick"
+
+include: one_param.yaml
+
+properties:
+  press-ms:
+    type: int
+    default: 20
+    description: Milliseconds the button is held down for each click.
+  interval-ms:
+    type: int
+    default: 20
+    description: Milliseconds between the release of one click and the next press.

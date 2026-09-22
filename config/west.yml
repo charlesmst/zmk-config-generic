@@ -63,7 +63,7 @@ manifest:
 
     - name: zmk-feature-split-esb
       remote: damex
-      revision: v0.6.2
+      revision: v0.6.4
       import: true
 
   self:

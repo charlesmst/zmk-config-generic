@@ -9,3 +9,12 @@ config SHIELD_ROBAKESB_RIGHT
 
 config SHIELD_ROBAKESB_LARISKA
     def_bool $(shields_list_contains,roBakesb_lariska)
+
+# Relay topology: the right half is the ESB central and talks USB HID to the
+# host, the dongle is a relay-role peripheral mirroring the keyboard report
+# onto a second host.
+config SHIELD_ROBAKESB_RIGHT_CENTRAL
+    def_bool $(shields_list_contains,roBakesb_right_central)
+
+config SHIELD_ROBAKESB_RELAY
+    def_bool $(shields_list_contains,roBakesb_relay)

@@ -1,0 +1,162 @@
+/*
+ * roBa KESB right half acting as the ESB central.
+ *
+ * Topology (see roBakesb_relay.overlay for the other new half):
+ *   right (this)  -> ESB central, owns the keymap, USB HID to host A
+ *   left          -> roBakesb_left, ESB peripheral pipe 0
+ *   lariska mouse -> roBakesb_lariska, ESB peripheral pipe 2
+ *   holyiot dongle-> roBakesb_relay, ESB relay peripheral pipe 3, USB HID to host B
+ *
+ * Differences from the roBakesb_right peripheral build:
+ *   - esb_right is role = "self" (central's own pipe slot, not a source id)
+ *     and there is no chosen zmk,esb-self.
+ *   - The PMW3610 trackball is a local input device, so it binds straight to
+ *     trackball_listener instead of riding trackball_split over the radio.
+ *   - Sensor slots, the lariska pointer listener and the stepped-scroll
+ *     listeners move here from roBakesb.overlay, because this is now the side
+ *     that owns the keymap and drives HID.
+ */
+
+#include "roBa_matrix.dtsi"
+#include "roBakesb_addr.dtsi"
+#include "roBakesb_lariska_transform.dtsi"
+#include "roBa_R_trackball.dtsi"
+#include <behaviors/input_processor_sigmoid_accel.dtsi>
+#include <input/processors.dtsi>
+#include <dt-bindings/zmk/input_transform.h>
+
+/ {
+    chosen {
+        zmk,kscan = &kscan0;
+        zmk,physical-layout = &roba_physical_layout;
+    };
+
+    kscan0: kscan {
+        compatible = "zmk,kscan-gpio-matrix";
+        wakeup-source;
+        diode-direction = "col2row";
+        row-gpios
+            = <&xiao_d 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&xiao_d 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&xiao_d 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&xiao_d 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            ;
+        col-gpios
+            = <&xiao_d 10 GPIO_ACTIVE_HIGH>
+            , <&xiao_d 9 GPIO_ACTIVE_HIGH>
+            , <&xiao_d 8 GPIO_ACTIVE_HIGH>
+            , <&xiao_d 7 GPIO_ACTIVE_HIGH>
+            , <&gpio0 10 GPIO_ACTIVE_HIGH>
+            ;
+    };
+
+    /* Placeholder encoder at slot 0: real events come from the left half over
+     * ESB. Disabled, so the pin overlap with kscan0 row 2 is never claimed. */
+    left_encoder: encoder_left {
+        compatible = "alps,ec11";
+        a-gpios = <&xiao_d 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        b-gpios = <&xiao_d 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        steps = <12>;
+        status = "disabled";
+    };
+
+    /* Placeholder encoder at slot 1: real events come from the lariska QDEC. */
+    lariska_encoder: lariska_encoder_ph {
+        compatible = "alps,ec11";
+        a-gpios = <&xiao_d 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        b-gpios = <&xiao_d 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        steps = <48>;
+        status = "disabled";
+    };
+
+    sensors: sensors {
+        compatible = "zmk,keymap-sensors";
+        sensors = <&left_encoder &lariska_encoder>;
+        left_enc_cfg: left_enc_cfg {
+            /* 4 pulses (4 * 30 = 120 deg) per detent -> 360/120 = 3. */
+            triggers-per-rotation = <3>;
+        };
+        lariska_enc_cfg: lariska_enc_cfg {
+            triggers-per-rotation = <24>;
+        };
+    };
+
+    /* Lariska pointer, delivered over ESB through mouse_split. */
+    mouse_input_listener: mouse_input_listener {
+        compatible = "zmk,input-listener";
+        status = "okay";
+        device = <&mouse_split>;
+    };
+
+    /* Routes stepped_scroll events (one REL_WHEEL tick per detent) to HID. */
+    stepped_scroll_il: stepped_scroll_il {
+        compatible = "zmk,input-listener";
+        device = <&stepped_scroll>;
+    };
+
+    /* Routes stepped_hscroll (REL_HWHEEL) events to HID for the MB4-hold layer. */
+    stepped_hscroll_il: stepped_hscroll_il {
+        compatible = "zmk,input-listener";
+        device = <&stepped_hscroll>;
+    };
+};
+
+/* This half's matrix occupies global columns 6-10. */
+&default_transform {
+    col-offset = <6>;
+};
+
+&roba_physical_layout {
+    kscan = <&kscan0>;
+};
+
+&esb_link {
+    retransmit-delay-us = <870>;
+};
+
+/* Central's own pipe slot: skipped from source-id enumeration. */
+&esb_right {
+    role = "self";
+};
+
+/* Bring the HID relay dongle's pipe into the link. */
+&esb_relay {
+    status = "okay";
+};
+
+/* Lariska pointer arrives over the radio. */
+&mouse_split {
+    status = "okay";
+};
+
+/* The trackball is local now, so trackball_split stays disabled and the
+ * listener binds the device directly.
+ *
+ * sigmoid_accel used to run on the right *peripheral* (on trackball_split)
+ * before transmission, which put it ahead of the dongle's layer overrides. A
+ * layer override replaces the base processor list rather than extending it, so
+ * to keep the identical pipeline (accelerate, then scale/map) sigmoid_accel is
+ * repeated as the first entry of each override. */
+&trackball_listener {
+    status = "okay";
+    device = <&trackball>;
+    input-processors = <&sigmoid_accel>;
+
+    scroll {
+        layers = <10>;
+        input-processors = <&sigmoid_accel>, <&zip_xy_scaler 1 10>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>;
+    };
+
+    snipe {
+        layers = <11>;
+        input-processors = <&sigmoid_accel>, <&zip_xy_scaler 1 3>;
+    };
+};
+
+&sigmoid_accel {
+    cpi = <2600>;
+};
+
+&trackball {
+    spi-max-frequency = <2000000>;
+};

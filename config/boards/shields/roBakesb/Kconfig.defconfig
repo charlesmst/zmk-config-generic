@@ -37,3 +37,23 @@ config ZMK_SPLIT
     default y
 
 endif # SHIELD_ROBAKESB_LARISKA
+
+if SHIELD_ROBAKESB_RIGHT_CENTRAL
+
+config ZMK_KEYBOARD_NAME
+    default "roBa KESB"
+
+config ZMK_SPLIT
+    default y
+
+endif # SHIELD_ROBAKESB_RIGHT_CENTRAL
+
+if SHIELD_ROBAKESB_RELAY
+
+config ZMK_KEYBOARD_NAME
+    default "roBa KESB Relay"
+
+config ZMK_SPLIT
+    default y
+
+endif # SHIELD_ROBAKESB_RELAY

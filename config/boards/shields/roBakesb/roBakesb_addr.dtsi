@@ -35,6 +35,19 @@
                 prefix = <0xE5>;
                 weight = <1>;
             };
+
+            /* HID relay dongle. Only used by the right-central topology
+             * (roBakesb_right_central + roBakesb_relay), so it stays disabled
+             * here and each of those two overlays sets it okay. A disabled
+             * child is skipped by DT_FOREACH_CHILD_STATUS_OKAY, so the classic
+             * dongle-central builds keep the same three-pipe link they had. */
+            esb_relay: peripheral_relay {
+                pipe = <3>;
+                prefix = <0xE4>;
+                weight = <1>;
+                role = "relay";
+                status = "disabled";
+            };
         };
 
         tx-power-dbm = <8>;

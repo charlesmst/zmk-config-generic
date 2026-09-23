@@ -57,6 +57,14 @@ manifest:
       remote: damex
       revision: v0.1.1
 
+    # v0.1.1 drops -Wduplicated-branches from the module's own -Werror set.
+    # v0.1.0 could not build: Zephyr's Z_CBPRINTF_IS_X_PCHAR expands to
+    # `cond ? 0 : 0` for non-pointer args, so LOG_ERR("...(%d)", error) in
+    # stepped_encoder.c failed under GCC 12.2 (SDK 0.16.x, incl. ZMK's CI image).
+    - name: zmk-driver-stepped-encoder
+      remote: damex
+      revision: v0.1.1
+
     - name: zmk-feature-sensor_rotation
       remote: hsgw
       revision: main

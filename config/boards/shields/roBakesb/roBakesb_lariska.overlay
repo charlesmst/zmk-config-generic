@@ -41,11 +41,24 @@
     /* Disabled placeholder at slot 0 so lariska_encoder lands at slot 1.
      * Slot 0 sensor events come from the left keyboard peripheral. */
     _ph_enc: _ph_enc {
-        compatible = "alps,ec11";
+        compatible = "zmk,stepped-encoder";
         a-gpios = <&gpio0 31 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
         b-gpios = <&gpio0 31 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
         steps = <1>;
         status = "disabled";
+    };
+
+    /* Scroll wheel encoder at slot 1. Same pins the nRF QDEC peripheral used
+     * (QDEC_A = P0.01, QDEC_B = P0.00); both are XL1/XL2, free as GPIO because
+     * CONFIG_CLOCK_CONTROL_NRF_K32SRC_RC=y runs the LF clock off the internal
+     * RC. steps/triggers-per-rotation keep the 48/24 ratio the QDEC ran at:
+     * 2 quadrature transitions per detent, one keymap tick per detent. */
+    lariska_encoder: lariska_encoder {
+        compatible = "zmk,stepped-encoder";
+        a-gpios = <&gpio0 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        b-gpios = <&gpio0 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        steps = <48>;
+        status = "okay";
     };
 
     sensors: sensors {
@@ -79,32 +92,8 @@
     device = <&mou0>;
 };
 
-/* QDEC hardware encoder (same pin assignment as standalone lariska firmware) */
-&pinctrl {
-    qdec_default: qdec_default {
-        group1 {
-            psels = <NRF_PSEL(QDEC_A, 0, 1)>,
-                    <NRF_PSEL(QDEC_B, 0, 0)>;
-        };
-    };
-    qdec_sleep: qdec_sleep {
-        group1 {
-            psels = <NRF_PSEL(QDEC_A, 0, 1)>,
-                    <NRF_PSEL(QDEC_B, 0, 0)>;
-            low-power-enable;
-        };
-    };
-};
-
-/* Assign lariska_encoder to qdec0 so it sits at sensor index 1 */
-lariska_encoder: &qdec0 {
-    status = "okay";
-    led-pre = <0>;
-    steps   = <48>;
-    pinctrl-0    = <&qdec_default>;
-    pinctrl-1    = <&qdec_sleep>;
-    pinctrl-names = "default", "sleep";
-};
+/* qdec0 stays disabled (nRF default): P0.00/P0.01 are driven by
+ * lariska_encoder through zmk-driver-stepped-encoder instead. */
 
 /* PAW3395 SPI (same pins as standalone lariska firmware) */
 &pinctrl {

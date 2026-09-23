@@ -57,6 +57,17 @@ manifest:
       remote: damex
       revision: v0.1.1
 
+    # KNOWN ISSUE (trial): this module's CMakeLists adds `-Werror
+    # -Wduplicated-branches` to its own library. Zephyr's Z_CBPRINTF_IS_X_PCHAR
+    # expands to `cond ? 0 : 0` for non-pointer args, so every LOG_* call in the
+    # driver fails the build under GCC 12.2 (SDK 0.16.8, and ZMK's CI image).
+    # Worked around locally by appending `-Wno-error=duplicated-branches` to
+    # zmk-driver-stepped-encoder/CMakeLists.txt -- NOT committed, `west update`
+    # wipes it and CI on this branch will fail until upstream relaxes the flag.
+    - name: zmk-driver-stepped-encoder
+      remote: damex
+      revision: v0.1.0
+
     - name: zmk-feature-sensor_rotation
       remote: hsgw
       revision: main

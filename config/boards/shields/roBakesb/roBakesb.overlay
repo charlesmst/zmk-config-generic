@@ -20,16 +20,16 @@
     /* Placeholder encoder at slot 0 so lariska_encoder lands at slot 1.
      * Events for slot 0 come from the left keyboard peripheral (real ec11). */
     left_encoder: encoder_left {
-        compatible = "alps,ec11";
+        compatible = "zmk,stepped-encoder";
         a-gpios = <&xiao_d 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
         b-gpios = <&xiao_d 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
         steps = <12>;
         status = "disabled";
     };
 
-    /* Placeholder encoder at slot 1; real events come from lariska QDEC. */
+    /* Placeholder encoder at slot 1; real events come from the lariska. */
     lariska_encoder: lariska_encoder_ph {
-        compatible = "alps,ec11";
+        compatible = "zmk,stepped-encoder";
         a-gpios = <&xiao_d 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
         b-gpios = <&xiao_d 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
         steps = <48>;

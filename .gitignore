@@ -24,6 +24,7 @@ zmk-paw3395-driver
 zmk-vfx-rgbled-indicator
 zmk-behavior-stepped-scroll
 zmk-behavior-button-direct
+zmk-driver-stepped-encoder
 zmk-trackball-gestures-module
 zmk-feature-sensor_rotation
 zmk-vfx-retro

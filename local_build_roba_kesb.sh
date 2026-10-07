@@ -32,6 +32,7 @@ EXTRA_MODULES=(
     "$WORKSPACE/zmk-vfx-rgbled-indicator"
     "$WORKSPACE/zmk-behavior-stepped-scroll"
     "$WORKSPACE/zmk-behavior-button-direct"
+    "$WORKSPACE/zmk-driver-stepped-encoder"
     "$REPO_DIR"
 )
 

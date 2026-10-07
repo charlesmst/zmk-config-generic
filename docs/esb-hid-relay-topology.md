@@ -32,12 +32,28 @@ Local build:
 
 ## What the relay actually carries
 
-`CONFIG_ZMK_SPLIT_ESB_HID_RELAY` in damex `zmk-feature-split-esb` v0.6.4 relays
-**the keyboard report only**. `esb_hid_relay_central.c` subscribes to
-`zmk_keycode_state_changed` and fans out `zmk_hid_get_keyboard_report()`; there
-is no mouse, consumer or indicator path. So on host B you get keys and
-modifiers, and nothing from the trackball, the lariska mouse, the mouse buttons
-or the media keys.
+`CONFIG_ZMK_SPLIT_ESB_HID_RELAY` in damex `zmk-feature-split-esb` v0.7.4 relays
+**the keyboard and consumer reports**. `esb_hid_relay_central.c` subscribes to
+`zmk_keycode_state_changed` and stages either `zmk_hid_get_keyboard_report()` or
+`zmk_hid_get_consumer_report()` depending on the usage page; the idle keepalive
+latches both concatenated, with a `BUILD_ASSERT` that the pair fits
+`ZMK_SPLIT_ESB_MAX_PAYLOAD` (48 here, the pair is about half that). The dongle
+registers ZMK's full report descriptor, so each report reaches the host under
+its own report ID.
+
+There is still **no mouse path**, so on host B you get keys, modifiers and
+media keys, and nothing from the trackball, the lariska mouse or the mouse
+buttons.
+
+> Media keys are new in v0.7.x. Under v0.6.4 — what this branch was first built
+> and flashed against — the relay carried the keyboard report only.
+
+Host lock indicators (caps, num, scroll) now travel the other way: the dongle
+forwards its `ZMK_HID_REPORT_ID_LEDS` output report up to the central, so host
+B's lock state can drive central-side widgets. It is opt-in and currently off —
+it needs `CONFIG_ZMK_HID_INDICATORS=y` on both the dongle and the central, and
+neither sets it. Nothing in this topology displays indicators yet, so there is
+nothing to gain until something does.
 
 Both endpoints are live at the same time: the central types on host A over its
 own USB and the dongle repeats the same report to host B. This is a mirror, not
@@ -89,6 +105,13 @@ own `usb_hid.c` would claim the same Zephyr HID device. `CONFIG_USB_DEVICE_HID`,
 Because `ZMK_USB` is off, `ZMK_USB_LOGGING` is unusable, so `CONFIG_LOG=y` is set
 directly; the board's `cdc_acm_console_uart` is already `zephyr,console`, so
 logs come out a CDC ACM interface alongside the HID one.
+
+The two sides are deliberately asymmetric about logging: the dongle keeps its
+CDC console because it is the only window into an untested topology, while
+`roBakesb_right_central` is `CONFIG_LOG=n` like `roBakesb_right`. The central
+runs the retransmit budget tuned in `roBakesb_addr.dtsi` and has no log backend
+anyway — its only snippet is `studio-rpc-usb-uart`, an RPC transport. Get it
+back with `-DEXTRA_CONF_FILE=roBakesb_debug.conf`.
 
 `config/boards/shields/roBakesb/boards/roBakesb_relay/holyiot_dongle_1k.conf`
 turns off `ROBA_PERIPHERAL_BATTERY_LED` and `ROBA_LAYER_LED`. Zephyr matches

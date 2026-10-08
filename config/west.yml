@@ -14,6 +14,8 @@ manifest:
       url-base: https://github.com/urob
     - name: ggrocer
       url-base: https://github.com/greengrocer98
+    - name: carrefinho
+      url-base: https://github.com/carrefinho
 
   projects:
     - name: zmk
@@ -68,6 +70,22 @@ manifest:
     - name: zmk-feature-sensor_rotation
       remote: hsgw
       revision: main
+
+    # Prospector dongle (XIAO nRF52840 + Waveshare 1.69" round LCD).
+    #
+    # Branched from upstream feat/new-status-screens, not main: main targets
+    # ZMK v0.3 / Zephyr 3.5, and this workspace is Zephyr 4.1 with
+    # hardware-model-v2 board names (xiao_ble//zmk).
+    #
+    # charlesmst fork: the module assumes a BLE split central. It compiles
+    # central_status_changed_observer.c unconditionally, which cannot build
+    # without a BT stack (reads info.le.phy->rx_phy), and classic/output.c
+    # links against zmk_ble_profile_*. The branch gates both on
+    # CONFIG_ZMK_BLE / CONFIG_ZMK_SPLIT_BLE and changes nothing for BLE users.
+    # Upstreamable as-is; drop the fork if it lands.
+    - name: prospector-zmk-module
+      remote: charlesmst
+      revision: compat/no-split-ble
 
     - name: zmk-feature-split-esb
       remote: damex

@@ -1,0 +1,18 @@
+/*
+ * Prospector dongle: ESB central with a 1.69" round LCD.
+ *
+ * Hardware is a XIAO nRF52840, the same board as the two keyboard halves, so
+ * the dongle role is identical to roBakesb on nice!nano / holyiot -- mock
+ * kscan, the shared ESB link table, and the split input listeners. Pull all of
+ * that in rather than restating it, so the two dongle shields cannot drift.
+ *
+ * The display comes from the prospector_adapter shield, which owns the LCD SPI
+ * node, the APDS9960 ambient light sensor and the status screen. Build with
+ * both shields: `shield: roBakesb_prospector prospector_adapter`.
+ *
+ * Nothing here references the LCD or sensor pins. The placeholder encoders in
+ * roBakesb.overlay sit on xiao_d 0/5/4/3 but are status = "disabled", so they
+ * claim no pins and cannot collide with the adapter's SPI/I2C pinctrl.
+ */
+
+#include "roBakesb.overlay"

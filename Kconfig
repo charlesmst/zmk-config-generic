@@ -142,6 +142,22 @@ config ROBA_ESB_CENTRAL_DISPLAY_COMPAT
       caught the nice!nano OLED dongle, where raise_* is then undefined at
       link.
 
+if ROBA_ESB_CENTRAL_DISPLAY_COMPAT
+
+config ROBA_ESB_CENTRAL_DISPLAY_REPLAY_MS
+    int "Delay before replaying cached peripheral connection state"
+    default 2000
+    help
+      The battery widgets build in the "not connected" state and cannot query
+      real connection state, so they rely on an event arriving after the status
+      screen exists -- anything earlier is dropped. The ESB central's sweep is
+      edge-triggered, and an ESB link can be up before the screen is built, so
+      that single edge can be lost and the slot stays crossed out until the
+      peripheral drops and rejoins. Re-raise the cached state once, this long
+      after boot. Must outlast display init; 2 s is comfortable.
+
+endif
+
 # ZMK declares this inside `if ZMK_SPLIT && ZMK_SPLIT_BLE` (app/src/split/
 # bluetooth/Kconfig), so on an ESB-only central the symbol does not exist --
 # and ZMK_SPLIT_BLE_PERIPHERAL_COUNT in app/include/zmk/ble.h expands to it

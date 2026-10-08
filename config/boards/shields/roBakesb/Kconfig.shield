@@ -9,3 +9,10 @@ config SHIELD_ROBAKESB_RIGHT
 
 config SHIELD_ROBAKESB_LARISKA
     def_bool $(shields_list_contains,roBakesb_lariska)
+
+# Same dongle role as roBakesb, paired with the prospector_adapter shield for
+# the LCD. Separate shield rather than a boards/ override on roBakesb, because
+# the halves also build on xiao_ble and a bare boards/<board>.conf would land
+# on them too.
+config SHIELD_ROBAKESB_PROSPECTOR
+    def_bool $(shields_list_contains,roBakesb_prospector)

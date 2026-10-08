@@ -125,6 +125,50 @@ config ROBA_ESB_PERIPHERAL_DISPLAY_COMPAT
       with a display, so BLE-oriented peripheral status screens (nice!view
       widgets) link. ESB is connectionless, so it always reports connected.
 
+config ROBA_ESB_CENTRAL_DISPLAY_COMPAT
+    bool
+    default y if ZMK_SPLIT_ESB && ZMK_SPLIT_ROLE_CENTRAL && !ZMK_SPLIT_BLE && \
+                 SHIELD_PROSPECTOR_ADAPTER
+    help
+      Re-raise the ESB transport's zmk_split_esb_peripheral_changed as
+      zmk_split_central_status_changed, the event central-side display widgets
+      (prospector-zmk-module's battery bar / circles / label) subscribe to for
+      per-peripheral connection state. Only that module's BLE observer raises
+      it, so without this the connection indicators never leave "disconnected".
+
+      Gated on SHIELD_PROSPECTOR_ADAPTER, not just ZMK_DISPLAY: the event is
+      declared and implemented by prospector-zmk-module, and it only builds
+      those sources under its own shield. A plain ZMK_DISPLAY condition also
+      caught the nice!nano OLED dongle, where raise_* is then undefined at
+      link.
+
+if ROBA_ESB_CENTRAL_DISPLAY_COMPAT
+
+config ROBA_ESB_CENTRAL_DISPLAY_POLL_MS
+    int "Period for re-asserting peripheral state into the display widgets"
+    default 1000
+    help
+      The battery widgets keep connection state inside their LVGL objects,
+      cannot query the transport, and drop anything raised before the status
+      screen exists. So poll zmk_split_esb_peer_battery() /
+      zmk_split_esb_peer_rssi_dbm() and re-assert on change, the way
+      src/dongle_battery_display.c drives the OLED dongle. Self-healing: a
+      missed edge, a late screen or a rebuilt widget converge within one
+      period. Matches that screen's 1 s cadence.
+
+endif
+
+# ZMK declares this inside `if ZMK_SPLIT && ZMK_SPLIT_BLE` (app/src/split/
+# bluetooth/Kconfig), so on an ESB-only central the symbol does not exist --
+# and ZMK_SPLIT_BLE_PERIPHERAL_COUNT in app/include/zmk/ble.h expands to it
+# verbatim. Display widgets size their per-peripheral arrays with that macro,
+# so they fail to compile. Declare it unconditionally and let the ESB pipe
+# count drive it. Harmless when BLE split is on: ZMK's own declaration adds
+# the prompt back and this default stays out of the way.
+config ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS
+    int
+    default 3 if ZMK_SPLIT_ESB && !ZMK_SPLIT_BLE
+
 config ROBA_VFX_RETRO_ESB_LINK
     bool "Feed ESB link stats into the vfx-retro status screen"
     depends on VFX_RETRO && ZMK_SPLIT_ESB && !ZMK_SPLIT_ROLE_CENTRAL

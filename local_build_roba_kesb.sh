@@ -33,6 +33,7 @@ EXTRA_MODULES=(
     "$WORKSPACE/zmk-behavior-stepped-scroll"
     "$WORKSPACE/zmk-behavior-button-direct"
     "$WORKSPACE/zmk-driver-stepped-encoder"
+    "$WORKSPACE/prospector-zmk-module"
     "$REPO_DIR"
 )
 

@@ -2,103 +2,148 @@
  * Central-side display support on the damex ESB transport.
  *
  * Counterpart to esb_peripheral_display_compat.c, which fills in the split-BLE
- * symbol the peripheral status screens link against. This one bridges the
- * other direction.
+ * symbol the peripheral status screens link against.
  *
- * prospector-zmk-module's battery widgets track per-peripheral connection
- * state via zmk_split_central_status_changed. The module declares and
- * implements that event itself (include/zmk/events/split_central_status_changed.h
- * and src/events/split_central_status_changed.c -- ZMK upstream has no such
- * event at this fork point), but the only thing that *raises* it is the
- * module's own BLE connection observer. With CONFIG_ZMK_SPLIT_BLE=n nothing
- * raises it, so the connection dots would sit permanently disconnected.
+ * prospector-zmk-module's battery widgets are written for a BLE split central.
+ * Each slot is built showing a red cross with the battery label at opa 0, and
+ * flips to showing a number only when a zmk_split_central_status_changed with
+ * connected = true arrives. The widget stores that state inside its LVGL
+ * objects, cannot query the transport for the truth, and drops anything raised
+ * before the status screen exists (`if (!is_initialized) return`). Only the
+ * module's own BLE connection observer raises that event, so on ESB nothing
+ * ever does and all three slots stay crossed out -- while battery events
+ * quietly update labels nobody can see.
  *
- * zmk-feature-split-esb raises its own zmk_split_esb_peripheral_changed
- * (central.c, on the pipe-staleness sweep) carrying the same information under
- * different names. Translate one into the other: source -> slot.
+ * Rather than translate the ESB transport's edge events and hope the timing
+ * lines up, do what src/dongle_battery_display.c does for the OLED dongle:
+ * keep the state here, poll the transport, and re-assert into the widget
+ * whenever our view changes. zmk_split_esb.h exists for exactly this --
+ * zmk_split_esb_peer_battery() and zmk_split_esb_peer_rssi_dbm() are read-only
+ * snapshots with no event needed. Polling also self-heals: a missed edge, a
+ * late screen, or a widget rebuilt by a status-screen change all converge
+ * within one poll period instead of waiting for a peripheral to drop and
+ * rejoin.
  *
- * ESB pipe numbers are the widget's slot indices, so the battery bars sit in
- * pipe order (roBakesb_addr.dtsi: 0 left, 1 right, 2 lariska). That sidesteps
- * Prospector's BLE pairing-order caveat -- there is no pairing on ESB, and the
- * order is fixed at build time by the device tree.
+ * Connect/disconnect still comes from zmk_split_esb_peripheral_changed where
+ * we have it, since that is authoritative and the only thing that reports a
+ * peripheral *going away* (cached battery never reverts to unknown). The poll
+ * covers the window before our first edge: if the transport has battery or an
+ * RSSI sample for a pipe, that pipe is demonstrably being heard.
+ *
+ * Slots are ESB pipe numbers, so the bars sit in device-tree order
+ * (roBakesb_addr.dtsi: 0 left, 1 right, 2 lariska). There is no pairing on ESB,
+ * so Prospector's "pair left before right" caveat does not apply.
  */
 
 #include <zephyr/init.h>
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 
+#include <zmk/display.h>
 #include <zmk/event_manager.h>
+#include <zmk/events/battery_state_changed.h>
 #include <zmk/events/split_central_status_changed.h>
 #include <zmk/events/split_esb_peripheral_changed.h>
+#include <zmk_split_esb.h>
 
-/* Slot count the widgets use. Anything at or above it they ignore outright. */
+LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+
+/* Slot count the widgets index by. Sources at or above it they ignore. */
 #define SLOT_COUNT CONFIG_ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS
 
-static bool slot_seen[SLOT_COUNT];
-static bool slot_connected[SLOT_COUNT];
+#define BATTERY_UNKNOWN 0xFF
 
-/*
- * Replay, and why it is needed.
- *
- * The widgets build in the "not connected" state (red cross, battery label at
- * opa 0) and their generated init seeds slot 0 from get_state(NULL), which
- * reports disconnected -- there is no accessor to query real connection state,
- * so a fresh widget cannot discover it. Everything depends on a
- * zmk_split_central_status_changed arriving *after* the status screen exists;
- * anything earlier is dropped by `if (!is_initialized) return`.
- *
- * On BLE that is free: scanning plus GATT discovery takes seconds. On ESB the
- * link can be up almost immediately, and the central's sweep is edge-triggered
- * (central.c raises only when connected != pipe_connected[pipe]). Lose that one
- * edge to a not-yet-built screen and the slot shows a red cross until the
- * peripheral actually drops and rejoins -- while battery events keep updating
- * labels nobody can see.
- *
- * So cache what we forward and re-raise it once, late enough that the screen is
- * up. This listener is a plain ZMK_LISTENER, not a display widget listener, so
- * it sees the early edges even when the widgets cannot.
- */
-static void roba_esb_replay_work_cb(struct k_work *work) {
+/* Authoritative connect/disconnect, from the transport's own event. */
+static bool edge_seen[SLOT_COUNT];
+static bool edge_connected[SLOT_COUNT];
+
+/* What we have pushed into the widget, so we only raise on a real change. */
+static bool pushed_any[SLOT_COUNT];
+static bool pushed_connected[SLOT_COUNT];
+static uint8_t pushed_battery[SLOT_COUNT] = {[0 ... SLOT_COUNT - 1] = BATTERY_UNKNOWN};
+
+static void roba_esb_display_poll_fn(struct k_work *work);
+static K_WORK_DELAYABLE_DEFINE(roba_esb_display_poll, roba_esb_display_poll_fn);
+
+static void roba_esb_display_poll_fn(struct k_work *work) {
     ARG_UNUSED(work);
 
-    for (uint8_t slot = 0; slot < SLOT_COUNT; slot++) {
-        if (!slot_seen[slot]) {
-            continue;
-        }
-        raise_zmk_split_central_status_changed((struct zmk_split_central_status_changed){
-            .slot = slot,
-            .connected = slot_connected[slot],
-        });
+    /* Before the screen exists the widgets drop everything, so there is no
+     * point raising; the next tick will do it once they are up. */
+    if (!zmk_display_is_initialized()) {
+        goto reschedule;
     }
-}
 
-static K_WORK_DELAYABLE_DEFINE(roba_esb_replay_work, roba_esb_replay_work_cb);
+    for (uint8_t slot = 0; slot < SLOT_COUNT; slot++) {
+        uint8_t battery = zmk_split_esb_peer_battery(slot);
+
+        /* Battery or an RSSI sample both mean this pipe is being heard. Used
+         * only until the transport gives us a real edge for this slot. */
+        bool heard = (battery != BATTERY_UNKNOWN) || (zmk_split_esb_peer_rssi_dbm(slot) != 0);
+        bool connected = edge_seen[slot] ? edge_connected[slot] : heard;
+
+        if (!pushed_any[slot] || pushed_connected[slot] != connected) {
+            raise_zmk_split_central_status_changed((struct zmk_split_central_status_changed){
+                .slot = slot,
+                .connected = connected,
+            });
+            LOG_DBG("esb display: slot %u connected=%d", slot, (int)connected);
+        }
+
+        /* Re-assert battery too. The central raises it on change, but a change
+         * that landed before the screen existed is gone, which would leave a
+         * connected slot reading N/A until the level happened to move. */
+        if (connected && battery != BATTERY_UNKNOWN &&
+            (!pushed_any[slot] || pushed_battery[slot] != battery)) {
+            raise_zmk_peripheral_battery_state_changed(
+                (struct zmk_peripheral_battery_state_changed){
+                    .source = slot,
+                    .state_of_charge = battery,
+                });
+            LOG_DBG("esb display: slot %u battery=%u%%", slot, battery);
+        }
+
+        pushed_connected[slot] = connected;
+        pushed_battery[slot] = battery;
+        pushed_any[slot] = true;
+    }
+
+reschedule:
+    k_work_reschedule(&roba_esb_display_poll,
+                      K_MSEC(CONFIG_ROBA_ESB_CENTRAL_DISPLAY_POLL_MS));
+}
 
 static int roba_esb_peripheral_changed_listener(const zmk_event_t *eh) {
     const struct zmk_split_esb_peripheral_changed *ev = as_zmk_split_esb_peripheral_changed(eh);
-    if (ev == NULL) {
+    if (ev == NULL || ev->source >= SLOT_COUNT) {
         return ZMK_EV_EVENT_BUBBLE;
     }
 
-    if (ev->source < SLOT_COUNT) {
-        slot_seen[ev->source] = true;
-        slot_connected[ev->source] = ev->connected;
-    }
+    edge_seen[ev->source] = true;
+    edge_connected[ev->source] = ev->connected;
 
-    raise_zmk_split_central_status_changed((struct zmk_split_central_status_changed){
-        .slot = ev->source,
-        .connected = ev->connected,
-    });
+    /* Push straight through so a disconnect shows immediately rather than at
+     * the next tick; the poll is the backstop, not the primary path. */
+    if (zmk_display_is_initialized() &&
+        (!pushed_any[ev->source] || pushed_connected[ev->source] != ev->connected)) {
+        raise_zmk_split_central_status_changed((struct zmk_split_central_status_changed){
+            .slot = ev->source,
+            .connected = ev->connected,
+        });
+        pushed_connected[ev->source] = ev->connected;
+        pushed_any[ev->source] = true;
+    }
 
     return ZMK_EV_EVENT_BUBBLE;
 }
 
+ZMK_LISTENER(roba_esb_central_display_compat, roba_esb_peripheral_changed_listener);
+ZMK_SUBSCRIPTION(roba_esb_central_display_compat, zmk_split_esb_peripheral_changed);
+
 static int roba_esb_central_display_compat_init(void) {
-    k_work_schedule(&roba_esb_replay_work,
-                    K_MSEC(CONFIG_ROBA_ESB_CENTRAL_DISPLAY_REPLAY_MS));
+    k_work_schedule(&roba_esb_display_poll,
+                    K_MSEC(CONFIG_ROBA_ESB_CENTRAL_DISPLAY_POLL_MS));
     return 0;
 }
 
 SYS_INIT(roba_esb_central_display_compat_init, APPLICATION, 99);
-
-ZMK_LISTENER(roba_esb_central_display_compat, roba_esb_peripheral_changed_listener);
-ZMK_SUBSCRIPTION(roba_esb_central_display_compat, zmk_split_esb_peripheral_changed);

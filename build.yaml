@@ -8,6 +8,14 @@ include:
     snippet: studio-rpc-usb-uart
     artifact-name: roBakesb_dongle_holyiot
 
+  # Prospector dongle: XIAO nRF52840 + 1.69" round LCD. Same ESB central role
+  # as the dongles below, with the stock Prospector status screen (layer roller
+  # plus a battery bar per peripheral) instead of an RGB LED or OLED.
+  - board: xiao_ble//zmk
+    shield: roBakesb_prospector prospector_adapter
+    snippet: studio-rpc-usb-uart
+    artifact-name: roBakesb_dongle_prospector
+
   # Damex ESB dongle setup (nice!nano v2 as USB central)
   - board: nice_nano@2.0.0//zmk
     shield: roBakesb

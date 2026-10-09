@@ -13,11 +13,19 @@
  * The clicks come from a delayable work item rather than a macro: ZMK macros
  * run a fixed number of steps and occupy the behavior queue while they do, so
  * a long burst of clicks would stall every other key.
+ *
+ * Each click is reported as a BTN_0.. input event on the click-device (ZMK's
+ * &mkp), the same call behavior_mouse_key_press.c makes, rather than written
+ * into zmk_hid here. That keeps the clicks on the input-listener path, which is
+ * the only path the ESB HID relay taps: writing zmk_hid directly would click
+ * the local host and leave the relay dongle's host untouched.
  */
 
 #define DT_DRV_COMPAT roba_behavior_autoclick
 
 #include <zephyr/device.h>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+#include <zephyr/input/input.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/util.h>
@@ -25,7 +33,6 @@
 #include <drivers/behavior.h>
 #include <dt-bindings/zmk/pointing.h>
 #include <zmk/behavior.h>
-#include <zmk/endpoints.h>
 #include <zmk/event_manager.h>
 #include <zmk/events/position_state_changed.h>
 #include <zmk/hid.h>
@@ -35,6 +42,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #if DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
 
 struct behavior_autoclick_config {
+    const struct device *click_dev;
     uint32_t press_ms;
     uint32_t interval_ms;
 };
@@ -54,23 +62,24 @@ struct behavior_autoclick_data {
     uint32_t position;
 };
 
-static void autoclick_report(uint32_t buttons, bool press) {
+/* Sync goes on the last button of the mask, so one report carries the whole
+ * click; the listener (and the relay processor behind it) flushes on sync. */
+static void autoclick_report(const struct device *click_dev, uint32_t buttons, bool press) {
+    uint32_t pending = buttons;
+
     for (uint16_t bit = 0; bit < ZMK_HID_MOUSE_NUM_BUTTONS; bit++) {
         if ((buttons & BIT(bit)) == 0) {
             continue;
         }
-        if (press) {
-            zmk_hid_mouse_button_press(bit);
-        } else {
-            /* ZMK clamps the per-button press count at zero, so releasing a
-             * button we are not holding is harmless. */
-            zmk_hid_mouse_button_release(bit);
-        }
+        WRITE_BIT(pending, bit, 0);
+        /* ZMK's listener clamps the per-button press count at zero, so
+         * releasing a button we are not holding is harmless. */
+        input_report_key(click_dev, INPUT_BTN_0 + bit, press ? 1 : 0, pending == 0, K_FOREVER);
     }
-    zmk_endpoint_send_mouse_report();
 }
 
 static void autoclick_stop(const struct device *dev) {
+    const struct behavior_autoclick_config *config = dev->config;
     struct behavior_autoclick_data *data = dev->data;
 
     if (!data->active) {
@@ -86,7 +95,7 @@ static void autoclick_stop(const struct device *dev) {
      * cancel above does not wait for an in-flight work item, and an extra
      * release is clamped away. */
     data->button_down = false;
-    autoclick_report(data->buttons, false);
+    autoclick_report(config->click_dev, data->buttons, false);
 }
 
 static void autoclick_work_cb(struct k_work *work) {
@@ -100,20 +109,20 @@ static void autoclick_work_cb(struct k_work *work) {
 
     if (data->button_down) {
         data->button_down = false;
-        autoclick_report(data->buttons, false);
+        autoclick_report(config->click_dev, data->buttons, false);
         k_work_schedule(&data->work, K_MSEC(config->interval_ms));
         return;
     }
 
     data->button_down = true;
-    autoclick_report(data->buttons, true);
+    autoclick_report(config->click_dev, data->buttons, true);
 
     /* Re-check after pressing: autoclick_stop() may have run between the
      * check at the top and the press, and its release would then have landed
      * before this press. Undo it here instead of leaving the button stuck. */
     if (!data->active) {
         data->button_down = false;
-        autoclick_report(data->buttons, false);
+        autoclick_report(config->click_dev, data->buttons, false);
         return;
     }
 
@@ -217,6 +226,7 @@ static int behavior_autoclick_init(const struct device *dev) {
 #define AUTOCLICK_INST(n)                                                                          \
     static struct behavior_autoclick_data behavior_autoclick_data_##n = {};                        \
     static const struct behavior_autoclick_config behavior_autoclick_config_##n = {                \
+        .click_dev = DEVICE_DT_GET(DT_INST_PHANDLE(n, click_device)),                              \
         .press_ms = DT_INST_PROP(n, press_ms),                                                     \
         .interval_ms = DT_INST_PROP(n, interval_ms),                                               \
     };                                                                                             \

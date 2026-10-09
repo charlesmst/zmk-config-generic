@@ -116,9 +116,10 @@
 };
 
 /* ZMK's own mouse-key listeners (&mkp, &mmv, &msc) feed HID through the input
- * pipeline too, so they need the relay tap as well or mouse keys move only this
- * half's pointer. &bd and &autoclk do not appear here on purpose: they write
- * zmk_hid directly and never reach an input listener, see the keymap note.
+ * pipeline too, so they need the relay tap as well or mouse keys and clicks
+ * move only this half's pointer. Every mouse button in the keymap is &mkp, and
+ * the auto-clicker reports onto &mkp as well (click-device), so mkp_input_listener
+ * is the one that carries all the clicks.
  *
  * Written as root nodes rather than &label overrides because behaviors.dtsi is
  * included by the keymap, which the build applies *after* this overlay -- the

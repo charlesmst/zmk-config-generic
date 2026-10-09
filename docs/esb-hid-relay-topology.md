@@ -52,15 +52,29 @@ shorter than one poll still reaches host B. The source file only compiles when
 the DT node exists, so forgetting it means the pointer path silently does not
 exist.
 
-Mouse buttons bound to **`&bd`** (damex `zmk-behavior-button-direct`) and
-`&autoclk` (`src/behavior_autoclick.c`) are the exception: both call
-`zmk_hid_mouse_button_press()` and `zmk_endpoint_send_mouse_report()` directly,
-so they never pass an input listener and never reach the relay processor. The
-keymap drives MB1/MB2/MB3 with `&bd`, so **those clicks still do not relay** —
-v0.8.1's queued button changes fix `&mkp` and real pointer-device buttons, not
-these. Options are to bind the buttons to `&mkp`/`&mo_mkp` with `&mkp` (losing
-`&bd`'s release-drain healing) or to get the module to snoop the mouse report
-the way it snoops `zmk_keycode_state_changed` for the keyboard.
+That input-processor design decides which *click* behaviors can relay, and it
+cost this keymap its button bindings. `&bd` (damex `zmk-behavior-button-direct`)
+and the auto-clicker both used to call `zmk_hid_mouse_button_press()` and
+`zmk_endpoint_send_mouse_report()` directly, which never touches an input
+listener, so neither could ever reach the relay — MB1/MB2/MB3 clicked the
+central's host alone.
+
+Both now go through the pipeline:
+
+- Every mouse button in `roBakesb.keymap` is plain **`&mkp`**, which reports
+  `BTN_0..` input events and lands in `mkp_input_listener`.
+- `&autoclk` takes a `click-device = <&mkp>` phandle and reports its clicks onto
+  that same device (`input_report_key`, sync on the last button of the mask),
+  exactly as `behavior_mouse_key_press.c` does.
+
+What `&bd` bought was a drain: on every release it forced ZMK's per-button press
+count to zero, so a release lost over ESB healed on the next click instead of
+wedging the button until a power-cycle. The ESB link heals a lost key *release*
+itself through the keepalive position bitmap (since v0.2.x), so the drain was
+the second line of defence rather than the first — but if a stuck button ever
+shows up again, the real fix is a drain-aware behavior that reports through the
+input pipeline instead of into `zmk_hid`, which is a change for the `&bd`
+module, not for this config.
 
 > Media keys are new in v0.7.x, pointer input in v0.8.x. Under v0.6.4 — what
 > this branch was first built and flashed against — the relay carried the

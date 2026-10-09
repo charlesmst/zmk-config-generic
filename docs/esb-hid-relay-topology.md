@@ -32,8 +32,8 @@ Local build:
 
 ## What the relay actually carries
 
-`CONFIG_ZMK_SPLIT_ESB_HID_RELAY` in damex `zmk-feature-split-esb` v0.7.4 relays
-**the keyboard and consumer reports**. `esb_hid_relay_central.c` subscribes to
+`CONFIG_ZMK_SPLIT_ESB_HID_RELAY` in damex `zmk-feature-split-esb` v0.8.1 relays
+**the keyboard, consumer and pointer reports**. `esb_hid_relay_central.c` subscribes to
 `zmk_keycode_state_changed` and stages either `zmk_hid_get_keyboard_report()` or
 `zmk_hid_get_consumer_report()` depending on the usage page; the idle keepalive
 latches both concatenated, with a `BUILD_ASSERT` that the pair fits
@@ -41,12 +41,30 @@ latches both concatenated, with a `BUILD_ASSERT` that the pair fits
 registers ZMK's full report descriptor, so each report reaches the host under
 its own report ID.
 
-There is still **no mouse path**, so on host B you get keys, modifiers and
-media keys, and nothing from the trackball, the lariska mouse or the mouse
-buttons.
+Pointer input arrives through a different door. `esb_hid_relay_pointer.c` is an
+**input processor**, `zmk,input-processor-esb-relay-pointer`, which has to be
+declared once and placed last in every input listener on the central
+(`roBakesb_right_central.overlay`). Each listener then tees its final events —
+after scaling and any xy→scroll mapping — into the relay's accumulator, which
+rides out on every reply: motion and scroll sum between polls so a fast sensor
+loses no counts, and a button change is queued like a key change so a click
+shorter than one poll still reaches host B. The source file only compiles when
+the DT node exists, so forgetting it means the pointer path silently does not
+exist.
 
-> Media keys are new in v0.7.x. Under v0.6.4 — what this branch was first built
-> and flashed against — the relay carried the keyboard report only.
+Mouse buttons bound to **`&bd`** (damex `zmk-behavior-button-direct`) and
+`&autoclk` (`src/behavior_autoclick.c`) are the exception: both call
+`zmk_hid_mouse_button_press()` and `zmk_endpoint_send_mouse_report()` directly,
+so they never pass an input listener and never reach the relay processor. The
+keymap drives MB1/MB2/MB3 with `&bd`, so **those clicks still do not relay** —
+v0.8.1's queued button changes fix `&mkp` and real pointer-device buttons, not
+these. Options are to bind the buttons to `&mkp`/`&mo_mkp` with `&mkp` (losing
+`&bd`'s release-drain healing) or to get the module to snoop the mouse report
+the way it snoops `zmk_keycode_state_changed` for the keyboard.
+
+> Media keys are new in v0.7.x, pointer input in v0.8.x. Under v0.6.4 — what
+> this branch was first built and flashed against — the relay carried the
+> keyboard report only.
 
 Host lock indicators (caps, num, scroll) now travel the other way: the dongle
 forwards its `ZMK_HID_REPORT_ID_LEDS` output report up to the central, so host
@@ -55,16 +73,34 @@ it needs `CONFIG_ZMK_HID_INDICATORS=y` on both the dongle and the central, and
 neither sets it. Nothing in this topology displays indicators yet, so there is
 nothing to gain until something does.
 
-Both endpoints are live at the same time: the central types on host A over its
-own USB and the dongle repeats the same report to host B. This is a mirror, not
-an output switch.
+The two endpoints are **no longer live at the same time**. Since v0.8.0 the
+central pauses the relay while it has a host of its own: `follow_endpoint()`
+sets `paused` whenever the selected endpoint is not `ZMK_TRANSPORT_NONE`, then
+latches released keyboard/consumer reports and zeroes the pointer so the dongle
+cannot sit on a held key or button. With `CONFIG_ZMK_USB=y` on this half that
+means host B goes quiet for as long as the right half's USB is enumerated, and
+takes over when it is unplugged. That is the behaviour we asked damex for; note
+it keys off the *selected endpoint*, so a connected BLE profile would pause the
+relay too (irrelevant here, `ZMK_BLE=n`). The pause is event-driven, so it
+engages when USB enumerates after boot rather than at init.
 
-Latency and healing are set by two Kconfig values, kept equal on both sides:
+Latency and healing are set by two Kconfig values, one per side, kept equal:
 
-- `ZMK_SPLIT_ESB_HID_RELAY_POLL_MS=4` — how often the relay pings the central,
-  which is what bounds added HID latency.
-- `ZMK_SPLIT_ESB_HID_RELAY_KEEPALIVE_MS=4` — how often the central re-stages the
-  current report, so a dropped release report heals within one period.
+- `ZMK_SPLIT_ESB_HID_RELAY_POLL_MS=2`, dongle side — how often the relay pings
+  the central, which is what bounds added HID latency. A relay-role peripheral
+  never backs off to the idle window, it polls at exactly this rate. 2 ms rather
+  than 1 because the dongle's USB HID endpoint drains one report per 1 ms frame
+  and a single poll can return keyboard + consumer + pointer.
+- `ZMK_SPLIT_ESB_HID_RELAY_KEEPALIVE_MS=2`, central side — how often the central
+  refreshes the *idle* reply, so a dropped release heals within one period and a
+  poll that finds an empty queue still gets a fresh report. Real changes do not
+  wait for it: they are queued and go out on the next poll.
+
+Both options depend only on `ZMK_SPLIT_ESB_HID_RELAY`, so Kconfig accepts either
+on either side, but `POLL_MS` is read in `hop_peripheral.c` and `KEEPALIVE_MS` in
+`esb_hid_relay_central.c` — set on the wrong side, each is a silent no-op.
+`USB_HID_POLL_INTERVAL_MS` needs no setting: the module defaults it to 1 for
+relay peripherals.
 
 ## How the pieces fit
 
@@ -92,7 +128,8 @@ On `roBakesb_right_central` the trackball is a local device bound straight to
 base processor list rather than extending it (`input_listener.c`: `if
 (!override->process_next) return 0;`), so `sigmoid_accel` is repeated as the
 first entry of the `scroll` and `snipe` overrides to reproduce the old pipeline
-exactly.
+exactly. `relay_pointer` is repeated as the *last* entry of each for the same
+reason: an override that omits it would relay nothing while that layer is held.
 
 ### Dongle-side USB
 

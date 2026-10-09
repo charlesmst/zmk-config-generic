@@ -206,7 +206,14 @@
         /* Drain-aware HID button click (damex zmk-behavior-button-direct).
          * Drop-in for &mkp; force-drains the HID press count on release so a
          * click whose release is lost over ESB self-heals on the next press
-         * instead of sticking until power-cycle. */
+         * instead of sticking until power-cycle.
+         *
+         * Caveat on the HID relay topology (docs/esb-hid-relay-topology.md):
+         * &bd and &autoclk call zmk_hid_mouse_button_press() and
+         * zmk_endpoint_send_mouse_report() directly, so they never pass an
+         * input listener and the relay's pointer processor never sees them --
+         * these clicks reach the central's own host only, never the relay
+         * dongle's. &mkp-driven buttons do relay. */
         bd: behavior_button_direct {
             compatible = "zmk,behavior-button-direct";
             #binding-cells = <1>;

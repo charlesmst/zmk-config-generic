@@ -6,7 +6,7 @@ description: |
   on a timer and keeps going hands-free; the next press of the same key, or a
   press of any other key position, stops it.
 
-  Param1 is a HID button bit mask, same shape as &mkp and &bd: LCLK=BIT(0),
+  Param1 is a HID button bit mask, same shape as &mkp: LCLK=BIT(0),
   RCLK=BIT(1), MCLK=BIT(2), MB4=BIT(3), MB5=BIT(4), OR'd for multiple.
 
   A ZMK macro cannot do this: macros run a fixed number of steps and hold the
@@ -19,6 +19,14 @@ compatible: "roba,behavior-autoclick"
 include: one_param.yaml
 
 properties:
+  click-device:
+    type: phandle
+    required: true
+    description: |
+      Input device the clicks are reported on, as BTN_0.. key events. Point it
+      at ZMK's &mkp: the clicks then take the same input-listener path as a
+      mouse-key press, which is the path the ESB HID relay taps. Writing
+      zmk_hid directly instead would reach the local host only.
   press-ms:
     type: int
     default: 20

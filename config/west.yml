@@ -69,9 +69,13 @@ manifest:
       remote: hsgw
       revision: main
 
+    # v0.8.1 is the first release where the HID relay carries pointer input:
+    # v0.8.0 added the relay pointer processor plus the "central has its own
+    # host" pause, v0.8.1 queues mouse button changes like key changes so a
+    # click shorter than one relay poll still reaches the host.
     - name: zmk-feature-split-esb
       remote: damex
-      revision: v0.7.4
+      revision: v0.8.1
       import: true
 
   self:

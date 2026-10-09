@@ -38,7 +38,10 @@ EXTRA_MODULES=(
 
 EXTRA_MODULES_ARG=$(IFS=';'; echo "${EXTRA_MODULES[*]}")
 
-DOWNLOADS="/mnt/c/Users/charl/Downloads"
+# Where built artifacts are staged for flashing from Windows. Override it to keep
+# one build set in its own folder instead of mixed into Downloads, e.g.
+#   DOWNLOADS=/mnt/c/Users/charl/Downloads/roBakesb-relay ./local_build_roba_kesb.sh
+DOWNLOADS="${DOWNLOADS:-/mnt/c/Users/charl/Downloads}"
 FRESH=0
 TARGET=""
 
@@ -142,6 +145,12 @@ build_target() {
         fi
         cp "$build_dir/zephyr/zmk.hex" "$OUTPUT_DIR/$name.hex"
         echo "✓ $OUTPUT_DIR/$name.hex"
+        # DFU-only boards (holyiot) never produce a uf2, so stage the hex too --
+        # flash_holyiot.sh reads it from here.
+        if [[ -d "$DOWNLOADS" ]]; then
+            cp "$build_dir/zephyr/zmk.hex" "$DOWNLOADS/$name.hex"
+            echo "✓ $DOWNLOADS/$name.hex"
+        fi
     else
         echo "✗ No output at $build_dir/zephyr/"
         return 1

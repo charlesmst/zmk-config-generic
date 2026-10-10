@@ -79,9 +79,35 @@ manifest:
     # so an idle poll's ACK is empty like a normal half's instead of carrying a
     # 9-byte mouse report 1000 times a second. That is what makes POLL_MS=2 /
     # KEEPALIVE_MS=4 a cheaper setting than 1/1 was rather than a slower one.
+    #
+    # v0.8.3 fixes the uplink half of the same problem. The dongle had no poll of
+    # its own: keepalive_work_fn had a force_fast branch that reused the keepalive
+    # as the poll, so every poll sent a full state snapshot and the central queued
+    # each one into the SPSC ring for position reconcile. Now a dedicated
+    # relay_poll_work tick sends one byte (ESB_RELAY_POLL_TAG, 0xFB -- one byte
+    # because NCS refuses an empty payload), hop_consume_rx stamps heard/rssi and
+    # returns true so it is never queued, and the ACK still carries the HID
+    # reports. The dongle's keepalive goes back to the hop_window_ms pace.
+    #
+    # Wire change: control tags now start at 0xFB, not 0xFC. An old central
+    # mis-routes a 0xFB poll as an event packet, so central and dongle must be
+    # flashed together. Half keepalive wire format is unchanged.
+    #
+    # v0.8.4 repairs a side effect of that split. The dongle's hop decisions --
+    # settle_link_state, ensure_mask, the retransmit budget -- used to ride the
+    # keepalive tick, which was the poll tick; once v0.8.3 moved the poll off it,
+    # those decisions dropped to the hop_window_ms pace (32 ms default) and the
+    # dongle stopped adapting between polls. v0.8.4 extracts run_hop_window() and
+    # calls it from relay_poll_work_fn, skipping it in keepalive_work_fn for a
+    # relay: "a window grades by its worst packet, so a relay steps one per poll."
+    #
+    # Peripheral-side only, no wire change -- hop_peripheral.c is the only src
+    # file touched, so the dongle alone needs flashing. The halves are
+    # functionally unchanged too: for a non-relay the refactor is the same code
+    # inline, and `fast` collapses to the old (active || searching).
     - name: zmk-feature-split-esb
       remote: damex
-      revision: v0.8.2
+      revision: v0.8.4
       import: true
 
   self:

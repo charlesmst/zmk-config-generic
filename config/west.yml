@@ -89,7 +89,15 @@ manifest:
 
     - name: zmk-feature-split-esb
       remote: damex
-      revision: v0.7.4
+      # v0.7.4 -> v0.8.5: six releases. v0.8.0 relay-pointer input processor +
+      # central-has-own-host relay pause, v0.8.1 queued mouse buttons, v0.8.2
+      # idle relay ACKs go out empty, v0.8.3 wire change (relay control tags
+      # 0xFC -> 0xFB, new ESB_RELAY_POLL_TAG), v0.8.4 relay hop on poll tick,
+      # v0.8.5 steps relay hop windows on the keepalive again (reverting the
+      # v0.8.4 poll-tick move) and grades a hop window by its mean TX attempts
+      # instead of its worst packet -- that last part applies to the halves too,
+      # so hop sensitivity on left/right/lariska changes here.
+      revision: v0.8.5
       import: true
 
   self:

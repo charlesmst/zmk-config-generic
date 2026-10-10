@@ -105,9 +105,22 @@ manifest:
     # file touched, so the dongle alone needs flashing. The halves are
     # functionally unchanged too: for a non-relay the refactor is the same code
     # inline, and `fast` collapses to the old (active || searching).
+    #
+    # v0.8.5 reverts that. f8ff827 folds run_hop_window() back into
+    # keepalive_work_fn and drops the call from relay_poll_work_fn, so the relay
+    # steps its hop windows on the keepalive "exactly like the halves do" --
+    # hop_window_ms, not the poll period. Grading a window on a 2 ms cadence
+    # evidently judged the channel on too little evidence. So POLL_MS no longer
+    # has anything to do with hop adaptation; see roBakesb_relay.conf.
+    #
+    # caa9cc6 in the same release grades a peripheral hop window by its mean TX
+    # attempts, rounded up, rather than by its worst packet. That is the common
+    # peripheral path in connected_window(), so it changes hop sensitivity on
+    # roBakesb_left/right/lariska as well as the dongle -- less trigger-happy on
+    # a single bad packet. Radio behaviour, not something a build can confirm.
     - name: zmk-feature-split-esb
       remote: damex
-      revision: v0.8.4
+      revision: v0.8.5
       import: true
 
   self:

@@ -5,10 +5,12 @@ One per ESB peripheral, drawn to sit inside the battery ring in place of a
 number. dongle_icons.c has equivalents at 8x10, sized for a 128x64 OLED; these
 are 34x34 for the Prospector's 1.69" panel.
 
-The two halves are the same body mirrored, so left and right are told apart by
-which side the thumb cluster falls on -- the same cue as the physical keyboard.
-Keys are punched out of a solid body rather than drawn as strokes, because at
-this size cut-outs hold their shape and 1 px outlines do not.
+All three are outlined on a 2 px stroke so they read as one set. The halves are
+the same mark mirrored and are told apart by a chevron on the inner edge, both
+pointing at the gap between the halves. The earlier cut used a solid body with
+a thumb cluster for that cue, and on the panel the two were near enough
+identical -- a mirrored blob only tells you which half it is if you already
+know which corner to look at.
 
   U+E030  left half
   U+E031  right half
@@ -50,32 +52,74 @@ def ellipse(g, cx, cy, rx, ry, val=1):
                 g[y][x] = val
 
 
+def frame(g, x0, y0, x1, y1, t=2):
+    """Hollow rectangle: fill, then clear the interior t pixels in."""
+    rect(g, x0, y0, x1, y1, 1)
+    rect(g, x0 + t, y0 + t, x1 - t, y1 - t, 0)
+
+
+def _in_rrect(x, y, x0, y0, x1, y1, r):
+    dx = max(x0 + r - x, 0, x - (x1 - r))
+    dy = max(y0 + r - y, 0, y - (y1 - r))
+    return dx * dx + dy * dy <= r * r
+
+
+def rrect_outline(g, x0, y0, x1, y1, r, t=2):
+    """Stroked rounded rectangle, constant t px all the way round.
+
+    Not ellipse-minus-smaller-ellipse: two concentric ellipses do not stay a
+    fixed distance apart, so that approach gives a stroke that is 1 px at the
+    poles and 3 px at the flanks, and at 34 px the lumpiness is obvious. A
+    rounded-rect distance field is uniform by construction.
+    """
+    for y in range(H):
+        for x in range(W):
+            if _in_rrect(x, y, x0, y0, x1, y1, r) and not _in_rrect(
+                x, y, x0 + t, y0 + t, x1 - t, y1 - t, max(r - t, 0)
+            ):
+                g[y][x] = 1
+
+
 def mirror(g):
     return [list(reversed(row)) for row in g]
 
 
 # ---------------- keyboard half ----------------
-# Body plus a thumb cluster hanging off the inner edge, which is what makes it
-# read as half a split rather than a whole keyboard.
+# An outlined case with punched keys, plus a solid chevron on the inner edge.
+#
+# The previous cut was a solid body with a thumb cluster hanging off it, and on
+# the panel the two halves were nearly indistinguishable -- a mirrored blob is
+# only legible if you already know to look at which corner droops. The chevron
+# is an unambiguous direction cue at a glance, and both chevrons point at the
+# gap between the halves, which is where the halves actually sit on the desk.
+#
+# Outlined rather than solid: at 34 px a 2 px stroke holds, and the hollow case
+# gives the key grid something to read against. Solid bodies with cut-out keys
+# turned into a grey smear at arm's length.
 def half():
     g = blank()
 
-    # Body plus thumb span x3..29, so the mark sits centred on the 34 px canvas
-    # once it is placed inside the ring.
-    rrect(g, 2, 4, 26, 22, r=3)          # main body
-    rrect(g, 15, 21, 30, 30, r=3)        # thumb cluster, off the inner edge
+    # Case: 2 px stroke, interior x3..22 / y9..23.
+    frame(g, 1, 7, 24, 25, t=2)
 
-    # Three rows of four keys, punched out.
-    for row in range(3):
-        for col in range(4):
-            x = 6 + col * 5
-            y = 7 + row * 5
-            rect(g, x, y, x + 2, y + 2, 0)
+    # Four columns of 3 px keys, two rows, then a wide bottom key. The real
+    # board has more rows than this; at 34 px they merge, so this is the
+    # suggestion of a key grid rather than a map of one. The last column ends
+    # at x21 against an interior edge of x22, so the grid never fuses with the
+    # case wall -- at 1bpp a touching key and wall read as one thick bar.
+    for col in range(4):
+        x = 4 + col * 5
+        rect(g, x, 11, x + 2, 13)
+        rect(g, x, 15, x + 2, 17)
+    rect(g, 7, 19, 18, 21)
 
-    # Two thumb keys, 2 px apart. A single pixel between them disappears at
-    # this size and the cluster reads as one smudge.
-    rect(g, 18, 24, 21, 27, 0)
-    rect(g, 24, 24, 27, 27, 0)
+    # Chevron, apex right, 6 px deep, leaving 1 px of margin at either end of
+    # the 34 px box. Drawn as a filled triangle rather than a stroked arrow so
+    # it keeps its point at this size.
+    for i in range(6):
+        x = 26 + i
+        h = 5 - i
+        rect(g, x, 16 - h, x, 16 + h)
 
     return g
 
@@ -84,16 +128,18 @@ def half():
 def mouse():
     g = blank()
 
-    ellipse(g, 17, 17, 9, 13)            # body
+    # Outlined shell on the keyboards' 2 px stroke, so the three icons read as
+    # one set. The old cut was a solid ellipse, which sat next to two outlined
+    # keyboards looking like a mark from a different family.
+    # r=8 against a 19 px width, not r=9: at r=9 the cap is a full semicircle
+    # and the apex discretises to a single lit pixel sitting above a 9 px row,
+    # which reads as dirt on the panel rather than as the top of a curve.
+    rrect_outline(g, 8, 3, 26, 30, r=8, t=2)
 
-    # Scroll wheel slot through the upper body, corners nicked so it reads as a
-    # rounded slot. No button split line: cutting one full width severed the
-    # body into two shapes and stopped reading as a mouse at all.
-    rect(g, 16, 6, 18, 16, 0)
-    g[6][16] = 1
-    g[6][18] = 1
-    g[16][16] = 1
-    g[16][18] = 1
+    # Scroll wheel floating inside the shell, not slotted through it: cutting
+    # the wheel through the outline severed the shell into two arcs and the
+    # mark stopped reading as a mouse.
+    rect(g, 16, 9, 18, 16)
 
     return g
 
@@ -144,9 +190,9 @@ out.append("""
  *
  * It rewrites this file, including the running glyph_dsc indices.
  *
- * Drawn to sit inside the battery ring in place of a percentage. The halves
- * are one body mirrored, so left and right are told apart by which side the
- * thumb cluster falls on.
+ * Drawn to sit inside the battery ring in place of a percentage. Outlined on a
+ * 2 px stroke; the halves are one mark mirrored, told apart by a chevron on
+ * the inner edge.
  *
  *   U+E030 "\\xEE\\x80\\xB0"  left half
  *   U+E031 "\\xEE\\x80\\xB1"  right half

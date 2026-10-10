@@ -20,8 +20,17 @@ zephyr_library_sources_ifdef(CONFIG_ROBA_ESB_CENTRAL_DISPLAY_COMPAT src/esb_cent
 zephyr_library_sources_ifdef(CONFIG_ROBA_PERIPHERAL_BATTERY_LED src/peripheral_battery_led.c)
 zephyr_library_sources_ifdef(CONFIG_ROBA_SELF_BATTERY_LED src/self_battery_led.c)
 zephyr_library_sources_ifdef(CONFIG_ROBA_DONGLE_BATTERY_DISPLAY src/dongle_battery_display.c)
-zephyr_library_sources_ifdef(CONFIG_ROBA_DONGLE_BATTERY_DISPLAY src/dongle_icons.c)
-zephyr_library_sources_ifdef(CONFIG_ROBA_DONGLE_BATTERY_DISPLAY src/os_logos.c)
+# Glyph fonts shared by both dongle screens. Added once, because either
+# consumer alone pulls them in and both would be a duplicate source.
+if(CONFIG_ROBA_DONGLE_BATTERY_DISPLAY OR CONFIG_ROBA_PROSPECTOR_SCREEN)
+  zephyr_library_sources(src/dongle_icons.c)
+  zephyr_library_sources(src/os_logos.c)
+endif()
+# Larger antenna bars, only the Prospector screen is big enough to want them.
+zephyr_library_sources_ifdef(CONFIG_ROBA_PROSPECTOR_SCREEN src/signal_bars.c)
+zephyr_library_sources_ifdef(CONFIG_ROBA_PROSPECTOR_SCREEN src/periph_icons.c)
+zephyr_library_sources_ifdef(CONFIG_ROBA_PROSPECTOR_SCREEN src/prospector_status_screen.c)
+zephyr_library_sources_ifdef(CONFIG_ROBA_PROSPECTOR_I2C_PROBE src/prospector_i2c_probe.c)
 zephyr_library_sources_ifdef(CONFIG_ROBA_VFX_RETRO_ESB_LINK src/vfx_retro_esb_link.c)
 zephyr_library_sources_ifdef(CONFIG_ROBA_INPUT_PROCESSOR_TAP_CLICK src/input_processor_tap_click.c)
 zephyr_library_sources_ifdef(CONFIG_ROBA_BEHAVIOR_AUTOCLICK src/behavior_autoclick.c)

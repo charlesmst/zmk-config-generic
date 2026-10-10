@@ -100,15 +100,20 @@ engages when USB enumerates after boot rather than at init.
 
 Latency and healing are set by two Kconfig values, one per side, kept equal:
 
-- `ZMK_SPLIT_ESB_HID_RELAY_POLL_MS=2`, dongle side — how often the relay pings
+- `ZMK_SPLIT_ESB_HID_RELAY_POLL_MS=1`, dongle side — how often the relay pings
   the central, which is what bounds added HID latency. A relay-role peripheral
-  never backs off to the idle window, it polls at exactly this rate. 2 ms rather
-  than 1 because the dongle's USB HID endpoint drains one report per 1 ms frame
-  and a single poll can return keyboard + consumer + pointer.
-- `ZMK_SPLIT_ESB_HID_RELAY_KEEPALIVE_MS=2`, central side — how often the central
+  never backs off to the idle window, it polls at exactly this rate. 1 ms matches
+  `USB_HID_POLL_INTERVAL_MS`, so the dongle asks the central for work as often as
+  its host asks the dongle. The USB side stays the narrower pipe: it drains one
+  report per 1 ms frame, so a poll returning keyboard + consumer + pointer needs
+  ~3 frames and the radio runs ahead of the endpoint during a burst.
+- `ZMK_SPLIT_ESB_HID_RELAY_KEEPALIVE_MS=1`, central side — how often the central
   refreshes the *idle* reply, so a dropped release heals within one period and a
   poll that finds an empty queue still gets a fresh report. Real changes do not
-  wait for it: they are queued and go out on the next poll.
+  wait for it: they are queued and go out on the next poll. At 1 ms the refresh
+  runs 1000 times a second on the system workqueue; it is a memcpy into each
+  relay pipe's idle latch, no radio work, and it is the first knob to back off if
+  the central ever looks starved.
 
 Both options depend only on `ZMK_SPLIT_ESB_HID_RELAY`, so Kconfig accepts either
 on either side, but `POLL_MS` is read in `hop_peripheral.c` and `KEEPALIVE_MS` in

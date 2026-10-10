@@ -29,6 +29,8 @@ zmk-trackball-gestures-module
 zmk-feature-sensor_rotation
 zmk-vfx-retro
 build_roba_kesb
+# BUILD_ROOT overrides for a one-off build set, e.g. build_v082
+build_v*
 tmp-efog-pmw3610-driver
 tools
 .claude

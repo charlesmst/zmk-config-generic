@@ -22,11 +22,17 @@ else
     echo "⚠  Zephyr SDK 0.17.0 not found; using 0.16.8"
 fi
 
+# The split-esb checkout to build against. Override it to try a release without
+# moving the shared workspace checkout off whatever another tree is using, e.g.
+#   git -C "$WORKSPACE/zmk-feature-split-esb" worktree add ~/personal/split-esb-v082 v0.8.2
+#   ESB_MODULE=~/personal/split-esb-v082 ./local_build_roba_kesb.sh
+ESB_MODULE="${ESB_MODULE:-$WORKSPACE/zmk-feature-split-esb}"
+
 EXTRA_MODULES=(
     "$ZMK_APP/module"
     "$ZMK_APP/keymap-module"
     "$WORKSPACE/modules/zmk/tri-state"
-    "$WORKSPACE/zmk-feature-split-esb"
+    "$ESB_MODULE"
     "$WORKSPACE/zmk-pmw3610-driver"
     "$WORKSPACE/zmk-paw3395-driver"
     "$WORKSPACE/zmk-vfx-rgbled-indicator"
@@ -38,7 +44,15 @@ EXTRA_MODULES=(
 
 EXTRA_MODULES_ARG=$(IFS=';'; echo "${EXTRA_MODULES[*]}")
 
-DOWNLOADS="/mnt/c/Users/charl/Downloads"
+# Where built artifacts are staged for flashing from Windows. Override it to keep
+# one build set in its own folder instead of mixed into Downloads, e.g.
+#   DOWNLOADS=/mnt/c/Users/charl/Downloads/roBakesb-relay ./local_build_roba_kesb.sh
+DOWNLOADS="${DOWNLOADS:-/mnt/c/Users/charl/Downloads}"
+
+# Where cmake build trees live. Override it when a build set must not share
+# cmake caches with another tree's -- the caches key on ZMK_CONFIG, and this
+# script only reconfigures with --fresh.
+BUILD_ROOT="${BUILD_ROOT:-$WORKSPACE/build_roba_kesb}"
 FRESH=0
 TARGET=""
 
@@ -91,7 +105,7 @@ PYEOF
 
 build_target() {
     local name="$1" board="$2" shield="$3" cmake_args="$4" snippet="$5"
-    local build_dir="$WORKSPACE/build_roba_kesb/$name"
+    local build_dir="$BUILD_ROOT/$name"
 
     echo ""
     echo "========================================="
@@ -142,6 +156,12 @@ build_target() {
         fi
         cp "$build_dir/zephyr/zmk.hex" "$OUTPUT_DIR/$name.hex"
         echo "✓ $OUTPUT_DIR/$name.hex"
+        # DFU-only boards (holyiot) never produce a uf2, so stage the hex too --
+        # flash_holyiot.sh reads it from here.
+        if [[ -d "$DOWNLOADS" ]]; then
+            cp "$build_dir/zephyr/zmk.hex" "$DOWNLOADS/$name.hex"
+            echo "✓ $DOWNLOADS/$name.hex"
+        fi
     else
         echo "✗ No output at $build_dir/zephyr/"
         return 1

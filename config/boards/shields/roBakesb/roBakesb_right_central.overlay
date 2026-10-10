@@ -81,23 +81,61 @@
         };
     };
 
+    /* Tees every pointer event this half sends to its own HID onto the relay
+     * pipes as well, so the dongle's host sees the same motion, scroll and
+     * buttons. One instance serves every listener (the module BUILD_ASSERTs
+     * that), and it must sit last in each processor list: it relays what the
+     * processors ahead of it produced, after any scaling or xy->scroll mapping.
+     * Motion sums between relay polls, so no counts are lost at 1 ms. */
+    relay_pointer: relay_pointer {
+        compatible = "zmk,input-processor-esb-relay-pointer";
+        #input-processor-cells = <0>;
+    };
+
     /* Lariska pointer, delivered over ESB through mouse_split. */
     mouse_input_listener: mouse_input_listener {
         compatible = "zmk,input-listener";
         status = "okay";
         device = <&mouse_split>;
+        input-processors = <&relay_pointer>;
     };
 
     /* Routes stepped_scroll events (one REL_WHEEL tick per detent) to HID. */
     stepped_scroll_il: stepped_scroll_il {
         compatible = "zmk,input-listener";
         device = <&stepped_scroll>;
+        input-processors = <&relay_pointer>;
     };
 
     /* Routes stepped_hscroll (REL_HWHEEL) events to HID for the MB4-hold layer. */
     stepped_hscroll_il: stepped_hscroll_il {
         compatible = "zmk,input-listener";
         device = <&stepped_hscroll>;
+        input-processors = <&relay_pointer>;
+    };
+};
+
+/* ZMK's own mouse-key listeners (&mkp, &mmv, &msc) feed HID through the input
+ * pipeline too, so they need the relay tap as well or mouse keys and clicks
+ * move only this half's pointer. Every mouse button in the keymap is &mkp, and
+ * the auto-clicker reports onto &mkp as well (click-device), so mkp_input_listener
+ * is the one that carries all the clicks.
+ *
+ * Written as root nodes rather than &label overrides because behaviors.dtsi is
+ * included by the keymap, which the build applies *after* this overlay -- the
+ * labels do not exist yet here, but nodes merge by path, so these three carry
+ * only the extra property and pick up compatible/device from behaviors.dtsi. */
+/ {
+    mkp_input_listener {
+        input-processors = <&relay_pointer>;
+    };
+
+    mmv_input_listener {
+        input-processors = <&relay_pointer>;
+    };
+
+    msc_input_listener {
+        input-processors = <&relay_pointer>;
     };
 };
 
@@ -140,16 +178,16 @@
 &trackball_listener {
     status = "okay";
     device = <&trackball>;
-    input-processors = <&sigmoid_accel>;
+    input-processors = <&sigmoid_accel>, <&relay_pointer>;
 
     scroll {
         layers = <10>;
-        input-processors = <&sigmoid_accel>, <&zip_xy_scaler 1 10>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>;
+        input-processors = <&sigmoid_accel>, <&zip_xy_scaler 1 10>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>, <&relay_pointer>;
     };
 
     snipe {
         layers = <11>;
-        input-processors = <&sigmoid_accel>, <&zip_xy_scaler 1 3>;
+        input-processors = <&sigmoid_accel>, <&zip_xy_scaler 1 3>, <&relay_pointer>;
     };
 };
 

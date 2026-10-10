@@ -45,6 +45,31 @@ def border(g, t):
     rect(g, 0, 0, t-1, h-1)
     rect(g, w-t, 0, w-1, h-1)
 
+def despeckle(g):
+    """Drop pixels with fewer than two orthogonal neighbours.
+
+    A rasterised disk ends in a single-pixel tip. On a 1bpp glyph that reads as
+    a speck of dirt floating off the mark rather than part of it, so trim any
+    pixel that is only attached by one edge. Safe on shapes whose real features
+    are several pixels thick; only applied to the gamepad, which is built from
+    overlapping disks."""
+    h, w = len(g), len(g[0])
+    doomed = []
+    for y in range(h):
+        for x in range(w):
+            if not g[y][x]:
+                continue
+            neighbours = 0
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < w and 0 <= ny < h and g[ny][nx]:
+                    neighbours += 1
+            if neighbours <= 1:
+                doomed.append((x, y))
+    for x, y in doomed:
+        g[y][x] = 0
+    return g
+
 def from_rows(rows):
     return [[1 if c == '#' else 0 for c in row] for row in rows]
 
@@ -106,46 +131,30 @@ rect(win, 22, pad, 39, pad+17)
 rect(win, 0, pad+22, 17, pad+39)
 rect(win, 22, pad+22, 39, pad+39)
 
-# ---------------- PUBG wordmark in a rough box (64x44) ----------------
-PW = 64
-pubg = blank(PW)
-border(pubg, 3)
-# little brush gaps on the border (rough look)
-rect(pubg, 0, 19, 3, 25, 0)
-rect(pubg, PW-4, 19, PW-1, 25, 0)
-rect(pubg, 28, 0, 36, 3, 0)
-rect(pubg, 28, H-4, 36, H-1, 0)
+# ---------------- Gamepad, square like the others (40x44) ----------------
+# The old PUBG wordmark was 64x44 -- 60% wider than Apple and Windows at 40x44,
+# so it overflowed the logo slot on the Prospector screen and shoved the base
+# name sideways. A gamepad silhouette reads as "gaming" at a glance and fits
+# the same square-ish box the other two use.
+GAW = 40
+gaming = blank(GAW)
 
-def letter(g, ch, x, y, w=10, h=18, s=3):
-    x1, y1 = x+w-1, y+h-1
-    midy0, midy1 = y + h//2 - s//2, y + h//2 - s//2 + s - 1
-    if ch == 'P':
-        rect(g, x, y, x+s-1, y1)
-        rect(g, x, y, x1, y+s-1)
-        rect(g, x, midy0, x1, midy1)
-        rect(g, x1-s+1, y, x1, midy1)
-    elif ch == 'U':
-        rect(g, x, y, x+s-1, y1-s+1)
-        rect(g, x1-s+1, y, x1, y1-s+1)
-        rect(g, x, y1-s+1, x1, y1)
-    elif ch == 'B':
-        rect(g, x, y, x+s-1, y1)
-        rect(g, x, y, x1, y+s-1)
-        rect(g, x, midy0, x1, midy1)
-        rect(g, x, y1-s+1, x1, y1)
-        rect(g, x1-s+1, y, x1, midy1)
-        rect(g, x1-s+1, midy0, x1, y1)
-    elif ch == 'G':
-        rect(g, x, y, x+s-1, y1)
-        rect(g, x, y, x1, y+s-1)
-        rect(g, x, y1-s+1, x1, y1)
-        rect(g, x1-s+1, midy0, x1, y1)
-        rect(g, x+w//2, midy0, x1, midy1)
+# Body: a capsule with flared grips, so the outline is unmistakably a pad
+# rather than a generic blob.
+rect(gaming, 10, 15, 29, 30)
+disk(gaming, 12, 22, 9)
+disk(gaming, 27, 22, 9)
+disk(gaming, 8, 28, 6)
+disk(gaming, 31, 28, 6)
 
-lx = 8
-for ch in "PUBG":
-    letter(pubg, ch, lx, 13, w=10, h=18, s=3)
-    lx += 12
+# Punch the controls out of the solid body. Apple and Windows are solid marks
+# too, so cut-outs keep the family consistent at 1bpp.
+rect(gaming, 7, 20, 16, 22, 0)    # d-pad, horizontal arm
+rect(gaming, 10, 17, 13, 25, 0)   # d-pad, vertical arm
+disk(gaming, 26, 19, 2.5, 0)      # action button, upper
+disk(gaming, 30, 24, 2.5, 0)      # action button, lower
+
+despeckle(gaming)
 
 # ---------------- Mouse cursor / arrow pointer (32x44, outline) ----------------
 def poly_fill(g, pts, val=1):
@@ -200,20 +209,28 @@ cursor_pts = [
 mouse = blank(MWID)
 poly_outline(mouse, cursor_pts, t=1)
 
-glyphs = [("Apple", apple), ("Windows", win), ("PUBG", pubg), ("Mouse", mouse)]
+glyphs = [("Apple", apple), ("Windows", win), ("Gaming", gaming), ("Mouse", mouse)]
 
 def to_bytes(g):
+    """Pack 1bpp rows continuously, with no per-row byte alignment.
+
+    This is what LVGL's font format expects: each glyph is a single bit stream
+    of box_w * box_h pixels, padded only at the very end to a byte boundary.
+    Padding every *row* instead works by accident whenever the width is a
+    multiple of 8 and shears the glyph into diagonal stripes when it is not --
+    which is exactly what a 34 px icon rendered as.
+    """
     w = len(g[0])
-    stride = (w + 7) // 8
-    out = []
+    bits = []
     for row in g:
-        for bx in range(stride):
-            byte = 0
-            for b in range(8):
-                x = bx*8 + b
-                if x < w and row[x]:
-                    byte |= (1 << (7-b))
-            out.append(byte)
+        bits.extend(row[:w])
+    out = []
+    for i in range(0, len(bits), 8):
+        byte = 0
+        for b, v in enumerate(bits[i : i + 8]):
+            if v:
+                byte |= 1 << (7 - b)
+        out.append(byte)
     return out
 
 def preview(name, g):
@@ -239,3 +256,101 @@ idx = 0
 for nm, g in glyphs:
     print(f"    {nm}: index={idx} box_w={len(g[0])} box_h={len(g)}")
     idx += len(to_bytes(g))
+
+# ---------------- emit src/os_logos.c ----------------
+# Written directly rather than printed for hand-pasting: the glyph_dsc indices
+# are a running total of bitmap sizes, so changing one glyph's width shifts
+# every later index. Doing that by hand is how you get a font that renders
+# garbage.
+import os
+
+CODEPOINTS = [(0xE010, "Apple", "default (Mac) base layer"),
+              (0xE011, "Windows", "Windows base layer (4-pane)"),
+              (0xE012, "Gaming", "gaming base layer (gamepad)"),
+              (0xE013, "Mouse", "mouse layer active (arrow cursor outline)")]
+
+out = []
+out.append("#include <lvgl.h>\n")
+out.append("""
+/*
+ * Hand-generated 1bpp OS / game logos. Drawn geometrically by
+ * tools/genlogos.py and mapped to the Unicode Private Use Area so they embed
+ * in lv_label strings. DO NOT EDIT BY HAND -- re-run the generator:
+ *
+ *     python3 tools/genlogos.py
+ *
+ * It rewrites this file, including the running glyph_dsc indices that shift
+ * whenever any glyph's width changes.
+ *
+ * All glyphs share a 44 px line height; widths differ per logo.
+ *""")
+idx = 0
+for (cp, nm, note), (_, g) in zip(CODEPOINTS, glyphs):
+    utf8 = chr(cp).encode("utf-8")
+    esc = "".join(f"\\x{b:02X}" for b in utf8)
+    out.append(f' *   U+{cp:04X} "{esc}"  {nm:<8}{len(g[0])}x{len(g)} - {note}')
+out.append(" */\n")
+
+out.append("static const uint8_t os_logos_bitmap[] = {")
+idx = 0
+for nm, g in glyphs:
+    bs = to_bytes(g)
+    out.append(f"    /* {nm}  {len(g[0])}x{len(g)}  index {idx} */")
+    for i in range(0, len(bs), 8):
+        out.append("    " + " ".join(f"0x{v:02X}," for v in bs[i:i+8]))
+    idx += len(bs)
+out.append("};\n")
+
+out.append('/* glyph 0 is the "not found" sentinel required by LVGL */')
+out.append("static const lv_font_fmt_txt_glyph_dsc_t os_logos_glyph_dsc[] = {")
+out.append("    {.bitmap_index = 0,   .adv_w = 0,    .box_w = 0,  .box_h = 0,  .ofs_x = 0, .ofs_y = 0},")
+idx = 0
+for nm, g in glyphs:
+    w = len(g[0])
+    out.append(f"    {{.bitmap_index = {idx},   .adv_w = {w * 16},  "
+               f".box_w = {w}, .box_h = {len(g)}, .ofs_x = 0, .ofs_y = 0}},")
+    idx += len(to_bytes(g))
+out.append("};\n")
+
+out.append("/* FORMAT0_TINY: contiguous range, glyph_id = glyph_id_start + (cp - range_start) */")
+out.append("""static const lv_font_fmt_txt_cmap_t os_logos_cmaps[] = {
+    {
+        .range_start       = 0xE010,
+        .range_length      = %d,
+        .glyph_id_start    = 1,
+        .unicode_list      = NULL,
+        .glyph_id_ofs_list = NULL,
+        .list_length       = 0,
+        .type              = LV_FONT_FMT_TXT_CMAP_FORMAT0_TINY,
+    },
+};
+""" % len(glyphs))
+
+out.append("""static const lv_font_fmt_txt_dsc_t os_logos_dsc = {
+    .glyph_bitmap  = os_logos_bitmap,
+    .glyph_dsc     = os_logos_glyph_dsc,
+    .cmaps         = os_logos_cmaps,
+    .kern_dsc      = NULL,
+    .kern_scale    = 0,
+    .cmap_num      = 1,
+    .bpp           = 1,
+    .kern_classes  = 0,
+    .bitmap_format = 0,
+};
+
+const lv_font_t os_logos = {
+    .get_glyph_dsc       = lv_font_get_glyph_dsc_fmt_txt,
+    .get_glyph_bitmap    = lv_font_get_bitmap_fmt_txt,
+    .line_height         = %d,
+    .base_line           = 0,
+    .subpx               = LV_FONT_SUBPX_NONE,
+    .underline_position  = -1,
+    .underline_thickness = 1,
+    .dsc                 = &os_logos_dsc,
+    .fallback            = NULL,
+};""" % H)
+
+dest = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src", "os_logos.c")
+with open(dest, "w") as fh:
+    fh.write("\n".join(out) + "\n")
+print(f"wrote {dest}")

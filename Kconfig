@@ -169,6 +169,129 @@ config ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS
     int
     default 3 if ZMK_SPLIT_ESB && !ZMK_SPLIT_BLE
 
+config ROBA_PROSPECTOR_SCREEN
+    bool "Custom Prospector status screen"
+    depends on ZMK_DISPLAY && ZMK_SPLIT_ESB && ZMK_SPLIT_ROLE_CENTRAL
+    depends on PROSPECTOR_STATUS_SCREEN_NONE
+    select LV_USE_LABEL
+    select LV_USE_ARC
+    help
+      Base layer, one battery+signal dial per ESB peripheral, and the hop
+      channel. Replaces prospector-zmk-module's status screens, so it needs
+      PROSPECTOR_STATUS_SCREEN_NONE -- otherwise both define
+      zmk_display_status_screen() and collide at link.
+
+      Polls the transport rather than subscribing to events. The module's own
+      widgets are event-driven and cannot be queried, which means a value that
+      changes before the screen exists is lost for good; polling converges
+      regardless of boot ordering.
+
+if ROBA_PROSPECTOR_SCREEN
+
+config ROBA_PROSPECTOR_SCREEN_POLL_MS
+    int "Redraw period"
+    default 250
+    help
+      How often poll_fn() re-reads the transport and marks the widgets dirty.
+      This is the whole screen's update rate -- layer included, since nothing
+      here redraws on an event. At the OLED dongle's old 1 s cadence a layer
+      tap took up to a second to show on screen, which read as a laggy panel.
+
+      Cost is one dirty-rect redraw of the labels and dials per tick, not a
+      full frame, so 250 ms is still far under what the panel can flush
+      (240x280 at 16bpp over 30 MHz SPI is ~36 ms for a *full* screen). Lower
+      it to 100 for a near-instant layer indicator if the ESB pointer jitter
+      that buys is acceptable -- the LVGL flush thread runs at cooperative
+      priority -1 and will not yield to the ESB central thread mid-flush.
+
+config ROBA_PROSPECTOR_SCREEN_RAW_FOOTER
+    bool "Show raw transport values in the footer (diagnostic)"
+    default n
+    help
+      Replaces the link-health line with the bytes zmk_split_esb_peer_battery()
+      and zmk_split_esb_peer_rssi_dbm() actually return, per pipe. FF means the
+      transport reports battery unknown, which distinguishes "no value on the
+      wire" from "this screen is mishandling a value it was given".
+
+# iOS dark-mode system colours. The battery ring is semantic -- green, then
+# yellow at 20%, then red at 10%, the same ladder the iOS Batteries widget
+# uses -- so the accent is not a brand colour to be picked freely.
+config ROBA_PROSPECTOR_SCREEN_BG
+    hex "Background"
+    default 0x000000
+    help
+      True black, as an iOS widget on a dark home screen. Also the cheapest
+      colour on an OLED-style panel.
+
+config ROBA_PROSPECTOR_SCREEN_PRIMARY
+    hex "Primary text"
+    default 0xFFFFFF
+
+config ROBA_PROSPECTOR_SCREEN_SECONDARY
+    hex "Secondary text (systemGray)"
+    default 0x8E8E93
+
+config ROBA_PROSPECTOR_SCREEN_GOOD
+    hex "Battery healthy (systemGreen)"
+    default 0x30D158
+
+config ROBA_PROSPECTOR_SCREEN_WARN
+    hex "Battery low (systemYellow)"
+    default 0xFFD60A
+
+config ROBA_PROSPECTOR_SCREEN_CRIT
+    hex "Battery critical (systemRed)"
+    default 0xFF453A
+
+config ROBA_PROSPECTOR_SCREEN_SIGNAL
+    hex "Signal ring (systemBlue)"
+    default 0x0A84FF
+
+config ROBA_PROSPECTOR_SCREEN_TRACK
+    hex "Ring track (systemGray5)"
+    default 0x2C2C2E
+
+config ROBA_PROSPECTOR_SCREEN_WARN_PCT
+    int "Battery percentage that turns the ring yellow"
+    default 20
+
+config ROBA_PROSPECTOR_SCREEN_CRIT_PCT
+    int "Battery percentage that turns the ring red"
+    default 10
+
+endif # ROBA_PROSPECTOR_SCREEN
+
+config ROBA_PROSPECTOR_I2C_PROBE
+    bool "Scan i2c1 and log every responder (diagnostic)"
+    depends on I2C
+    default n
+    help
+      Answers whether the Prospector's touch panel is reachable. The adapter
+      devicetree declares no touch controller, but the hardware ships a panel
+      that has a digitizer, so the question is purely whether the PCB routes
+      TP_SDA/TP_SCL to the i2c1 the light sensor already uses. A CST816S
+      answers at 0x15; if only 0x39 (the APDS9960) replies, touch is not wired
+      and input has to come from that sensor's gesture engine instead.
+      Needs a log backend -- build with roBakesb_prospector_probe.conf.
+
+if ROBA_PROSPECTOR_I2C_PROBE
+
+config ROBA_PROSPECTOR_I2C_PROBE_DELAY_MS
+    int "Delay before the first scan"
+    default 4000
+    help
+      Long enough for USB CDC to enumerate, so the first scan is not logged
+      into a console nobody has opened yet.
+
+config ROBA_PROSPECTOR_I2C_PROBE_PERIOD_MS
+    int "Period between repeat scans"
+    default 8000
+    help
+      The scan repeats so the result appears within one period of attaching the
+      console, rather than only once at boot.
+
+endif # ROBA_PROSPECTOR_I2C_PROBE
+
 config ROBA_VFX_RETRO_ESB_LINK
     bool "Feed ESB link stats into the vfx-retro status screen"
     depends on VFX_RETRO && ZMK_SPLIT_ESB && !ZMK_SPLIT_ROLE_CENTRAL

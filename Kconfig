@@ -251,6 +251,17 @@ config ROBA_PROSPECTOR_SCREEN_TRACK
     hex "Ring track (systemGray5)"
     default 0x2C2C2E
 
+config ROBA_PROSPECTOR_SCREEN_BARS_TRACK
+    hex "Unlit signal bar (systemGray3)"
+    default 0x48484A
+    help
+      Brighter than the ring track on purpose. Both started on systemGray5,
+      which a 12 px arc stroke carries happily and a 4 px bar does not -- the
+      unlit bars were so close to black that a link dropping from four bars to
+      two just looked like bars vanishing, with nothing left to say how far it
+      had fallen. systemGray3 keeps the ghost bars legible as the unfilled
+      remainder while staying well clear of the lit colour.
+
 config ROBA_PROSPECTOR_SCREEN_WARN_PCT
     int "Battery percentage that turns the ring yellow"
     default 20
@@ -258,6 +269,49 @@ config ROBA_PROSPECTOR_SCREEN_WARN_PCT
 config ROBA_PROSPECTOR_SCREEN_CRIT_PCT
     int "Battery percentage that turns the ring red"
     default 10
+
+# Gaming mode: a second widget tree on the same screen, shown while the gaming
+# base layer is held. Battery, OS and layer all come off -- you chose the layer
+# and the batteries were fine a minute ago, whereas the link is the one thing
+# that can still go wrong mid-match -- leaving three segmented RSSI meters.
+#
+# Its own palette rather than the iOS semantic one above. The ladder means the
+# same thing (healthy / marginal / bad) but systemGreen next to a row of HP
+# bars reads as a settings screen, and this is the one screen that is allowed
+# to look like a game.
+config ROBA_PROSPECTOR_GAMING_GOOD
+    hex "Gaming meter, healthy"
+    default 0x5BE000
+
+config ROBA_PROSPECTOR_GAMING_WARN
+    hex "Gaming meter, marginal"
+    default 0xFFC400
+
+config ROBA_PROSPECTOR_GAMING_CRIT
+    hex "Gaming meter, bad"
+    default 0xFF3B2F
+
+config ROBA_PROSPECTOR_GAMING_TRACK
+    hex "Gaming meter, unlit segment"
+    default 0x2C3A18
+    help
+      Dim olive rather than near-black, for the same reason the signal bars
+      have their own track: the unfilled remainder is what makes a part-filled
+      meter legible as a fraction instead of a bar of arbitrary length.
+
+config ROBA_PROSPECTOR_GAMING_RSSI_TOP
+    int "dBm that fills the gaming meter"
+    default -50
+
+config ROBA_PROSPECTOR_GAMING_RSSI_FLOOR
+    int "dBm that empties the gaming meter"
+    default -90
+    help
+      The meter interpolates between floor and top across its twelve segments,
+      so it resolves about 3.3 dB per segment -- far finer than the four-bar
+      antenna glyph on the base screen, which is the point of showing it this
+      way. Any live sample above the floor keeps at least one segment lit, so
+      a weak link never looks identical to a dead one.
 
 endif # ROBA_PROSPECTOR_SCREEN
 

@@ -86,7 +86,7 @@
      * buttons. One instance serves every listener (the module BUILD_ASSERTs
      * that), and it must sit last in each processor list: it relays what the
      * processors ahead of it produced, after any scaling or xy->scroll mapping.
-     * Motion sums between relay polls, so no counts are lost at 2 ms. */
+     * Motion sums between relay polls, so no counts are lost at 1 ms. */
     relay_pointer: relay_pointer {
         compatible = "zmk,input-processor-esb-relay-pointer";
         #input-processor-cells = <0>;

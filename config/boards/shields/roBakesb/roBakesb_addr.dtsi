@@ -42,9 +42,20 @@
         retransmit-delay-us = <600>;
         use-fast-ramp-up;
         bitrate-kbps = <2000>;
-        lossy-codes
-            = <INPUT_EV_REL INPUT_REL_X>
-            , <INPUT_EV_REL INPUT_REL_Y>;
+        /* Fully lossless uplink: lossy-codes omitted deliberately.
+         *
+         * This used to list <INPUT_EV_REL INPUT_REL_X> and INPUT_REL_Y, which
+         * sent pointer motion noack -- no retransmit, so a lost packet lost
+         * that delta outright. Mouse buttons and scroll were already ACK'd;
+         * motion was the last lossy axis, and now it is ACK'd too.
+         *
+         * Cost: every motion batch now requests an ACK and can burn up to
+         * retransmit-count=8 at 600us, so high-rate trackball traffic buys
+         * reliability with airtime and peripheral battery. Motion is
+         * self-correcting (a dropped delta is a small cursor jump), which is
+         * why it was lossy to begin with -- revert this hunk if the halves
+         * start backing up their TX FIFO under fast movement.
+         */
     };
 
     split_inputs {

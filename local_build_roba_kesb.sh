@@ -134,7 +134,18 @@ build_target() {
         echo "→ Incremental build (use --fresh to reconfigure)..."
     fi
 
-    cmake --build "$build_dir"
+    # Clear last run's images before building. Without this a failed link
+    # leaves the previous build's zmk.uf2 in place, and the copy below happily
+    # ships it -- a stale firmware that looks freshly built.
+    rm -f "$build_dir/zephyr/zmk.uf2" "$build_dir/zephyr/zmk.hex"
+
+    # Checked explicitly: set -e does not abort inside a function whose status
+    # is being tested, which is exactly how this is called, so a failing build
+    # would otherwise fall straight through to the copy and report success.
+    if ! cmake --build "$build_dir"; then
+        echo "✗ Build failed: $name"
+        return 1
+    fi
 
     local uf2="$build_dir/zephyr/zmk.uf2"
     if [[ -f "$uf2" ]]; then

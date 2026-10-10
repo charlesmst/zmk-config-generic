@@ -73,9 +73,15 @@ manifest:
     # v0.8.0 added the relay pointer processor plus the "central has its own
     # host" pause, v0.8.1 queues mouse button changes like key changes so a
     # click shorter than one relay poll still reaches the host.
+    #
+    # v0.8.2 stops the pointer from riding every idle ACK. esb_hid_relay_pointer_take
+    # now returns 0 unless there is motion or the keepalive marked a refresh due,
+    # so an idle poll's ACK is empty like a normal half's instead of carrying a
+    # 9-byte mouse report 1000 times a second. That is what makes POLL_MS=2 /
+    # KEEPALIVE_MS=4 a cheaper setting than 1/1 was rather than a slower one.
     - name: zmk-feature-split-esb
       remote: damex
-      revision: v0.8.1
+      revision: v0.8.2
       import: true
 
   self:

@@ -175,9 +175,11 @@
          * composes normally.
          *
          * Cost: a chord started within N ms of typing types the letter
-         * instead (e.g. text, then an instant Cmd+S -> a literal "s").
-         * 150 ms is roughly one keystroke at 100 wpm; lower it if deliberate
-         * chords start slipping through as letters.
+         * instead (e.g. text, then an instant Cmd+S -> a literal "s"). At
+         * 100 wpm a keystroke is roughly 120 ms, so 100 ms sits just inside
+         * one keystroke -- it still covers the lingering case, which is a
+         * key pressed in the flow of typing, while leaving deliberate chords
+         * a short reach away. Raise toward 150 if stray mods come back.
          */
         hm: homerow_mods {
             compatible = "zmk,behavior-hold-tap";
@@ -185,7 +187,7 @@
             #binding-cells = <2>;
             tapping-term-ms = <200>;
             quick-tap-ms = <0>;
-            require-prior-idle-ms = <150>;
+            require-prior-idle-ms = <100>;
             flavor = "tap-preferred";
             bindings = <&kp>, <&kp>;
         };
@@ -203,7 +205,7 @@
             #binding-cells = <2>;
             tapping-term-ms = <200>;
             quick-tap-ms = <0>;
-            require-prior-idle-ms = <150>;
+            require-prior-idle-ms = <100>;
             flavor = "tap-preferred";
             bindings = <&mo>, <&kp>;
         };
@@ -218,6 +220,12 @@
          * only a shift that lands on the heels of the preceding key -- the
          * lingering-thumb case -- and leaves a normal space-then-capital
          * (~120-150 ms apart at speed) working.
+         *
+         * This now carries the same 100 ms as hm, but the node stays split:
+         * the two numbers agree by coincidence, not for the same reason. hm
+         * is bounded by how soon a deliberate chord follows typing, hsp by
+         * how soon an intended capital follows a space -- a much tighter
+         * budget, and the one that will want to move first.
          *
          * Tuning: random capitals still slipping through -> raise toward
          * 150. Double spaces where a capital was meant -> lower, or drop the

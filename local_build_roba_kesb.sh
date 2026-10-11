@@ -24,8 +24,8 @@ fi
 
 # The split-esb checkout to build against. Override it to try a release without
 # moving the shared workspace checkout off whatever another tree is using, e.g.
-#   git -C "$WORKSPACE/zmk-feature-split-esb" worktree add ~/personal/split-esb-v082 v0.8.2
-#   ESB_MODULE=~/personal/split-esb-v082 ./local_build_roba_kesb.sh
+#   git -C "$WORKSPACE/zmk-feature-split-esb" worktree add ~/personal/split-esb-v086 v0.8.6
+#   ESB_MODULE=~/personal/split-esb-v086 ./local_build_roba_kesb.sh
 ESB_MODULE="${ESB_MODULE:-$WORKSPACE/zmk-feature-split-esb}"
 
 EXTRA_MODULES=(
@@ -136,7 +136,20 @@ build_target() {
         echo "→ Incremental build (use --fresh to reconfigure)..."
     fi
 
-    cmake --build "$build_dir"
+    # Clear last run's images before building. Without this a failed link
+    # leaves the previous build's zmk.uf2/zmk.hex in place, and the copy below
+    # happily ships it -- a stale firmware that looks freshly built. That
+    # matters more here than in the other tree: flash_holyiot.sh reads the
+    # staged .hex, so a silently stale image gets DFU'd onto the dongle.
+    rm -f "$build_dir/zephyr/zmk.uf2" "$build_dir/zephyr/zmk.hex"
+
+    # Checked explicitly: set -e does not abort inside a function whose status
+    # is being tested, which is exactly how this is called, so a failing build
+    # would otherwise fall straight through to the copy and report success.
+    if ! cmake --build "$build_dir"; then
+        echo "✗ Build failed: $name"
+        return 1
+    fi
 
     local uf2="$build_dir/zephyr/zmk.uf2"
     if [[ -f "$uf2" ]]; then

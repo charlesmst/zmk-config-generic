@@ -118,9 +118,52 @@ manifest:
     # peripheral path in connected_window(), so it changes hop sensitivity on
     # roBakesb_left/right/lariska as well as the dongle -- less trigger-happy on
     # a single bad packet. Radio behaviour, not something a build can confirm.
+    #
+    # v0.8.6 is two commits, and despite reading as a relay release it breaks
+    # the uplink wire as well. Flash every ESB node in the rig together:
+    # right_central, relay_holyiot, left and lariska. A mixed rig does not
+    # degrade, it misbehaves -- see below.
+    #
+    # e777386 sends the relay pointer's four int16 axes as running totals
+    # instead of per-poll deltas, and the dongle differences them back once its
+    # USB endpoint takes the report (pointer_totals_to_deltas in
+    # esb_hid_relay_peripheral.c). Same report id, same 10 bytes, opposite
+    # meaning, and nothing on the wire says which. A v0.8.6 central against a
+    # v0.8.5 dongle feeds absolute totals to the host as deltas; the reverse
+    # differences deltas that were never totals. Either way the cursor is
+    # unusable, so this pair is all-or-nothing.
+    #
+    # What it buys: a relay ACK the dongle misses no longer loses counts, the
+    # next one carries them, so a dropped ACK costs latency instead of motion.
+    # And while the pointer is moving every ACK now reserves room for the mouse
+    # report (esb_hid_relay_pointer_motion_pending + _stamp), so motion stops
+    # queueing behind key changes. This is the half that matters for the relay
+    # host feeling behind under a burst of typing plus movement.
+    #
+    # 03797a1 is the part that is not relay-only. Lossy relative axes now go
+    # out as cumulative values, and the keepalive carries the low 16 bits of
+    # each axis total so motion lost in a dropped noack packet heals on the next
+    # tick. That inserts a motion-total count byte into the keepalive between
+    # the held-key list and the sensor totals, which is a hard break in both
+    # directions: v0.8.6 peripheral into a v0.8.5 central fails the
+    # (length - totals_offset) % 8 check, and v0.8.5 peripheral into a v0.8.6
+    # central trips its new `length <= motion_count_offset` guard. Either way
+    # esb_keepalive_matches returns false and the central drops every keepalive
+    # it is sent -- so battery level, hop state, link cost and held-key
+    # reconciliation all go dark on a half left behind, with no log to say why
+    # (CONFIG_LOG=n on these builds). Hence: flash left and lariska too.
+    #
+    # The central applies a keepalive total only after a hop window with no
+    # motion from that peripheral, so a keepalive that arrives mid-movement
+    # cannot step the cursor backwards. Baseline resyncs past 8192 counts or
+    # peripheral-timeout-ms of silence.
+    #
+    # Note the per-peripheral limit: each lossy pair keeps one total per
+    # peripheral, so a second pointer device's lossy axes stay plain deltas.
+    # Only lariska carries one here, so that limit is not reached.
     - name: zmk-feature-split-esb
       remote: damex
-      revision: v0.8.5
+      revision: v0.8.6
       import: true
 
   self:

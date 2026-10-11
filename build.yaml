@@ -16,6 +16,21 @@ include:
     snippet: studio-rpc-usb-uart
     artifact-name: roBakesb_dongle_prospector
 
+  # --- HID relay topology ------------------------------------------------
+  # Right half is the ESB central and the wired USB keyboard; the holyiot
+  # dongle is a relay-role peripheral mirroring the keyboard, consumer and
+  # pointer reports onto a second host. roBakesb_left and roBakesb_lariska
+  # below are unchanged and serve both topologies.
+  - board: xiao_ble//zmk
+    shield: roBakesb_right_central
+    snippet: studio-rpc-usb-uart
+    artifact-name: roBakesb_right_central
+
+  - board: holyiot_dongle_1k
+    shield: roBakesb_relay
+    artifact-name: roBakesb_relay_holyiot
+  # -----------------------------------------------------------------------
+
   # Damex ESB dongle setup (nice!nano v2 as USB central)
   - board: nice_nano@2.0.0//zmk
     shield: roBakesb

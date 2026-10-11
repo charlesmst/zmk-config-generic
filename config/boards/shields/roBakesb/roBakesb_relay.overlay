@@ -1,0 +1,71 @@
+/*
+ * roBa KESB HID relay dongle (holyiot_dongle_1k).
+ *
+ * A relay-role ESB peripheral: it sends nothing upstream. It polls the central
+ * (the right half, roBakesb_right_central), receives the keyboard HID report
+ * that the central snoops off its own USB, and writes it to its own USB HID
+ * endpoint. That makes the dongle a second host connection for the same
+ * keyboard.
+ *
+ * No kscan hardware of its own, so it keeps the mock kscan the classic dongle
+ * build uses. The shared keymap still lands on this build as a devicetree
+ * overlay (ZMK resolves roBakesb.keymap for every roBakesb_* shield) but is
+ * unused: peripherals do not own keymap state.
+ */
+
+#include "roBa_matrix.dtsi"
+#include "roBakesb_addr.dtsi"
+#include "roBakesb_lariska_transform.dtsi"
+
+/ {
+    chosen {
+        zmk,kscan = &mock_kscan;
+        zmk,physical-layout = &roba_physical_layout;
+        zmk,esb-self = &esb_relay;
+    };
+
+    mock_kscan: mock_kscan_0 {
+        compatible = "zmk,kscan-mock";
+        columns = <0>;
+        rows = <0>;
+        events = <0>;
+    };
+
+    /* Placeholder encoders so the shared keymap's two sensor slots resolve.
+     * Both disabled: this device has no encoder of its own. */
+    left_encoder: encoder_left {
+        compatible = "alps,ec11";
+        a-gpios = <&xiao_d 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        b-gpios = <&xiao_d 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        steps = <12>;
+        status = "disabled";
+    };
+
+    lariska_encoder: lariska_encoder_ph {
+        compatible = "alps,ec11";
+        a-gpios = <&xiao_d 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        b-gpios = <&xiao_d 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        steps = <48>;
+        status = "disabled";
+    };
+
+    sensors: sensors {
+        compatible = "zmk,keymap-sensors";
+        sensors = <&left_encoder &lariska_encoder>;
+        left_enc_cfg: left_enc_cfg {
+            triggers-per-rotation = <3>;
+        };
+        lariska_enc_cfg: lariska_enc_cfg {
+            triggers-per-rotation = <24>;
+        };
+    };
+};
+
+&roba_physical_layout {
+    kscan = <&mock_kscan>;
+};
+
+/* Claim the relay pipe. role = "relay" is set in roBakesb_addr.dtsi. */
+&esb_relay {
+    status = "okay";
+};

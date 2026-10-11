@@ -45,6 +45,12 @@ EXTRA_MODULES=(
 
 EXTRA_MODULES_ARG=$(IFS=';'; echo "${EXTRA_MODULES[*]}")
 
+# Where built artifacts are staged for flashing from Windows. Override it to keep
+# one topology's images in their own folder instead of mixed into Downloads --
+# worth doing, because roBakesb_right.uf2 (dongle-central peripheral) and
+# roBakesb_right_central.uf2 (relay-topology central) are one careless click
+# apart and flashing the wrong one leaves the half with no USB stack at all:
+#   DOWNLOADS=/mnt/c/Users/charl/Downloads/roBakesb-relay ./local_build_roba_kesb.sh
 DOWNLOADS="${DOWNLOADS:-/mnt/c/Users/charl/Downloads}"
 
 # Where cmake build trees live. Override it when a build set must not share
@@ -165,6 +171,13 @@ build_target() {
         fi
         cp "$build_dir/zephyr/zmk.hex" "$OUTPUT_DIR/$name.hex"
         echo "✓ $OUTPUT_DIR/$name.hex"
+        # Stage the hex too. flash_holyiot.sh reads it from OUTPUT_DIR, but
+        # having it beside the uf2s keeps one DOWNLOADS folder as the whole
+        # picture of what a given build set produced.
+        if [[ -d "$DOWNLOADS" ]]; then
+            cp "$build_dir/zephyr/zmk.hex" "$DOWNLOADS/$name.hex"
+            echo "✓ $DOWNLOADS/$name.hex"
+        fi
     else
         echo "✗ No output at $build_dir/zephyr/"
         return 1

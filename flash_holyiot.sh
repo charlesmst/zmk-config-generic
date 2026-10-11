@@ -24,7 +24,10 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FIRMWARE_DIR="$REPO_DIR/firmware"
-DOWNLOADS="/mnt/c/Users/charl/Downloads"
+# Staging folder the DFU package is built in, overridable so one build set can
+# live in its own folder:
+#   DOWNLOADS=/mnt/c/Users/charl/Downloads/roBakesb-relay ./flash_holyiot.sh ...
+DOWNLOADS="${DOWNLOADS:-/mnt/c/Users/charl/Downloads}"
 
 ARTIFACT="${1:-charybdis_esb_dongle_holyiot}"
 COM_PORT="${2:-COM16}"

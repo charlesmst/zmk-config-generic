@@ -97,7 +97,30 @@ manifest:
       # v0.8.4 poll-tick move) and grades a hop window by its mean TX attempts
       # instead of its worst packet -- that last part applies to the halves too,
       # so hop sensitivity on left/right/lariska changes here.
-      revision: v0.8.5
+      #
+      # v0.8.6 is two commits. e777386 is relay-only (pointer axes as running
+      # totals) and inert in this topology, where the dongle is the central and
+      # nothing is relayed. 03797a1 is not: lossy relative axes go out as
+      # cumulative values and the keepalive carries the low 16 bits of each
+      # axis total, so motion lost in a dropped noack packet heals on the next
+      # tick instead of vanishing. That is lariska's trackball here.
+      #
+      # It breaks the uplink wire in both directions. The keepalive gains a
+      # motion-total count byte between the held-key list and the sensor
+      # totals, so a v0.8.5 peripheral trips the new
+      # `length <= motion_count_offset` guard on a v0.8.6 central, and a
+      # v0.8.6 peripheral fails the old (length - totals_offset) % 8 check on a
+      # v0.8.5 central. Either way esb_keepalive_matches returns false and the
+      # central drops every keepalive -- battery level, hop state, link cost
+      # and held-key reconciliation all go dark, silently, since these builds
+      # run CONFIG_LOG=n. So the dongle and all three peripherals get flashed
+      # together.
+      #
+      # The longer keepalive also overflows one 48-byte payload on lariska,
+      # which is why every roBakesb conf here moves to 56; the arithmetic is in
+      # roBakesb_lariska.conf and the packet-time consequence is in
+      # roBakesb_addr.dtsi.
+      revision: v0.8.6
       import: true
 
   self:

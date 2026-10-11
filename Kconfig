@@ -213,9 +213,14 @@ config ROBA_PROSPECTOR_SCREEN_RAW_FOOTER
       transport reports battery unknown, which distinguishes "no value on the
       wire" from "this screen is mishandling a value it was given".
 
+# --- macOS theme ---------------------------------------------------------
+#
 # iOS dark-mode system colours. The battery ring is semantic -- green, then
 # yellow at 20%, then red at 10%, the same ladder the iOS Batteries widget
 # uses -- so the accent is not a brand colour to be picked freely.
+#
+# These names are unprefixed for history's sake: they were the only palette
+# before the screen learned to theme per OS. They are the macOS set.
 config ROBA_PROSPECTOR_SCREEN_BG
     hex "Background"
     default 0x000000
@@ -261,6 +266,57 @@ config ROBA_PROSPECTOR_SCREEN_BARS_TRACK
       two just looked like bars vanishing, with nothing left to say how far it
       had fallen. systemGray3 keeps the ghost bars legible as the unfilled
       remainder while staying well clear of the lit colour.
+
+# --- Windows theme: Teal & Silver ----------------------------------------
+#
+# Windows 95/98's desktop teal and a true neutral silver -- the two colours
+# anyone who used a beige PC remembers first. Picked over the more literal
+# options (Fluent, the brand's four squares) because the thing that actually
+# separates two themes on this screen is the *neutrals*, not the accent: the
+# secondary grey paints the subtitle and both footer lines, and the ring track
+# paints three full rings, which between them cover more pixels than every
+# semantic colour combined. Apple's systemGray is faintly warm; a true silver
+# sits in direct opposition to it, and no blue appears anywhere.
+#
+# The background stays true black in both themes, so switching OS never
+# repaints the whole panel and the bezel edge stays invisible.
+config ROBA_PROSPECTOR_WIN_PRIMARY
+    hex "Windows: primary text"
+    default 0xE8E8E8
+
+config ROBA_PROSPECTOR_WIN_SECONDARY
+    hex "Windows: secondary text (silver)"
+    default 0xA8A8A8
+
+config ROBA_PROSPECTOR_WIN_GOOD
+    hex "Windows: battery healthy"
+    default 0x3CB054
+    help
+      Warmer than the period-correct 0x00A850. That green and the teal signal
+      colour are both cyan-greens roughly 25 degrees of hue apart, and the
+      signal bars sit directly beneath the ring they would be confused with.
+      Nudging healthy toward true green opens the gap. Set it back to 0x00A850
+      for the authentic pairing if the two read clearly on the panel.
+
+config ROBA_PROSPECTOR_WIN_WARN
+    hex "Windows: battery low"
+    default 0xE0C000
+
+config ROBA_PROSPECTOR_WIN_CRIT
+    hex "Windows: battery critical"
+    default 0xD04030
+
+config ROBA_PROSPECTOR_WIN_SIGNAL
+    hex "Windows: signal bars (teal)"
+    default 0x00B3B3
+
+config ROBA_PROSPECTOR_WIN_TRACK
+    hex "Windows: ring track"
+    default 0x2A2A2A
+
+config ROBA_PROSPECTOR_WIN_BARS_TRACK
+    hex "Windows: unlit signal bar"
+    default 0x4E4E4E
 
 config ROBA_PROSPECTOR_SCREEN_WARN_PCT
     int "Battery percentage that turns the ring yellow"

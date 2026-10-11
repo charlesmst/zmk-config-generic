@@ -586,7 +586,7 @@
             bindings = <
  &kp Q                &kp W                &kp E                &kp R                &kp T                &kp Y                &kp U                &kp I                &kp O                &kp P
  &lm TILIN A          &hm LCTRL S          &hm LALT D           &hm LGUI F           &kp G                &kp LG(LS(N4))       &deskhop_gaming      &kp H                &hm LGUI J           &hm RALT K           &hm RCTRL L          &lm TILIN SEMI
- &kp Z                &kp X                &kp C                &kp V                &kp B                KEY_AFTER_B          &deskhop_normal      &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH
+ &kp Z                &kp X                &kp C                &kp V                &kp B                KEY_AFTER_B          &deskhop_normal      &kp N                &kp M                &kp COMMA            &kp DOT              &kp FSLH
  &flush_mods          &trans               &kp LC(UP)           &mo MOUSE            &mo NUMBE            &hsp LSHFT SPACE     &hk RSHFT RET        &mo SYMBO            &kp LC(CAPS)
  LARISKA_BTNS_MAC
             >;
@@ -612,7 +612,7 @@
             bindings = <
  &kp TAB              &kp Q                &kp W                &kp E                &kp R                &kp Y                &kp U                &kp I                &kp O                &kp P
  &kp LCTRL            &kp A                &kp S                &kp D                &kp F                &kp PSCRN            &trans               &kp H                &hm LGUI J           &hm RALT K           &kp L                &lm TILIN SEMI
- &kp LSHFT            &kp Z                &kp X                &kp C                &kp V                &none                &trans               &kp N                &kp M                &kp COMMA            &hm RALT DOT         &hm RCTRL FSLH
+ &kp LSHFT            &kp Z                &kp X                &kp C                &kp V                &none                &trans               &kp N                &kp M                &kp COMMA            &kp DOT              &kp FSLH
  &flush_mods          &tog GAMIN           &kp J                &kp R                &mo LOGAM            &kp SPACE            &to WINDO            &mo SYMBO            &kp LC(CAPS)
  LARISKA_BTNS
             >;

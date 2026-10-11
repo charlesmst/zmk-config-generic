@@ -566,15 +566,12 @@
             key-positions = <31 32 33 34>;
             bindings = <&tog MOUSE>;
         };
-        /* On the Windows layer, X+C+V together toggle the gaming layer
-         * (mirrors the charybdis combo). Restricted to WINDO so it never
-         * fires while typing on Mac/default. */
-        combo_gaming {
-            timeout-ms = <50>;
-            key-positions = <23 24 25>;
-            layers = <WINDO GAMIN>;
-            bindings = <&tog GAMIN>;
-        };
+        /* No X+C+V gaming combo here. It was reachable from letter keys on
+         * two layers with nothing but a 50 ms window guarding it, and the
+         * layer it was least safe on was the one it was meant to serve --
+         * positions 23/24/25 are X+C+V on WINDO but Z+X+C on GAMIN, because
+         * the gaming row starts one key earlier with LSHFT at 22. &tog GAMIN
+         * has dedicated keys on both layers, so the combo bought nothing. */
     };
 
     keymap {

@@ -120,7 +120,18 @@ manifest:
       # which is why every roBakesb conf here moves to 56; the arithmetic is in
       # roBakesb_lariska.conf and the packet-time consequence is in
       # roBakesb_addr.dtsi.
-      revision: v0.8.6
+      #
+      # v0.8.7 is two commits, both about the relay's USB sink: b031cd6 adds a
+      # drain mock to the test rig, 2f46d1e "skip motion when relay usb is
+      # actually busy".
+      #
+      # That is the path worth naming here. In v0.8.6 the dongle's
+      # deliver_pointer returned early without committing pointer_tracks
+      # whenever the HID write failed, so the totals stayed un-baselined and the
+      # next report carried the accumulated motion -- lossless by design, but it
+      # lands as one larger delta instead of several small ones, which is what
+      # bunched motion feels like.
+      revision: v0.8.7
       import: true
 
   self:

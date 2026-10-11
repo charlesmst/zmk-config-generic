@@ -27,6 +27,17 @@
  *
  * The dongle itself gets no ring -- it runs off USB and has no battery.
  *
+ * The palette follows the machine. macOS wears the iOS system colours above;
+ * Windows wears Windows 95's desktop teal over a true neutral silver, and no
+ * blue anywhere. Colour is the only thing that changes -- same geometry, same
+ * faces, same widgets in the same places -- because on this screen the
+ * neutrals are what actually carry a theme: the secondary grey paints the
+ * subtitle and both footer lines and the track paints three whole rings, which
+ * between them cover more pixels than every semantic colour combined. Apple's
+ * systemGray is faintly warm, and a true silver sits straight across from it.
+ * Both themes keep the black ground, so changing machine never repaints the
+ * panel and the bezel edge stays invisible.
+ *
  * Gaming mode is a second tree on the same screen, shown while the gaming base
  * layer is active and hidden otherwise. It drops the battery rings, the OS and
  * the layer line and shows nothing but signal: three segmented meters, twelve
@@ -73,12 +84,26 @@ LV_FONT_DECLARE(periph_icons);
  * under one of the four stock layouts and we are PROSPECTOR_STATUS_SCREEN_NONE,
  * so declare what we use; the sources compile unconditionally either way.
  *
- * FG_Medium_21, not the 20 or 26 cut: those two stop at U+0060, so they have
- * no lowercase at all and can only set ALL CAPS. Title Case is a large part of
- * why an iOS widget reads the way it does, so the face with lowercase wins
- * even though it is a pixel taller than ideal.
+ * Two of the bundled faces are traps, and the name line was caught by one.
+ *
+ * FG_Medium_20 and FG_Medium_26 stop at U+0060 and have no lowercase slots at
+ * all, which is obvious the moment you try them.
+ *
+ * The whole FR_* family is worse, because it looks fine: the cmap covers
+ * U+0020..U+007E, so every lowercase codepoint has a glyph and nothing renders
+ * as a missing box -- but those glyphs are the *uppercase* bitmaps. In
+ * FR_Regular_36 the entries for 'i', 'n', 'o' and 's' are byte-identical to
+ * 'I', 'N', 'O' and 'S', every box is 26 px tall, and every advance is 389.
+ * So the name label was set to "Windows" and the panel drew WINDOWS, with no
+ * error anywhere to say why.
+ *
+ * Symbols_Semibold_32 is the replacement: real lowercase (x-height 17 against
+ * a cap height of 21, where the FR faces have no split at all), 33 px per line
+ * against FR_Regular_36's 40, and "Windows" sets 137 px wide where the all-caps
+ * version took 170. Title Case is most of why an iOS widget reads the way it
+ * does, and it is the one thing this screen could not previously do.
  */
-LV_FONT_DECLARE(FR_Regular_36);
+LV_FONT_DECLARE(Symbols_Semibold_32);
 LV_FONT_DECLARE(FG_Medium_21);
 /* Gaming mode sets everything in this one face. A condensed DIN is the voice
  * of a readout rather than of a widget, which is the whole difference between
@@ -140,46 +165,42 @@ static const struct base_identity bases[4] = {
 #define SCREEN_W 280
 #define SCREEN_H 240
 
-/* The vertical rhythm. The first cut was laid out against nominal point sizes
- * rather than the faces' actual line_height, and those do not agree: FG_Medium
- * _21 is 25 px tall and FR_Regular_36 is 40, not 36. Two things followed from
- * that, both of them visible on the panel:
+/* The vertical rhythm, laid out against the faces' actual line_height rather
+ * than their nominal point size -- the two do not agree, and an earlier cut
+ * that assumed they did had the name box overlapping the subtitle by 2 px and
+ * the subtitle overlapping the ring row by another 3.
  *
- *   - name at y8 ran to y48, and the subtitle started at y46. They overlapped
- *     by 2 px.
- *   - the subtitle ran to y71, and the ring row started at y68. Overlapped by
- *     another 3.
- *
- * So the header was not merely crowding the rings, it was sitting on top of
- * them, while 30 px of nothing sat between the bars and the footer. Laid out
- * on real box heights the slack comes to 48 px, spread as below. The one gap
+ * Re-measured for Symbols_Semibold_32 at 33 px per line, which is 7 shorter
+ * than the FR_Regular_36 it replaced, so the slack comes to 55 px. The one gap
  * kept tight is ring-to-bars: those two describe the same device and have to
  * read as one object, which only works while the gap inside the group stays
  * clearly smaller than the gaps either side of it.
  *
- *    6  top margin
- *    .  name, 40
+ *   10  top margin
+ *    .  name, 33
  *    .  subtitle, 25            (abuts the name; the faces' ink does not)
- *   13  header -> rings
+ *   15  header -> rings
  *    .  ring, 76
  *    5  ring -> its own bars    <- tightest gap on the screen, deliberately
  *    .  bars, 26
- *   15  bars -> footer
+ *   16  bars -> footer
  *    .  footer, 25
  *    9  bottom margin
  */
 #define LOGO_X 14
-#define LOGO_Y 12
+/* The logo glyph is 44 tall against a 58 px header block, and is centred on
+ * the block rather than on the name alone -- it is the mark for both lines. */
+#define LOGO_Y 16
 #define NAME_X 66
-#define NAME_Y 6
-#define SUB_Y  46
+#define NAME_Y 10
+#define SUB_Y  43
 
 /* 76, not 80: at 80 the row spans 276 of 280 px and clears the bezel by two
  * pixels a side, which looks like a crop rather than a margin. Four pixels off
  * the diameter buys 6 px of air at each end and is not visible in the ring. */
 #define RING_SIZE 76
 #define RING_GAP  20
-#define RING_Y    84
+#define RING_Y    83
 /* Roughly a sixth of the diameter, which is the proportion Apple's rings use.
  * Thinner reads as a progress bar bent into a circle. */
 #define RING_W    12
@@ -246,15 +267,68 @@ static inline int game_seg_x(uint8_t seg) {
 
 /* ---- colours ----------------------------------------------------------- */
 
-#define COL_BG        lv_color_hex(CONFIG_ROBA_PROSPECTOR_SCREEN_BG)
-#define COL_PRIMARY   lv_color_hex(CONFIG_ROBA_PROSPECTOR_SCREEN_PRIMARY)
-#define COL_SECONDARY lv_color_hex(CONFIG_ROBA_PROSPECTOR_SCREEN_SECONDARY)
-#define COL_GOOD      lv_color_hex(CONFIG_ROBA_PROSPECTOR_SCREEN_GOOD)
-#define COL_WARN      lv_color_hex(CONFIG_ROBA_PROSPECTOR_SCREEN_WARN)
-#define COL_CRIT      lv_color_hex(CONFIG_ROBA_PROSPECTOR_SCREEN_CRIT)
-#define COL_SIGNAL    lv_color_hex(CONFIG_ROBA_PROSPECTOR_SCREEN_SIGNAL)
-#define COL_TRACK     lv_color_hex(CONFIG_ROBA_PROSPECTOR_SCREEN_TRACK)
-#define COL_BARS_TRACK lv_color_hex(CONFIG_ROBA_PROSPECTOR_SCREEN_BARS_TRACK)
+#define COL_BG lv_color_hex(CONFIG_ROBA_PROSPECTOR_SCREEN_BG)
+
+/*
+ * Per-OS palette. Both themes keep the true-black ground, so switching between
+ * them never repaints the full panel and the bezel edge stays invisible --
+ * only the eight foreground values below move.
+ *
+ * Stored as uint32_t rather than lv_color_t because lv_color_hex() is a
+ * function in LVGL 9 and cannot appear in a static initialiser.
+ */
+struct os_theme {
+    uint32_t primary;
+    uint32_t secondary;
+    uint32_t good;
+    uint32_t warn;
+    uint32_t crit;
+    uint32_t signal;
+    uint32_t track;
+    uint32_t bars_track;
+};
+
+#define THEME_MAC 0
+#define THEME_WIN 1
+
+static const struct os_theme themes[2] = {
+    [THEME_MAC] =
+        {
+            .primary = CONFIG_ROBA_PROSPECTOR_SCREEN_PRIMARY,
+            .secondary = CONFIG_ROBA_PROSPECTOR_SCREEN_SECONDARY,
+            .good = CONFIG_ROBA_PROSPECTOR_SCREEN_GOOD,
+            .warn = CONFIG_ROBA_PROSPECTOR_SCREEN_WARN,
+            .crit = CONFIG_ROBA_PROSPECTOR_SCREEN_CRIT,
+            .signal = CONFIG_ROBA_PROSPECTOR_SCREEN_SIGNAL,
+            .track = CONFIG_ROBA_PROSPECTOR_SCREEN_TRACK,
+            .bars_track = CONFIG_ROBA_PROSPECTOR_SCREEN_BARS_TRACK,
+        },
+    [THEME_WIN] =
+        {
+            .primary = CONFIG_ROBA_PROSPECTOR_WIN_PRIMARY,
+            .secondary = CONFIG_ROBA_PROSPECTOR_WIN_SECONDARY,
+            .good = CONFIG_ROBA_PROSPECTOR_WIN_GOOD,
+            .warn = CONFIG_ROBA_PROSPECTOR_WIN_WARN,
+            .crit = CONFIG_ROBA_PROSPECTOR_WIN_CRIT,
+            .signal = CONFIG_ROBA_PROSPECTOR_WIN_SIGNAL,
+            .track = CONFIG_ROBA_PROSPECTOR_WIN_TRACK,
+            .bars_track = CONFIG_ROBA_PROSPECTOR_WIN_BARS_TRACK,
+        },
+};
+
+/* Which palette the base widgets are currently wearing. */
+static uint8_t applied_theme = THEME_MAC;
+
+#define TH (&themes[applied_theme])
+
+#define COL_PRIMARY    lv_color_hex(TH->primary)
+#define COL_SECONDARY  lv_color_hex(TH->secondary)
+#define COL_GOOD       lv_color_hex(TH->good)
+#define COL_WARN       lv_color_hex(TH->warn)
+#define COL_CRIT       lv_color_hex(TH->crit)
+#define COL_SIGNAL     lv_color_hex(TH->signal)
+#define COL_TRACK      lv_color_hex(TH->track)
+#define COL_BARS_TRACK lv_color_hex(TH->bars_track)
 
 #define COL_GAME_GOOD  lv_color_hex(CONFIG_ROBA_PROSPECTOR_GAMING_GOOD)
 #define COL_GAME_WARN  lv_color_hex(CONFIG_ROBA_PROSPECTOR_GAMING_WARN)
@@ -275,6 +349,7 @@ struct screen_state {
     uint8_t channel;
     bool searching;
     bool gaming; /* gaming base layer held -- swap to the meters */
+    uint8_t theme; /* THEME_MAC / THEME_WIN */
     const char *sub; /* momentary layer name, NULL when none */
 };
 
@@ -497,8 +572,32 @@ static enum link_health link_health(const struct screen_state *s) {
 static const char *const health_text[] = {"Connected", "Peripheral lost", "Searching"};
 static const char *const game_health_text[] = {"LINK STABLE", "PERIPHERAL LOST", "SEARCHING"};
 
+/* Most colours are re-stated by redraw_base() every pass anyway, but a handful
+ * are written once at build time and never touched again: the ring tracks, the
+ * bar tracks, and the two labels whose colour never depends on state. Those are
+ * the ones a theme switch has to go back for.
+ *
+ * Only on the edge -- roughly a dozen style writes when you change machine,
+ * nothing per frame. */
+static void apply_theme(uint8_t theme) {
+    if (theme == applied_theme || name_label == NULL) {
+        return;
+    }
+    applied_theme = theme;
+
+    lv_obj_set_style_text_color(name_label, COL_PRIMARY, LV_PART_MAIN);
+    lv_obj_set_style_text_color(chan_label, COL_SECONDARY, LV_PART_MAIN);
+
+    for (uint8_t i = 0; i < SLOT_COUNT; i++) {
+        lv_obj_set_style_arc_color(ring_bat[i], COL_TRACK, LV_PART_MAIN);
+        lv_obj_set_style_text_color(bars_track[i], COL_BARS_TRACK, LV_PART_MAIN);
+    }
+}
+
 static void redraw_base(const struct screen_state *sp) {
     const struct screen_state s = *sp;
+
+    apply_theme(s.theme);
 
     set_text(logo_label, bases[s.base].logo);
     set_text(name_label, bases[s.base].name);
@@ -672,6 +771,12 @@ static void poll_fn(struct k_work *work) {
      * battery rings back for as long as it is held. */
     state.gaming = zmk_keymap_layer_active(LAYER_GAMING);
 
+    /* Keyed off the Windows layer, not off current_base(), for the same reason
+     * gaming is: holding the mouse layer on a Windows machine should recolour
+     * nothing. The palette follows which machine you are driving, which the
+     * momentary layers on top of it do not change. */
+    state.theme = zmk_keymap_layer_active(LAYER_WINDOWS) ? THEME_WIN : THEME_MAC;
+
     for (uint8_t i = 0; i < SLOT_COUNT; i++) {
         uint8_t battery = zmk_split_esb_peer_battery(i);
         int8_t rssi = zmk_split_esb_peer_rssi_dbm(i);
@@ -795,7 +900,7 @@ static lv_obj_t *make_segment(lv_obj_t *parent, int16_t x, int16_t y) {
 static void build_base(lv_obj_t *root) {
     /* --- which machine --- */
     logo_label = make_label(root, &os_logos, COL_PRIMARY, LOGO_X, LOGO_Y, LOGO_APPLE);
-    name_label = make_label(root, &FR_Regular_36, COL_PRIMARY, NAME_X, NAME_Y, "macOS");
+    name_label = make_label(root, &Symbols_Semibold_32, COL_PRIMARY, NAME_X, NAME_Y, "macOS");
     sub_label = make_label(root, &FG_Medium_21, COL_SECONDARY, NAME_X, SUB_Y, "Base layer");
 
     /* --- a ring per device --- */

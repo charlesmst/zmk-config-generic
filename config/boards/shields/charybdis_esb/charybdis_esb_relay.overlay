@@ -1,0 +1,63 @@
+/*
+ * Charybdis HID relay dongle (holyiot_dongle_1k).
+ *
+ * A relay-role ESB peripheral: it sends nothing upstream. It polls the central
+ * (the right half, charybdis_esb_right_central), receives the keyboard, consumer
+ * and pointer HID reports that the central mirrors onto the relay pipe, and
+ * writes them to its own USB HID endpoint. That makes the dongle a second host
+ * connection for the same keyboard.
+ *
+ * No kscan hardware of its own, so it keeps the mock kscan the dongle-central
+ * build uses. The shared keymap still lands on this build as a devicetree
+ * overlay (ZMK resolves charybdis_esb.keymap for every charybdis_esb* shield)
+ * but is unused: peripherals do not own keymap state.
+ *
+ * No OLED either; unlike charybdis_esb.overlay this one does not touch i2c0.
+ */
+
+#include "charybdis_matrix.dtsi"
+#include "charybdis_esb_addr.dtsi"
+#include "charybdis_esb_lariska_transform.dtsi"
+
+/ {
+    chosen {
+        zmk,kscan = &mock_kscan;
+        zmk,physical-layout = &charybdis_physical_layout;
+        zmk,esb-self = &esb_relay;
+    };
+
+    mock_kscan: mock_kscan_0 {
+        compatible = "zmk,kscan-mock";
+        columns = <0>;
+        rows = <0>;
+        events = <0>;
+    };
+
+    /* Placeholder for the lariska QDEC encoder so the keymap's single
+     * sensor-binding (&lariska_scroll, index 0) resolves. Disabled: this device
+     * has no encoder of its own. */
+    lariska_encoder: lariska_encoder_ph {
+        compatible = "alps,ec11";
+        a-gpios = <&gpio0 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        b-gpios = <&gpio0 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        steps = <48>;
+        status = "disabled";
+    };
+
+    sensors: sensors {
+        compatible = "zmk,keymap-sensors";
+        sensors = <&lariska_encoder>;
+        lariska_enc_cfg: lariska_enc_cfg {
+            triggers-per-rotation = <24>;
+        };
+    };
+};
+
+&charybdis_physical_layout {
+    kscan = <&mock_kscan>;
+};
+
+/* Claim the relay pipe. role = "relay" is set in charybdis_esb_addr.dtsi. */
+&esb_relay {
+    status = "okay";
+};

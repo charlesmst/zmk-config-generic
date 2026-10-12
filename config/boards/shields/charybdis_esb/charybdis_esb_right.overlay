@@ -39,10 +39,6 @@
     kscan = <&kscan0>;
 };
 
-&esb_link {
-    retransmit-delay-us = <870>;
-};
-
 /* Orientation: rotate the raw trackball vector by a true angle (5deg steps)
  * before acceleration. Tune rotation-angle on hardware. If the cursor is
  * mirrored (handedness wrong) rather than just rotated, add a single
@@ -61,4 +57,16 @@
 
 &sigmoid_accel {
     cpi = <2600>;
+};
+
+/* Every node must enable the same set of ESB pipes, relay included. The central
+ * sizes its beacon (hop epoch, channel mask, HID state) as 4 + 2 bytes per
+ * enabled pipe, and a peripheral recognizes a beacon only at the length its own
+ * devicetree computes. With the relay pipe left disabled here this node expects
+ * a 10-byte beacon while the right-central sends 12, so it dropped every beacon
+ * ("Dropping command with unexpected size 12") and could not adopt the central's
+ * hop epoch. The pipe is only used by the relay dongle; enabling it here just
+ * keeps the peer table the same size everywhere. */
+&esb_relay {
+    status = "okay";
 };

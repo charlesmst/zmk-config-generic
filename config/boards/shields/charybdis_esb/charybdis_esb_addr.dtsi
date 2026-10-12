@@ -37,10 +37,23 @@
                 prefix = <0xC2>;
                 weight = <1>;
             };
+
+            /* HID relay dongle. Only used by the right-central topology
+             * (charybdis_esb_right_central + charybdis_esb_relay), so it stays
+             * disabled here and each of those two overlays sets it okay. A
+             * disabled child is skipped by DT_FOREACH_CHILD_STATUS_OKAY, so
+             * the dongle-central builds keep the same three-pipe link. */
+            esb_relay: peripheral_relay {
+                pipe = <3>;
+                prefix = <0xC1>;
+                weight = <1>;
+                role = "relay";
+                status = "disabled";
+            };
         };
 
         tx-power-dbm = <8>;
-        retransmit-count = <8>;
+        retransmit-count = <4>;
         retransmit-delay-us = <600>;
         use-fast-ramp-up;
         bitrate-kbps = <2000>;

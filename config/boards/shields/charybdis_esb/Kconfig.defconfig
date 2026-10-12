@@ -37,3 +37,23 @@ config ZMK_SPLIT
     default y
 
 endif # SHIELD_CHARYBDIS_ESB_LARISKA
+
+if SHIELD_CHARYBDIS_ESB_RIGHT_CENTRAL
+
+config ZMK_KEYBOARD_NAME
+    default "Charybdis ESB"
+
+config ZMK_SPLIT
+    default y
+
+endif # SHIELD_CHARYBDIS_ESB_RIGHT_CENTRAL
+
+if SHIELD_CHARYBDIS_ESB_RELAY
+
+config ZMK_KEYBOARD_NAME
+    default "Charybdis ESB Relay"
+
+config ZMK_SPLIT
+    default y
+
+endif # SHIELD_CHARYBDIS_ESB_RELAY

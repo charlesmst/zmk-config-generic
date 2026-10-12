@@ -131,7 +131,52 @@ manifest:
       # next report carried the accumulated motion -- lossless by design, but it
       # lands as one larger delta instead of several small ones, which is what
       # bunched motion feels like.
-      revision: v0.8.7
+      #
+      # v0.8.7 -> v0.8.9 is mostly test rig and refactor (mock harness, pipe
+      # role lookup tables, ternaries unrolled). Three commits touch behaviour,
+      # all of them about telling a failed transmit apart from an unacked one:
+      #
+      #   5b423da (v0.8.8) grades a hop window on its acked transmits only --
+      #     a fire-and-forget send raises TX_SUCCESS on the first attempt
+      #     whether or not anyone heard it, so counting it flattered the window.
+      #   a97cb28 (v0.8.8) stops one failure inside a tick from marking the link
+      #     down when a later packet got through: hop_note_tx_failed now clears
+      #     tx_succeeded_since_tick, and settle_link_state keeps the link up on
+      #     a success it can prove was acked.
+      #   e989fd4 (v0.8.9) has the central stage a pipe's ACK reply only for a
+      #     packet that asked for an ACK. The ACK FIFO is shared across pipes,
+      #     and a noack packet consumes no slot, so a reply written for one
+      #     could sit there and squeeze the pipes that do ack.
+      #
+      # Two of the three were inert when this landed and are not any more.
+      # At the time nothing in the rig sent fire-and-forget -- the uplink was
+      # fully lossless, so event_wants_ack was always true, and the keepalive
+      # and the relay poll both go out with noack = 0. No hop window had a
+      # noack packet to exclude, and pipes_acked always equalled the old
+      # pipes_seen. roBakesb_addr.dtsi has since put lossy-codes back on
+      # REL_X/REL_Y as a relay diagnostic, so both commits now do real work on
+      # the halves' motion traffic. That was part of the reason to try it.
+      #
+      # a97cb28's link-state half was never inert, and it is the reason to take
+      # this release. The relay dongle polls at 2 ms, and at the 0.2-0.6%
+      # baseline loss measured on v0.8.7 a failure lands in roughly every other
+      # 32 ms hop window. Under v0.8.7 any such failure dropped link_acked for
+      # that window regardless of the ~15 polls around it that were acked, and
+      # link_acked is what esb_link_role_retry_failed_tx consults before
+      # retrying a failed TX -- a down link gives up and waits for the next
+      # tick. That is the shape of the bursts in the v0.8.7 capture: 190-284
+      # consecutive poll failures over 1-2 s, recurring every 3-80 s, with the
+      # inter-packet spacing collapsing from 100-900 ms to 4-9 ms.
+      #
+      # The three commits alone would have needed only the relay and the
+      # central: the wire is unchanged in both directions and left/lariska see
+      # no behaviour change from them. Restoring lossy-codes does change the
+      # wire, though -- PERIPHERAL_MOTION_TOTALS_MAX goes from 0 to 2, so the
+      # keepalive grows a motion-totals section and esb_keepalive_matches on a
+      # peripheral still built without it rejects the central's view of the
+      # link. So every node gets flashed together: left, lariska, the relay and
+      # the central.
+      revision: v0.8.9
       import: true
 
   self:

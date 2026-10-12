@@ -9,3 +9,13 @@ config SHIELD_CHARYBDIS_ESB_RIGHT
 
 config SHIELD_CHARYBDIS_ESB_LARISKA
     def_bool $(shields_list_contains,charybdis_esb_lariska)
+
+# Relay topology: the right half is the ESB central and the wired USB keyboard,
+# and the dongle is a relay-role peripheral mirroring the keyboard, consumer and
+# pointer reports onto a second host. Both shields are additions -- the
+# dongle-central topology above is untouched.
+config SHIELD_CHARYBDIS_ESB_RIGHT_CENTRAL
+    def_bool $(shields_list_contains,charybdis_esb_right_central)
+
+config SHIELD_CHARYBDIS_ESB_RELAY
+    def_bool $(shields_list_contains,charybdis_esb_relay)

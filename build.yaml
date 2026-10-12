@@ -86,6 +86,21 @@ include:
     snippet: zmk-usb-logging studio-rpc-usb-uart
     artifact-name: charybdis_esb_dongle_holyiot
 
+  # --- Charybdis HID relay topology ---------------------------------------
+  # Right half is the ESB central and the wired USB keyboard; the holyiot
+  # dongle is a relay-role peripheral mirroring the keyboard, consumer and
+  # pointer reports onto a second host. charybdis_esb_left and
+  # charybdis_esb_lariska below serve both topologies.
+  - board: nice_nano@2.0.0//zmk
+    shield: charybdis_esb_right_central
+    snippet: studio-rpc-usb-uart
+    artifact-name: charybdis_esb_right_central
+
+  - board: holyiot_dongle_1k
+    shield: charybdis_esb_relay
+    artifact-name: charybdis_esb_relay_holyiot
+  # -----------------------------------------------------------------------
+
   - board: nice_nano@2.0.0//zmk
     shield: charybdis_esb_left
     snippet: zmk-usb-logging

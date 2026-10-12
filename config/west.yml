@@ -176,7 +176,11 @@ manifest:
       # node built the other way rejects it, silently, since the halves run
       # CONFIG_LOG=n. Every flip of that property means reflashing all four:
       # left, lariska, the relay and the central.
-      revision: v0.8.9
+      # v0.8.11 on top of that: v0.8.10/v0.8.11 only add per-second link
+      # counters, compiled in at ZMK_SPLIT_ESB_LOG_LEVEL_DBG and absent
+      # otherwise (the normal images come out the same size). The Charybdis
+      # relay topology was brought up and measured on v0.8.11.
+      revision: v0.8.11
       import: true
 
   self:

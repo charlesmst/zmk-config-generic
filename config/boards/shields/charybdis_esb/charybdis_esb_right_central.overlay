@@ -1,0 +1,192 @@
+/*
+ * Charybdis right half acting as the ESB central.
+ *
+ * Topology (see charybdis_esb_relay.overlay for the other new half):
+ *   right (this)  -> ESB central, owns the keymap, USB HID to host A
+ *   left          -> charybdis_esb_left, ESB peripheral pipe 0
+ *   lariska mouse -> charybdis_esb_lariska, ESB peripheral pipe 2
+ *   holyiot dongle-> charybdis_esb_relay, ESB relay peripheral pipe 3, USB HID to host B
+ *
+ * Differences from the charybdis_esb_right peripheral build:
+ *   - esb_right is role = "self" (central's own pipe slot, not a source id)
+ *     and there is no chosen zmk,esb-self.
+ *   - The PMW3610 trackball is a local input device, so it binds straight to
+ *     trackball_listener instead of riding trackball_split over the radio. The
+ *     sensor_rotation + sigmoid_accel chain that ran on the peripheral before
+ *     transmission now runs here, ahead of the layer overrides.
+ *   - Sensor slot, the lariska pointer listener and the stepped-scroll
+ *     listeners move here from charybdis_esb.overlay, because this is now the
+ *     side that owns the keymap and drives HID.
+ *   - No OLED: the display lives on the dongle, and the trackball's SPI0 shares
+ *     peripheral instance 0 with i2c0 on this half.
+ */
+
+#include "charybdis_matrix.dtsi"
+#include "charybdis_esb_addr.dtsi"
+#include "charybdis_esb_lariska_transform.dtsi"
+#include "charybdis_trackball.dtsi"
+#include <behaviors/input_processor_sigmoid_accel.dtsi>
+#include <input/processors/sensor_rotation.dtsi>
+#include <input/processors.dtsi>
+#include <dt-bindings/zmk/input_transform.h>
+
+/ {
+    chosen {
+        zmk,kscan = &kscan0;
+        zmk,physical-layout = &charybdis_physical_layout;
+    };
+
+    kscan0: kscan {
+        compatible = "zmk,kscan-gpio-matrix";
+        wakeup-source;
+        diode-direction = "row2col";
+        row-gpios
+            = <&pro_micro 18 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 5 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 4 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 9 GPIO_ACTIVE_HIGH>
+            ;
+        col-gpios
+            = <&pro_micro 20 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&pro_micro 10 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&pro_micro 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&pro_micro 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&pro_micro 8 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            ;
+    };
+
+    /* Placeholder for the lariska QDEC encoder so the keymap's single
+     * sensor-binding (&lariska_scroll, index 0) resolves on the central.
+     * Real events arrive from the lariska peripheral over ESB. Disabled, so the
+     * pins are never claimed. */
+    lariska_encoder: lariska_encoder_ph {
+        compatible = "alps,ec11";
+        a-gpios = <&gpio0 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        b-gpios = <&gpio0 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        steps = <48>;
+        status = "disabled";
+    };
+
+    sensors: sensors {
+        compatible = "zmk,keymap-sensors";
+        sensors = <&lariska_encoder>;
+        lariska_enc_cfg: lariska_enc_cfg {
+            triggers-per-rotation = <24>;
+        };
+    };
+
+    /* Tees every pointer event this half sends to its own HID onto the relay
+     * pipes as well, so the dongle's host sees the same motion, scroll and
+     * buttons. One instance serves every listener (the module BUILD_ASSERTs
+     * that), and it must sit last in each processor list: it relays what the
+     * processors ahead of it produced, after any scaling or xy->scroll mapping.
+     * Motion sums between relay polls, so no counts are lost at 1 ms. */
+    relay_pointer: relay_pointer {
+        compatible = "zmk,input-processor-esb-relay-pointer";
+        #input-processor-cells = <0>;
+    };
+
+    /* Lariska pointer, delivered over ESB through mouse_split. */
+    mouse_input_listener: mouse_input_listener {
+        compatible = "zmk,input-listener";
+        status = "okay";
+        device = <&mouse_split>;
+        input-processors = <&relay_pointer>;
+    };
+
+    /* Routes stepped_scroll events (one REL_WHEEL tick per detent) to HID. */
+    stepped_scroll_il: stepped_scroll_il {
+        compatible = "zmk,input-listener";
+        device = <&stepped_scroll>;
+        input-processors = <&relay_pointer>;
+    };
+
+    /* Routes stepped_hscroll (REL_HWHEEL) events to HID. */
+    stepped_hscroll_il: stepped_hscroll_il {
+        compatible = "zmk,input-listener";
+        device = <&stepped_hscroll>;
+        input-processors = <&relay_pointer>;
+    };
+};
+
+/* ZMK's own mouse-key listeners (&mkp, &mmv, &msc) feed HID through the input
+ * pipeline too, so they need the relay tap as well or mouse keys and clicks
+ * move only this half's pointer. Every mouse button in the keymap is &mkp, so
+ * mkp_input_listener carries all the clicks.
+ *
+ * Written as root nodes rather than &label overrides because behaviors.dtsi is
+ * included by the keymap, which the build applies *after* this overlay -- the
+ * labels do not exist yet here, but nodes merge by path, so these three carry
+ * only the extra property and pick up compatible/device from behaviors.dtsi. */
+/ {
+    mkp_input_listener {
+        input-processors = <&relay_pointer>;
+    };
+
+    mmv_input_listener {
+        input-processors = <&relay_pointer>;
+    };
+
+    msc_input_listener {
+        input-processors = <&relay_pointer>;
+    };
+};
+
+/* This half's matrix occupies global columns 5-9. */
+&default_transform {
+    col-offset = <5>;
+};
+
+&charybdis_physical_layout {
+    kscan = <&kscan0>;
+};
+
+/* Central's own pipe slot: skipped from source-id enumeration. */
+&esb_right {
+    role = "self";
+};
+
+/* Bring the HID relay dongle's pipe into the link. */
+&esb_relay {
+    status = "okay";
+};
+
+/* Lariska pointer arrives over the radio. */
+&mouse_split {
+    status = "okay";
+};
+
+/* Orientation: rotate the raw trackball vector by a true angle (5deg steps)
+ * before acceleration, exactly as charybdis_esb_right did before transmission. */
+&sensor_rotation {
+    /* Ball is mounted ~15deg off (moving up drifts right); -15 compensates.
+     * Module normalizes negatives (-15 -> 345). 5deg steps. */
+    rotation-angle = <(-15)>;
+};
+
+&sigmoid_accel {
+    cpi = <2600>;
+};
+
+/* The trackball is local now, so trackball_split stays disabled and the
+ * listener binds the device directly. sensor_rotation and sigmoid_accel used to
+ * run on the right *peripheral* (on trackball_split) before transmission, which
+ * put them ahead of the dongle's layer overrides. A layer override replaces the
+ * base processor list rather than extending it, so to keep the identical
+ * pipeline (rotate, accelerate, then scale/map) both are repeated as the first
+ * entries of each override. */
+&trackball_listener {
+    status = "okay";
+    device = <&trackball>;
+    input-processors = <&sensor_rotation>, <&sigmoid_accel>, <&relay_pointer>;
+
+    scroll {
+        layers = <10>;
+        input-processors = <&sensor_rotation>, <&sigmoid_accel>, <&zip_xy_scaler 1 10>, <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>, <&zip_xy_to_scroll_mapper>, <&relay_pointer>;
+    };
+
+    snipe {
+        layers = <11>;
+        input-processors = <&sensor_rotation>, <&sigmoid_accel>, <&zip_xy_scaler 1 3>, <&relay_pointer>;
+    };
+};

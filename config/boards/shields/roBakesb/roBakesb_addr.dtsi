@@ -55,45 +55,59 @@
         retransmit-delay-us = <600>;
         use-fast-ramp-up;
         bitrate-kbps = <2000>;
-        /* Pointer motion goes out noack -- fire-and-forget, no retransmit, so
-         * a lost packet loses that delta outright. Mouse buttons and scroll
-         * stay ACK'd; only the two relative axes are lossy.
+        /* Fully lossless uplink: lossy-codes omitted deliberately. Every
+         * motion batch requests an ACK, so a lost packet is retransmitted
+         * instead of losing that delta outright. Mouse buttons and scroll
+         * were always ACK'd; motion is the axis that has gone back and forth.
          *
-         * This is back on as a diagnostic, not as a preference. Lossless
-         * motion is the better default here -- a dropped delta is lost
-         * cursor travel, and v0.8.6's running totals heal it on the next tick
-         * only for axes that are actually declared lossy, which is what this
-         * line does. What it buys right now is that it takes motion out of
-         * the retransmit budget entirely: a motion batch can no longer burn
-         * up to retransmit-count=8 at 600us, so if the relay's remaining
-         * failures and the pointer stutter are a TX-FIFO backlog under fast
-         * movement, they should change shape or go away. If they do not, the
-         * uplink is not where the problem is.
+         * It was briefly restored to <INPUT_EV_REL INPUT_REL_X> and
+         * INPUT_REL_Y (594f142) as a probe, once split-esb v0.8.9 had taken
+         * the relay link from 1-3 failures/s with 190-284-failure bursts down
+         * to ~0.06/s with none. The question it was asking: whether what
+         * remained was a TX FIFO backlog under fast movement, since lossy
+         * motion takes a motion batch out of the retransmit budget entirely
+         * (no burning retransmit-count=8 at 600us). Lossless is the better
+         * default -- a dropped delta is lost cursor travel -- so it goes back
+         * now that the relay link itself is healthy.
          *
-         * It also turns the two v0.8.8/v0.8.9 commits that were inert in this
-         * rig into live code, which is the other half of the reason to try
-         * it. Nothing here sent fire-and-forget before, so no hop window had
-         * a noack packet to exclude from its grade (5b423da) and the
-         * central's pipes_acked always equalled the old pipes_seen (e989fd4).
-         * Both now do real work on the halves' motion traffic.
+         * The probe did not come back clean, though, and the number is the
+         * reason this decision is still open. Measured at the host through
+         * the relay, 2 ms poll, v0.8.9 on every node:
          *
-         * Payload consequence, and it is the one roBakesb_lariska.conf and
-         * west.yml both warned about: declaring lossy axes makes
-         * PERIPHERAL_MOTION_TOTALS_MAX non-zero, so the v0.8.6 keepalive
-         * carries 4 bytes per lossy axis (ESB_KEEPALIVE_MOTION_BYTES) on top
-         * of the count byte -- 8 for the two here. Lariska, the tightest node,
-         * goes from 45 to 53 bytes.
-         * That still fits the rig-wide 56, but it no longer fits 48 -- the
-         * 56 is now load-bearing rather than headroom, and dropping it back
-         * would fail the keepalive BUILD_ASSERT. Those comments are updated
-         * to say so.
+         *   lossy     ~320 Hz at the pointer, ~0.06 relay TX failures/s
+         *   lossless  ~190 Hz at the pointer, ~0.14 relay TX failures/s
          *
-         * Revert this hunk (and the comments that reference it) to go back to
-         * a fully lossless uplink.
+         * Both are an order of magnitude under the 1-3/s v0.8.7 baseline and
+         * neither shows the bursts, so this is no longer about the stutter --
+         * that was a97cb28. It is a straight trade of ~130 Hz of pointer rate
+         * for motion that cannot be dropped. Lossless wins on correctness and
+         * is what is set here; if the rate turns out to matter more in use,
+         * the lossy hunk is one property and a four-node reflash away.
+         *
+         * What this costs, and it is worth knowing before reaching for lossy
+         * again: with no lossy axes declared, PERIPHERAL_MOTION_TOTALS_MAX is
+         * 0, so v0.8.6's running totals have nothing to heal. That feature
+         * only applies to axes declared here. Lossless does not need it --
+         * nothing is dropped to heal -- but it does mean high-rate trackball
+         * traffic buys its reliability with airtime and peripheral battery.
+         *
+         * It also makes two v0.8.8/v0.8.9 commits inert again: no hop window
+         * has a noack packet to exclude from its grade (5b423da) and the
+         * central's pipes_acked always equals the old pipes_seen (e989fd4).
+         * Nothing here sends fire-and-forget -- event_wants_ack is always
+         * true, and the keepalive and relay poll both go out with noack = 0.
+         *
+         * Payload consequence: lariska's keepalive loses the count byte and
+         * 4 bytes per lossy axis (ESB_KEEPALIVE_MOTION_BYTES), going 53 ->
+         * 45. So 56 is headroom again rather than load-bearing, and 48 would
+         * build -- but the rig stays at 56 so that restoring lossy-codes is a
+         * one-hunk change and not a payload migration. Arithmetic in
+         * roBakesb_lariska.conf.
+         *
+         * To go lossy again: put the lossy-codes property back (it is in
+         * 594f142, and charybdis_esb_addr.dtsi still carries the exact
+         * syntax), and reflash every node -- the keepalive layout changes.
          */
-        lossy-codes
-            = <INPUT_EV_REL INPUT_REL_X>
-            , <INPUT_EV_REL INPUT_REL_Y>;
     };
 
     split_inputs {

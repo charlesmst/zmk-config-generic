@@ -148,14 +148,14 @@ manifest:
       #     and a noack packet consumes no slot, so a reply written for one
       #     could sit there and squeeze the pipes that do ack.
       #
-      # Two of the three were inert when this landed and are not any more.
-      # At the time nothing in the rig sent fire-and-forget -- the uplink was
-      # fully lossless, so event_wants_ack was always true, and the keepalive
-      # and the relay poll both go out with noack = 0. No hop window had a
-      # noack packet to exclude, and pipes_acked always equalled the old
-      # pipes_seen. roBakesb_addr.dtsi has since put lossy-codes back on
-      # REL_X/REL_Y as a relay diagnostic, so both commits now do real work on
-      # the halves' motion traffic. That was part of the reason to try it.
+      # Two of the three are inert in this rig. Nothing here sends
+      # fire-and-forget: the uplink is lossless, so event_wants_ack is always
+      # true, and the keepalive and the relay poll both go out with
+      # noack = 0. So no hop window ever has a noack packet to exclude, and
+      # pipes_acked always equals the old pipes_seen. They were briefly live
+      # while lossy-codes was restored as a relay probe (594f142); that is
+      # reverted, so they are back to doing nothing here. Worth remembering
+      # before reading a future lossy experiment as a pure v0.8.9 result.
       #
       # a97cb28's link-state half was never inert, and it is the reason to take
       # this release. The relay dongle polls at 2 ms, and at the 0.2-0.6%
@@ -168,14 +168,14 @@ manifest:
       # consecutive poll failures over 1-2 s, recurring every 3-80 s, with the
       # inter-packet spacing collapsing from 100-900 ms to 4-9 ms.
       #
-      # The three commits alone would have needed only the relay and the
-      # central: the wire is unchanged in both directions and left/lariska see
-      # no behaviour change from them. Restoring lossy-codes does change the
-      # wire, though -- PERIPHERAL_MOTION_TOTALS_MAX goes from 0 to 2, so the
-      # keepalive grows a motion-totals section and esb_keepalive_matches on a
-      # peripheral still built without it rejects the central's view of the
-      # link. So every node gets flashed together: left, lariska, the relay and
-      # the central.
+      # The three commits alone need only the relay and the central: the wire
+      # is unchanged in both directions and left/lariska see no behaviour
+      # change from them. Toggling lossy-codes does change the wire --
+      # PERIPHERAL_MOTION_TOTALS_MAX moves between 0 and 2, so the keepalive
+      # gains or loses a motion-totals section and esb_keepalive_matches on a
+      # node built the other way rejects it, silently, since the halves run
+      # CONFIG_LOG=n. Every flip of that property means reflashing all four:
+      # left, lariska, the relay and the central.
       revision: v0.8.9
       import: true
 

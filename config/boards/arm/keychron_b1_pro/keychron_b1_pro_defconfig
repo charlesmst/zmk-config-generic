@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: MIT
+
+CONFIG_ARM_MPU=y
+CONFIG_HW_STACK_PROTECTION=n
+
+CONFIG_GPIO=y
+CONFIG_PINCTRL=y
+
+CONFIG_USE_DT_CODE_PARTITION=y
+CONFIG_MPU_ALLOW_FLASH_WRITE=y
+CONFIG_FLASH=y
+CONFIG_FLASH_PAGE_LAYOUT=y
+CONFIG_FLASH_MAP=y
+CONFIG_NVS=y
+CONFIG_SETTINGS=y
+CONFIG_SETTINGS_NVS=y
+
+# The Adafruit UF2 bootloader at 0xf4000 is what loads this image.
+CONFIG_BUILD_OUTPUT_UF2=y
+CONFIG_BUILD_OUTPUT_HEX=y
+
+# P0.18 is the chip's RESET pin and the matrix uses it as column 16. Without
+# this the pin stays a reset line and the last column of keys never reads.
+CONFIG_GPIO_AS_PINRESET=n
+
+# P0.00 / P0.01 (XL1/XL2) are matrix columns 0 and 1, so the 32 kHz clock has
+# to come from the internal RC instead of a crystal.
+CONFIG_CLOCK_CONTROL_NRF=y
+CONFIG_CLOCK_CONTROL_NRF_K32SRC_RC=y
+CONFIG_CLOCK_CONTROL_NRF_K32SRC_XTAL=n

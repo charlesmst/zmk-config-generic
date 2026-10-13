@@ -67,3 +67,13 @@ config ZMK_SPLIT
     default y
 
 endif # SHIELD_ROBAKESB_RELAY
+
+if SHIELD_ROBAKESB_KEYCHRON
+
+config ZMK_KEYBOARD_NAME
+    default "roBa KESB Keychron"
+
+config ZMK_SPLIT
+    default y
+
+endif # SHIELD_ROBAKESB_KEYCHRON

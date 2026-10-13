@@ -68,6 +68,45 @@ include:
     shield: roBakesb_lariska
     artifact-name: roBakesb_lariska
 
+  # --- Keychron B1 Pro as a fourth key peripheral --------------------------
+  # Dongle-central topology only (pipe 3 is also the relay's). The Keychron
+  # adds a peripheral to the ESB link, which changes the beacon every node
+  # parses, so the whole link is rebuilt with the roBakesb_keychron_link add-on
+  # and reflashed together: the Prospector dongle, left, right, lariska, and
+  # the keyboard. Mixing a _keychron image with a plain one on the same link
+  # leaves the plain one without the hop epoch. The plain targets above are
+  # unchanged and still make the three-peripheral link.
+  - board: keychron_b1_pro
+    shield: roBakesb_keychron
+    artifact-name: roBakesb_keychron_b1_pro
+
+  # RAM: the Keychron's 77 extra positions make every one of the 15 layers 77
+  # bindings longer, and ZMK keeps a RAM copy of the keymap for Studio -- 15 x
+  # 77 x 16 B = 18.5 KB. The Prospector's two LVGL draw buffers (2 x 67 KB) leave
+  # less than that: the first build overflowed RAM by 918 bytes. The behaviors
+  # queue is the one allocation here that is oversized -- 512 entries (14 KB) for
+  # a keymap whose largest macro is 8 bindings -- so this target halves it,
+  # which leaves ~6 KB spare. Only this target: the peripherals' queue is the
+  # default 64 and must not be raised to 256 by a shared conf.
+  - board: xiao_ble//zmk
+    shield: roBakesb_prospector prospector_adapter roBakesb_keychron_link
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_BEHAVIORS_QUEUE_SIZE=256
+    artifact-name: roBakesb_dongle_prospector_keychron
+
+  - board: xiao_ble//zmk
+    shield: roBakesb_left roBakesb_keychron_link
+    artifact-name: roBakesb_left_keychron
+
+  - board: xiao_ble//zmk
+    shield: roBakesb_right roBakesb_keychron_link
+    artifact-name: roBakesb_right_keychron
+
+  - board: nice_nano@2.0.0//zmk
+    shield: roBakesb_lariska roBakesb_keychron_link
+    artifact-name: roBakesb_lariska_keychron
+  # -----------------------------------------------------------------------
+
   # Charybdis ESB dongle setup (nice!nano v2 as USB central, OLED display)
   - board: nice_nano@2.0.0//zmk
     shield: charybdis_esb

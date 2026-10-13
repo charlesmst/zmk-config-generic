@@ -26,3 +26,12 @@ config SHIELD_ROBAKESB_RIGHT_CENTRAL
 
 config SHIELD_ROBAKESB_RELAY
     def_bool $(shields_list_contains,roBakesb_relay)
+
+# Keychron B1 Pro as a fourth ESB peripheral. roBakesb_keychron is the keyboard
+# itself (board keychron_b1_pro); roBakesb_keychron_link is the add-on every
+# other node on the link carries so they all agree on the peripheral set.
+config SHIELD_ROBAKESB_KEYCHRON
+    def_bool $(shields_list_contains,roBakesb_keychron)
+
+config SHIELD_ROBAKESB_KEYCHRON_LINK
+    def_bool $(shields_list_contains,roBakesb_keychron_link)

@@ -1,0 +1,22 @@
+/*
+ * Add-on: put the Keychron B1 Pro on this node's ESB link.
+ *
+ * Not a device. Append it after the node's own shield, e.g.
+ *
+ *   roBakesb_prospector prospector_adapter roBakesb_keychron_link   (dongle)
+ *   roBakesb_left roBakesb_keychron_link                            (and right,
+ *   roBakesb_lariska roBakesb_keychron_link                          lariska)
+ *
+ * Every node on the link has to be built this way, or none: it enables the
+ * Keychron's pipe, which changes the length of the beacon each node parses (see
+ * esb_keychron in roBakesb_addr.dtsi). A node left out stops adopting the hop
+ * epoch. The Keychron itself is roBakesb_keychron and already includes this.
+ *
+ * On the dongle it is also what extends the keymap: it adds the Keychron's 77
+ * positions to the shared matrix and defines ROBA_KEYCHRON, which makes
+ * roBakesb.keymap bind them. Without this shield the dongle keymap is exactly
+ * what it was. The base shield must come first, since this only patches the
+ * nodes it defines.
+ */
+
+#include "roBakesb_keychron_transform.dtsi"

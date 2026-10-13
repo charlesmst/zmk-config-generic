@@ -1,0 +1,6 @@
+board:
+  name: keychron_b1_pro
+  full_name: Keychron B1 Pro
+  vendor: keychron
+  socs:
+  - name: nrf52840

@@ -9,6 +9,9 @@
 #include <dt-bindings/zmk/pointing.h>
 #include <behaviors/mouse_keys.dtsi>
 
+/* Keychron B1 Pro bindings, empty unless it is on the ESB link. */
+#include "roBakesb_keychron.h"
+
 #define MO_TOG(layer) &mo_tog layer layer
 
 #define DEFAU 0
@@ -608,6 +611,7 @@
  &kp Z                &kp X                &kp C                &kp V                &kp B                KEY_AFTER_B          &deskhop_normal      &kp N                &kp M                &kp COMMA            &kp DOT              &kp FSLH
  &flush_mods          &trans               &kp LC(UP)           &mo MOUSE            &mo NUMBE            &hsp LSHFT SPACE     &hk RSHFT RET        &mo SYMBO            &kp LC(CAPS)
  LARISKA_BTNS_MAC
+ KEYCHRON_MAC
             >;
             sensor-bindings = <&mouse_wheel &lariska_scroll>;
         };
@@ -621,6 +625,7 @@
  &kp Z                &kp X                &kp C                &kp V                &kp B                &tog GAMIN           &deskhop_normal      &kp N                &kp M                &kp COMMA            &kp DOT              &kp FSLH
  &flush_mods          &trans               &kp LG(DOT)          &mo MOUSE        &mo NUMBE            &hsp LSHFT SPACE     &hk RSHFT RET        &mo SYMBO                &kp LC(CAPS)
  LARISKA_BTNS_WIN
+ KEYCHRON_WIN
             >;
             sensor-bindings = <&mouse_wheel &lariska_scroll>;
         };
@@ -634,6 +639,7 @@
  &kp LSHFT            &kp Z                &kp X                &kp C                &kp V                &none                &trans               &kp N                &kp M                &kp COMMA            &kp DOT              &kp FSLH
  &flush_mods          &tog GAMIN           &kp J                &kp R                &mo LOGAM            &kp SPACE            &to WINDO            &mo SYMBO            &kp LC(CAPS)
  LARISKA_BTNS
+ KEYCHRON_GAME
             >;
             sensor-bindings = <&rot_kp PG_UP PG_DN &lariska_scroll>;
         };
@@ -647,6 +653,7 @@
  &mo SNIPE            &mo SCROL            &mkp MB2            &mkp MB1            &mkp MB3            &mo GAMIN            &trans               &kp HOME             &kp PG_DN            &kp PG_UP            &kp END              &kp DEL
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
  LARISKA_BTNS
+ KEYCHRON_TRANS
             >;
             sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN &lariska_scroll>;
         };
@@ -660,6 +667,7 @@
  &kp GRAVE            &kp TILDE            &kp LBKT             &kp RBKT             &trans               &trans               &trans               &trans               &kp SQT              &kp LT               &kp GT               &kp QMARK
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
  LARISKA_BTNS
+ KEYCHRON_TRANS
             >;
             sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN &lariska_scroll>;
         };
@@ -673,6 +681,7 @@
  &trans               &kp M                &kp N5               &kp T                &kp B                &tog GAMIN           &trans               &kp HOME             &kp PG_DN            &kp PG_UP            &kp END              &kp DEL
  &trans               &trans               &trans               &mo GAMFN            &trans               &trans               &trans               &trans               &autoclk MB1
  LARISKA_BTNS
+ KEYCHRON_TRANS
             >;
             sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN &lariska_scroll>;
         };
@@ -686,6 +695,7 @@
  &bt_macro_0          &bt_macro_1          &bt_macro_2          &bt_macro_3          &bt_macro_4          &out OUT_USB         &out OUT_BLE         &to GAMIN            &to DEFAU            &to WINDO            &bt BT_CLR           &kp C_MUTE
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
  LARISKA_BTNS
+ KEYCHRON_SYSTEM
             >;
         };
 
@@ -698,6 +708,7 @@
  &mo SNIPE            MO_TOG(SCROL)        &mkp MB2            &mkp MB1            &mkp MB3            &trans               &trans               &mkp MB3            &mkp MB1            &mkp MB2            MO_TOG(SCROL)        &mo SNIPE
  &trans               &trans               &trans               &dmouse              &trans               &trans               &dmouse              &mkp MB1            &trans
  LARISKA_BTNS
+ KEYCHRON_TRANS
             >;
             /* Keyboard encoder stays mouse-wheel; Lariska encoder = volume so
              * volume is reachable from the trackball without the roBa encoder. */
@@ -713,6 +724,7 @@
  &swapmac_rev                   &kp LS(LC(F4))                 &swapmac                       &trans                         &trans                         &trans  &trans     &trans                         &trans                         &trans                         &trans                         &trans
  &trans                         &trans                         &trans                         &trans                         &trans                         &kp LG(SPACE)        &trans                         &trans                         &trans
  LARISKA_BTNS_TILIN
+ KEYCHRON_TRANS
             >;
             sensor-bindings = <&rot_kp LC(LEFT) LC(RIGHT) &lariska_ws>;
         };
@@ -726,6 +738,7 @@
  &kp LA(LS(D))        &swap_rev            &kp LA(LS(D))               &trans                      &trans                       &trans  &trans    &trans       &trans      &trans                      &trans                      &trans
  &trans               &trans               &trans               &trans                      &trans                         &kp LGUI     &trans                         &trans                         &trans
  LARISKA_BTNS_TILWI
+ KEYCHRON_TRANS
             >;
             sensor-bindings = <&alt_tab_encoder_inv &alt_tab_encoder>;
         };
@@ -739,6 +752,7 @@
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
  LARISKA_BTNS
+ KEYCHRON_TRANS
             >;
         };
 
@@ -751,6 +765,7 @@
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
  LARISKA_BTNS
+ KEYCHRON_TRANS
             >;
         };
 
@@ -763,6 +778,7 @@
  &kp F11              &kp F12              &kp Y                &kp H                &kp N                &trans               &trans               &trans               &trans               &trans               &trans               &trans
  &sk_forever LCTRL    &kp EQUAL            &trans               &trans               &trans               &trans               &trans               &trans               &trans
  LARISKA_BTNS
+ KEYCHRON_TRANS
             >;
             /* Lariska encoder = volume on the gaming fn layer. */
             sensor-bindings = <&rot_kp PG_UP PG_DN &rot_kp C_VOL_DN C_VOL_UP>;
@@ -777,6 +793,7 @@
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
  LARISKA_BTNS_HSC
+ KEYCHRON_TRANS
             >;
             sensor-bindings = <&mouse_wheel &lariska_scroll_4x>;
         };
@@ -790,6 +807,7 @@
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
  &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans               &trans
  LARISKA_BTNS_HSCRL
+ KEYCHRON_TRANS
             >;
             sensor-bindings = <&mouse_wheel &lariska_hscroll>;
         };

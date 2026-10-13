@@ -1,0 +1,3 @@
+config BOARD_KEYCHRON_B1_PRO
+    bool "keychron_b1_pro"
+    depends on SOC_SERIES_NRF52

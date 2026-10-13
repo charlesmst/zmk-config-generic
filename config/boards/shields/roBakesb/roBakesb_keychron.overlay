@@ -1,0 +1,76 @@
+/*
+ * Keychron B1 Pro as a fourth ESB peripheral (pipe 3) of the roBakesb system.
+ *
+ * Board: keychron_b1_pro (config/boards/arm/keychron_b1_pro). The board is what
+ * is soldered down; this shield is the key matrix and the ESB identity, the
+ * same split as the other peripherals.
+ *
+ * The key matrix is Keychron's: 8 rows x 18 columns, col2row, rows are the
+ * inputs. Pins are copied from their ZMK fork (Keychron/zmk keychron_bpro,
+ * app/boards/arm/keychron/keychron.dts, kscan0) rather than probed, so they are
+ * as good as that tree is for the hardware revision it was written against.
+ * The debounce figures are theirs too.
+ *
+ * Positions come from roBakesb_keychron_transform.dtsi, which also turns the
+ * pipe on. row-offset = 4 moves this matrix's row 0 onto shared row 4, clear of
+ * the roBa halves and lariska in rows 0-3.
+ */
+
+#include "roBa_matrix.dtsi"
+#include "roBakesb_addr.dtsi"
+#include "roBakesb_keychron_transform.dtsi"
+
+/ {
+    chosen {
+        zmk,kscan = &keychron_kscan;
+        zmk,physical-layout = &roba_physical_layout;
+        zmk,esb-self = &esb_keychron;
+    };
+
+    keychron_kscan: kscan {
+        compatible = "zmk,kscan-gpio-matrix";
+        wakeup-source;
+        diode-direction = "col2row";
+        debounce-scan-period-ms = <4>;
+        debounce-press-ms = <8>;
+        debounce-release-ms = <8>;
+        row-gpios
+            = <&gpio1 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&gpio1 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&gpio1 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&gpio1 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&gpio1 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&gpio1 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&gpio1 10 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&gpio1 12 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            ;
+        col-gpios
+            = <&gpio0 0 GPIO_ACTIVE_HIGH>
+            , <&gpio0 1 GPIO_ACTIVE_HIGH>
+            , <&gpio0 26 GPIO_ACTIVE_HIGH>
+            , <&gpio0 27 GPIO_ACTIVE_HIGH>
+            , <&gpio0 4 GPIO_ACTIVE_HIGH>
+            , <&gpio0 5 GPIO_ACTIVE_HIGH>
+            , <&gpio0 6 GPIO_ACTIVE_HIGH>
+            , <&gpio0 7 GPIO_ACTIVE_HIGH>
+            , <&gpio0 8 GPIO_ACTIVE_HIGH>
+            , <&gpio0 11 GPIO_ACTIVE_HIGH>
+            , <&gpio0 12 GPIO_ACTIVE_HIGH>
+            , <&gpio0 13 GPIO_ACTIVE_HIGH>
+            , <&gpio0 14 GPIO_ACTIVE_HIGH>
+            , <&gpio0 15 GPIO_ACTIVE_HIGH>
+            , <&gpio0 16 GPIO_ACTIVE_HIGH>
+            , <&gpio0 17 GPIO_ACTIVE_HIGH>
+            , <&gpio0 18 GPIO_ACTIVE_HIGH>
+            , <&gpio0 20 GPIO_ACTIVE_HIGH>
+            ;
+    };
+};
+
+&default_transform {
+    row-offset = <ROBA_KEYCHRON_ROW_OFFSET>;
+};
+
+&roba_physical_layout {
+    kscan = <&keychron_kscan>;
+};

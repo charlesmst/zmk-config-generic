@@ -48,6 +48,27 @@
                 role = "relay";
                 status = "disabled";
             };
+
+            /* Keychron B1 Pro (roBakesb_keychron). A fourth ordinary key
+             * peripheral on the dongle-central link, so it stays disabled
+             * here and roBakesb_keychron_transform.dtsi sets it okay. Every
+             * node on the link has to agree on this: the beacon is 4 bytes
+             * plus 2 per *enabled* peripheral, and a node that parses a
+             * different length drops it, and the hop epoch with it. So the
+             * dongle, left, right, lariska and the Keychron are all built with
+             * the pipe on (the roBakesb_keychron_link shield), or none are.
+             *
+             * Pipe 3, not 4: hop_stage_beacon refuses any pipe at or above the
+             * enabled-peripheral count, so enabled pipes have to be contiguous
+             * from 0. That is also the relay's pipe, so this and the relay
+             * topology are mutually exclusive until one of them is moved. The
+             * prefix is its own, so the addresses themselves never collide. */
+            esb_keychron: peripheral_keychron {
+                pipe = <3>;
+                prefix = <0xE3>;
+                weight = <1>;
+                status = "disabled";
+            };
         };
 
         tx-power-dbm = <8>;

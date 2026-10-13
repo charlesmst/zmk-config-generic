@@ -1,0 +1,12 @@
+identifier: keychron_b1_pro
+name: keychron_b1_pro
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+supported:
+  - adc
+  - watchdog
+features:
+  - keys

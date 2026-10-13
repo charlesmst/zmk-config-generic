@@ -1,0 +1,110 @@
+/*
+ * Keychron B1 Pro (ANSI/ISO/JIS share the board): nRF52840 QIAA.
+ *
+ * Pin map, flash layout and battery divider are taken from Keychron's own
+ * ZMK fork (github.com/Keychron/zmk, branch keychron_bpro,
+ * app/boards/arm/keychron/keychron.dts), which is what the retail firmware is
+ * built from. The key matrix lives in the roBakesb_keychron shield, not here,
+ * so the board is only what is soldered down: MCU, flash, battery, LEDs.
+ *
+ * Left out on purpose, because nothing in this rig drives them: the two
+ * CKLED2001 I2C LED drivers (P0.26/P0.27 -- also matrix columns 2 and 3 here),
+ * the Num/Caps/2.4G indicator LEDs, the mac/win, BT and 2.4G slide switches
+ * (P0.24, P1.08, P1.09) and the charge status pins (P0.21, P0.22).
+ */
+
+/dts-v1/;
+#include <nordic/nrf52840_qiaa.dtsi>
+
+/ {
+	model = "Keychron B1 Pro";
+	compatible = "keychron,b1-pro";
+
+	chosen {
+		zephyr,code-partition = &code_partition;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zmk,battery = &vbatt;
+	};
+
+	/* led0 is what ROBA_SELF_BATTERY_LED blinks. All three are active-low. */
+	aliases {
+		led0 = &led_red;
+		led1 = &led_green;
+		led2 = &led_blue;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		led_red: led_red {
+			gpios = <&gpio0 28 GPIO_ACTIVE_LOW>;
+		};
+		led_green: led_green {
+			gpios = <&gpio0 30 GPIO_ACTIVE_LOW>;
+		};
+		led_blue: led_blue {
+			gpios = <&gpio0 29 GPIO_ACTIVE_LOW>;
+		};
+	};
+
+	/* Equal 510k / 510k divider on AIN7 (P0.31): the pin sees half of VBAT. */
+	vbatt: vbatt {
+		compatible = "zmk,battery-voltage-divider";
+		io-channels = <&adc 7>;
+		output-ohms = <510000>;
+		full-ohms = <(510000 + 510000)>;
+	};
+};
+
+&adc {
+	status = "okay";
+};
+
+&gpiote {
+	status = "okay";
+};
+
+&gpio0 {
+	status = "okay";
+};
+
+&gpio1 {
+	status = "okay";
+};
+
+&radio {
+	status = "okay";
+};
+
+/*
+ * Keychron's layout, kept as-is so the image is shaped the way the retail
+ * bootloader expects: Adafruit nRF52 bootloader at 0xf4000 with no SoftDevice,
+ * so the application starts right after the 4 KiB MBR.
+ */
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		sd_partition: partition@0 {
+			label = "mbr";
+			reg = <0x00000000 0x00001000>;
+		};
+
+		code_partition: partition@1000 {
+			label = "code_partition";
+			reg = <0x00001000 0x000d3000>;
+		};
+
+		storage_partition: partition@d4000 {
+			label = "storage";
+			reg = <0x000d4000 0x00020000>;
+		};
+
+		boot_partition: partition@f4000 {
+			label = "adafruit_boot";
+			reg = <0x000f4000 0x0000c000>;
+		};
+	};
+};

@@ -1,0 +1,121 @@
+/*
+ * Keychron B1 Pro (US) bindings for roBakesb.keymap -- positions 48-124.
+ *
+ * The keymap is one file for every roBakesb target. A Keychron on the link adds
+ * 77 positions after the roBa's 43 and the lariska's 5 (see
+ * roBakesb_keychron_transform.dtsi), so each layer ends with one KEYCHRON_*
+ * macro, the same way it already ends with a LARISKA_BTNS* one. When the
+ * Keychron is not on the link (no roBakesb_keychron_link shield) ROBA_KEYCHRON
+ * is undefined, every macro here is empty, and the keymap is the one it was
+ * before the Keychron existed.
+ *
+ * Which macro a layer takes:
+ *   KEYCHRON_MAC     Mac base. Win/Alt swap to Option/Command, as Keychron's own
+ *                    firmware does in Mac mode, so the keycaps' physical spots
+ *                    are ctrl, opt, cmd ... cmd.
+ *   KEYCHRON_WIN     Windows base.
+ *   KEYCHRON_GAME    Gaming base: plain Windows layout, since `&to GAMIN` leaves
+ *                    no layer underneath for &trans to fall through to.
+ *   KEYCHRON_SYSTEM  the Fn layer (SUPER, "System"): media on F7-F12, brightness
+ *                    on F1/F2, and 1/2/3 pick Mac/Windows/Gaming.
+ *   KEYCHRON_TRANS   every other layer: &trans, so a chord held on the roBa or
+ *                    the lariska (tiling, fast scroll, ...) still lets the
+ *                    Keychron type through to its base.
+ *
+ * Fn is `&mo SUPER` on every base layer. The slide switches (Mac/Win, BT, 2.4G)
+ * are not positions: the mode follows the base layer, which DeskHop or the Fn+1/2/3
+ * keys set.
+ *
+ * Only the US/ANSI board is mapped. ISO and JIS have their own shields in
+ * Keychron/zmk (keychron_b1_uk, keychron_b1_jis) with extra keys and a
+ * different matrix.
+ */
+
+#pragma once
+
+#ifdef ROBA_KEYCHRON
+
+/* Mac base */
+#define KEYCHRON_MAC \
+    /* Esc, F1-F12, Del */ \
+    &kp ESC       &kp F1        &kp F2        &kp F3        &kp F4        &kp F5        &kp F6        &kp F7        &kp F8        &kp F9        &kp F10       &kp F11       &kp F12       &kp DEL \
+    /* number row */ \
+    &kp GRAVE     &kp N1        &kp N2        &kp N3        &kp N4        &kp N5        &kp N6        &kp N7        &kp N8        &kp N9        &kp N0        &kp MINUS     &kp EQUAL     &kp BSPC \
+    /* Tab row */ \
+    &kp TAB       &kp Q         &kp W         &kp E         &kp R         &kp T         &kp Y         &kp U         &kp I         &kp O         &kp P         &kp LBKT      &kp RBKT      &kp BSLH \
+    /* home row */ \
+    &kp CAPS      &kp A         &kp S         &kp D         &kp F         &kp G         &kp H         &kp J         &kp K         &kp L         &kp SEMI      &kp SQT       &kp RET \
+    /* shift row */ \
+    &kp LSHFT     &kp Z         &kp X         &kp C         &kp V         &kp B         &kp N         &kp M         &kp COMMA     &kp DOT       &kp FSLH      &kp RSHFT \
+    /* bottom row; arrows last: left, up, down, right */ \
+    &kp LCTRL     &kp LALT      &kp LGUI      &kp SPACE     &kp RGUI      &mo SUPER     &kp LEFT      &kp UP        &kp DOWN      &kp RIGHT
+
+/* Windows base */
+#define KEYCHRON_WIN \
+    /* Esc, F1-F12, Del */ \
+    &kp ESC       &kp F1        &kp F2        &kp F3        &kp F4        &kp F5        &kp F6        &kp F7        &kp F8        &kp F9        &kp F10       &kp F11       &kp F12       &kp DEL \
+    /* number row */ \
+    &kp GRAVE     &kp N1        &kp N2        &kp N3        &kp N4        &kp N5        &kp N6        &kp N7        &kp N8        &kp N9        &kp N0        &kp MINUS     &kp EQUAL     &kp BSPC \
+    /* Tab row */ \
+    &kp TAB       &kp Q         &kp W         &kp E         &kp R         &kp T         &kp Y         &kp U         &kp I         &kp O         &kp P         &kp LBKT      &kp RBKT      &kp BSLH \
+    /* home row */ \
+    &kp CAPS      &kp A         &kp S         &kp D         &kp F         &kp G         &kp H         &kp J         &kp K         &kp L         &kp SEMI      &kp SQT       &kp RET \
+    /* shift row */ \
+    &kp LSHFT     &kp Z         &kp X         &kp C         &kp V         &kp B         &kp N         &kp M         &kp COMMA     &kp DOT       &kp FSLH      &kp RSHFT \
+    /* bottom row; arrows last: left, up, down, right */ \
+    &kp LCTRL     &kp LGUI      &kp LALT      &kp SPACE     &kp RALT      &mo SUPER     &kp LEFT      &kp UP        &kp DOWN      &kp RIGHT
+
+/* Gaming base */
+#define KEYCHRON_GAME \
+    /* Esc, F1-F12, Del */ \
+    &kp ESC       &kp F1        &kp F2        &kp F3        &kp F4        &kp F5        &kp F6        &kp F7        &kp F8        &kp F9        &kp F10       &kp F11       &kp F12       &kp DEL \
+    /* number row */ \
+    &kp GRAVE     &kp N1        &kp N2        &kp N3        &kp N4        &kp N5        &kp N6        &kp N7        &kp N8        &kp N9        &kp N0        &kp MINUS     &kp EQUAL     &kp BSPC \
+    /* Tab row */ \
+    &kp TAB       &kp Q         &kp W         &kp E         &kp R         &kp T         &kp Y         &kp U         &kp I         &kp O         &kp P         &kp LBKT      &kp RBKT      &kp BSLH \
+    /* home row */ \
+    &kp CAPS      &kp A         &kp S         &kp D         &kp F         &kp G         &kp H         &kp J         &kp K         &kp L         &kp SEMI      &kp SQT       &kp RET \
+    /* shift row */ \
+    &kp LSHFT     &kp Z         &kp X         &kp C         &kp V         &kp B         &kp N         &kp M         &kp COMMA     &kp DOT       &kp FSLH      &kp RSHFT \
+    /* bottom row; arrows last: left, up, down, right */ \
+    &kp LCTRL     &kp LGUI      &kp LALT      &kp SPACE     &kp RALT      &mo SUPER     &kp LEFT      &kp UP        &kp DOWN      &kp RIGHT
+
+/* Fn layer (System) */
+#define KEYCHRON_SYSTEM \
+    /* Esc, F1-F12, Del */ \
+    &trans        &kp C_BRI_DN  &kp C_BRI_UP  &trans        &trans        &trans        &trans        &kp C_PREV    &kp C_PP      &kp C_NEXT    &kp C_MUTE    &kp C_VOL_DN  &kp C_VOL_UP  &trans \
+    /* number row */ \
+    &trans        &to DEFAU     &to WINDO     &to GAMIN     &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
+    /* Tab row */ \
+    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
+    /* home row */ \
+    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
+    /* shift row */ \
+    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
+    /* bottom row; arrows last: left, up, down, right */ \
+    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans
+
+/* Every other layer */
+#define KEYCHRON_TRANS \
+    /* Esc, F1-F12, Del */ \
+    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
+    /* number row */ \
+    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
+    /* Tab row */ \
+    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
+    /* home row */ \
+    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
+    /* shift row */ \
+    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
+    /* bottom row; arrows last: left, up, down, right */ \
+    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans
+
+#else /* !ROBA_KEYCHRON */
+
+#define KEYCHRON_MAC
+#define KEYCHRON_WIN
+#define KEYCHRON_GAME
+#define KEYCHRON_SYSTEM
+#define KEYCHRON_TRANS
+
+#endif /* ROBA_KEYCHRON */

@@ -29,6 +29,7 @@ endif()
 # Larger antenna bars, only the Prospector screen is big enough to want them.
 zephyr_library_sources_ifdef(CONFIG_ROBA_PROSPECTOR_SCREEN src/signal_bars.c)
 zephyr_library_sources_ifdef(CONFIG_ROBA_PROSPECTOR_SCREEN src/periph_icons.c)
+zephyr_library_sources_ifdef(CONFIG_ROBA_PROSPECTOR_SCREEN src/desk_icons.c)
 zephyr_library_sources_ifdef(CONFIG_ROBA_PROSPECTOR_SCREEN src/prospector_status_screen.c)
 zephyr_library_sources_ifdef(CONFIG_ROBA_PROSPECTOR_I2C_PROBE src/prospector_i2c_probe.c)
 zephyr_library_sources_ifdef(CONFIG_ROBA_VFX_RETRO_ESB_LINK src/vfx_retro_esb_link.c)

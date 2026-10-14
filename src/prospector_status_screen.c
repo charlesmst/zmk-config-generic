@@ -23,7 +23,18 @@
  * missing bar.
  *
  * Above: which machine the keymap is driving, the largest thing on the glass.
- * Below: hop channel and link health, in secondary grey.
+ * Below: DeskHop's desk on the left and the hop channel on the right, which a
+ * link warning replaces while there is one -- "Connected" said nothing the
+ * absence of a warning does not.
+ *
+ * The desk strip draws DeskHop's monitors left to right as they sit on the
+ * desk. The gap between machines moves when the middle screen changes owner,
+ * so where it falls is the layout. The filled monitor is the one the pointer
+ * is on, with an arrow cut out of it for absolute and a crosshair, in the
+ * signal colour, for relative; a padlock in the gap means DeskHop will not
+ * cross it (gaming mode, or switch lock). It comes from DeskHop's v2 sync
+ * report and stays hidden until one arrives, so an older DeskHop, or none,
+ * draws no desk rather than a wrong one.
  *
  * The dongle itself gets no ring -- it runs off USB and has no battery.
  *
@@ -41,7 +52,8 @@
  * Gaming mode is a second tree on the same screen, shown while the gaming base
  * layer is active and hidden otherwise. It drops the battery rings, the OS and
  * the layer line and shows nothing but signal: three segmented meters, twelve
- * segments each, in their own palette. The reasoning is that in a match none
+ * segments each, in their own palette, under a header carrying the same desk
+ * strip and channel as the base footer. The reasoning is that in a match none
  * of what the base screen answers is still a live question -- you chose the
  * layer, the batteries were fine a minute ago -- whereas the link is the one
  * thing that can still go wrong while your hands are busy. Twelve segments
@@ -71,6 +83,10 @@
 #include <zmk/keymap.h>
 #include <zmk_split_esb.h>
 
+#if IS_ENABLED(CONFIG_ZMK_DESKHOP_SYNC_REPORT)
+#include <zmk/events/deskhop_state_changed.h>
+#endif
+
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 /* Glyph fonts from this repo. os_logos is shared with the OLED dongle screen;
@@ -78,6 +94,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 LV_FONT_DECLARE(os_logos);
 LV_FONT_DECLARE(signal_bars);
 LV_FONT_DECLARE(periph_icons);
+LV_FONT_DECLARE(desk_icons);
 
 /*
  * Text faces bundled by prospector-zmk-module. Its fonts.h only declares them
@@ -108,7 +125,7 @@ LV_FONT_DECLARE(FG_Medium_21);
 /* Gaming mode sets everything in this one face. A condensed DIN is the voice
  * of a readout rather than of a widget, which is the whole difference between
  * the two screens, and condensed buys the room for "PERIPHERAL LOST" on a line
- * that also has to carry the channel. */
+ * that also has to carry the desk strip. */
 LV_FONT_DECLARE(DINishCondensed_SemiBold_22);
 
 /* os_logos.c, U+E010.. */
@@ -130,6 +147,11 @@ static const char *const bar_syms[5] = {
 static const char *const periph_syms[3] = {
     "\xEE\x80\xB0", "\xEE\x80\xB1", "\xEE\x80\xB2",
 };
+
+/* desk_icons.c, U+E040.. */
+#define DESK_ARROW     "\xEE\x81\x80"
+#define DESK_CROSSHAIR "\xEE\x81\x81"
+#define DESK_PADLOCK   "\xEE\x81\x82"
 
 #define EN_DASH "\xE2\x80\x93"
 
@@ -223,6 +245,36 @@ static inline int ring_x(uint8_t slot) {
     return RING_X0 + slot * (RING_SIZE + RING_GAP);
 }
 
+/* ---- geometry, DeskHop desk strip -------------------------------------- */
+
+/* One strip, the same size wherever it is: the base footer's left slot or the
+ * gaming header's (see place_desk()).
+ *
+ * An 18 px monitor, 1 px of air and a 3 px stand come to 22, which is the
+ * gaming header's line exactly and sits inside the base footer's 25 px row
+ * with a pixel to spare either side. 106 px across is three 30 px monitors,
+ * the desk this is drawn for. Four still fit in that width at 21 px each, and
+ * two are capped at 30 rather than stretched, so the strip never grows into
+ * the label on the right of the same row.
+ *
+ * Monitors are boxes, not glyphs: their count and width change with DeskHop's
+ * layout, which a font cannot do. Only the marks on top of them are glyphs. */
+#define DESK_MAX     4
+#define DESK_W       106
+#define DESK_H       22
+#define DESK_MON_W   30
+#define DESK_MON_H   18
+#define DESK_STAND_H 3
+#define DESK_STROKE  2
+/* Inside one machine the gap is small; between machines it is wide enough to
+ * read as the border and to hold the tick or the padlock. */
+#define DESK_GAP     4
+#define DESK_BORDER  12
+#define DESK_ICON    12
+
+#define DESK_X LOGO_X
+#define DESK_Y (FOOTER_Y + 1)
+
 /* ---- geometry, gaming mode --------------------------------------------- */
 
 /* Twelve segments of 17 with 4 px between them comes to 248, which centres on
@@ -239,7 +291,7 @@ static inline int ring_x(uint8_t slot) {
 /* DINishCondensed_SemiBold_22 is 22 px per line.
  *
  *   14  top margin
- *    .  header, 22
+ *    .  header, 22: desk strip left, channel or warning right
  *    8
  *    .  rule, 1
  *   16
@@ -343,6 +395,17 @@ struct slot_state {
     bool present;
 };
 
+/* DeskHop's desk, reduced to what the strip draws. Monitors are numbered left
+ * to right as they sit on the desk. */
+struct desk_view {
+    bool valid;     /* DeskHop has sent a v2 report */
+    uint8_t count;  /* monitors, 2..DESK_MAX */
+    uint8_t border; /* monitors on the left machine; the gap follows the last */
+    uint8_t cursor; /* the monitor the pointer is on */
+    bool relative;
+    bool locked; /* gaming mode or switch lock: DeskHop will not cross */
+};
+
 struct screen_state {
     struct slot_state slots[SLOT_COUNT];
     uint8_t base;
@@ -351,6 +414,7 @@ struct screen_state {
     bool gaming; /* gaming base layer held -- swap to the meters */
     uint8_t theme; /* THEME_MAC / THEME_WIN */
     const char *sub; /* momentary layer name, NULL when none */
+    struct desk_view desk;
 };
 
 static K_MUTEX_DEFINE(state_mutex);
@@ -401,8 +465,36 @@ static lv_obj_t *ring_bat[SLOT_COUNT];
 static lv_obj_t *bars_track[SLOT_COUNT];
 static lv_obj_t *bars_lit[SLOT_COUNT];
 static lv_obj_t *icon_label[SLOT_COUNT];
-static lv_obj_t *chan_label;
+/* Channel while the link is healthy, the warning while it is not. */
 static lv_obj_t *health_label;
+
+/* What a strip paints with. The two trees use different palettes. */
+struct desk_colours {
+    lv_color_t outline;  /* idle monitors, and every stand */
+    lv_color_t tick;     /* the border while it can be crossed */
+    lv_color_t absolute; /* lit monitor, absolute pointer */
+    lv_color_t relative; /* lit monitor, relative pointer; also the padlock */
+};
+
+struct desk_strip {
+    lv_obj_t *root;
+    lv_obj_t *monitor[DESK_MAX];
+    lv_obj_t *stand[DESK_MAX];
+    lv_obj_t *tick;
+    lv_obj_t *pointer;
+    lv_obj_t *lock;
+
+    /* Last drawn. The strip only changes when DeskHop does, so a poll that
+     * moves nothing must not re-set ~15 styles, each of which invalidates. */
+    struct desk_view drawn;
+    struct desk_colours drawn_colours;
+    bool drawn_valid;
+};
+
+/* One strip, not one per tree. Only one tree is ever visible, and the strip is
+ * a dozen objects on LVGL's fixed 16 KB pool, which already carries both
+ * trees. place_desk() moves it to whichever tree is showing. */
+static struct desk_strip desk;
 
 /* The two trees hang off a container each, and switching modes hides one and
  * shows the other. Containers rather than a list of widgets to walk: one flag
@@ -417,7 +509,6 @@ static lv_obj_t *health_label;
 static lv_obj_t *base_root;
 static lv_obj_t *game_root;
 
-static lv_obj_t *game_head_label;
 static lv_obj_t *game_chan_label;
 static lv_obj_t *game_name_label[SLOT_COUNT];
 static lv_obj_t *game_dbm_label[SLOT_COUNT];
@@ -569,13 +660,113 @@ static enum link_health link_health(const struct screen_state *s) {
     return HEALTH_OK;
 }
 
-static const char *const health_text[] = {"Connected", "Peripheral lost", "Searching"};
-static const char *const game_health_text[] = {"LINK STABLE", "PERIPHERAL LOST", "SEARCHING"};
+/* Only the failures have words. A healthy link shows the channel instead. */
+static const char *const health_text[] = {
+    [HEALTH_LOST] = "Peripheral lost",
+    [HEALTH_SEARCHING] = "Searching",
+};
+static const char *const game_health_text[] = {
+    [HEALTH_LOST] = "PERIPHERAL LOST",
+    [HEALTH_SEARCHING] = "SEARCHING",
+};
+
+static bool desk_view_eq(const struct desk_view *a, const struct desk_view *b) {
+    if (a->valid != b->valid) {
+        return false;
+    }
+    if (!a->valid) {
+        return true;
+    }
+    return a->count == b->count && a->border == b->border && a->cursor == b->cursor &&
+           a->relative == b->relative && a->locked == b->locked;
+}
+
+static bool desk_colours_eq(const struct desk_colours *a, const struct desk_colours *b) {
+    return lv_color_eq(a->outline, b->outline) && lv_color_eq(a->tick, b->tick) &&
+           lv_color_eq(a->absolute, b->absolute) && lv_color_eq(a->relative, b->relative);
+}
+
+static void show(lv_obj_t *obj, bool visible) {
+    if (visible) {
+        lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    }
+}
+
+static void redraw_desk(struct desk_strip *d, const struct desk_view *v,
+                        const struct desk_colours *c) {
+    if (d->drawn_valid && desk_view_eq(&d->drawn, v) && desk_colours_eq(&d->drawn_colours, c)) {
+        return;
+    }
+    d->drawn = *v;
+    d->drawn_colours = *c;
+    d->drawn_valid = true;
+
+    show(d->root, v->valid);
+    if (!v->valid) {
+        return;
+    }
+
+    const int mon_w =
+        MIN(DESK_MON_W, (DESK_W - DESK_BORDER - ((v->count - 2) * DESK_GAP)) / v->count);
+    const int stand_w = mon_w / 3;
+    const lv_color_t lit = v->relative ? c->relative : c->absolute;
+    int x = 0;
+
+    for (uint8_t i = 0; i < DESK_MAX; i++) {
+        bool used = i < v->count;
+
+        show(d->monitor[i], used);
+        show(d->stand[i], used);
+        if (!used) {
+            continue;
+        }
+
+        bool on = i == v->cursor;
+
+        lv_obj_set_pos(d->monitor[i], x, 0);
+        lv_obj_set_width(d->monitor[i], mon_w);
+        lv_obj_set_style_border_color(d->monitor[i], on ? lit : c->outline, LV_PART_MAIN);
+        lv_obj_set_style_bg_color(d->monitor[i], lit, LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(d->monitor[i], on ? LV_OPA_COVER : LV_OPA_TRANSP, LV_PART_MAIN);
+
+        lv_obj_set_pos(d->stand[i], x + ((mon_w - stand_w) / 2), DESK_MON_H + 1);
+        lv_obj_set_width(d->stand[i], stand_w);
+        lv_obj_set_style_bg_color(d->stand[i], c->outline, LV_PART_MAIN);
+
+        if (on) {
+            lv_obj_set_pos(d->pointer, x + ((mon_w - DESK_ICON) / 2),
+                           (DESK_MON_H - DESK_ICON) / 2);
+        }
+
+        x += mon_w;
+
+        if (i + 1 == v->border) {
+            lv_obj_set_pos(d->tick, x + (DESK_BORDER / 2) - 1, 0);
+            lv_obj_set_pos(d->lock, x + ((DESK_BORDER - DESK_ICON) / 2),
+                           (DESK_MON_H - DESK_ICON) / 2);
+            x += DESK_BORDER;
+        } else {
+            x += DESK_GAP;
+        }
+    }
+
+    /* Cut out of the lit monitor rather than drawn on it, so the mark reads as
+     * a hole in the same colour as the panel whatever colour the monitor is. */
+    set_text(d->pointer, v->relative ? DESK_CROSSHAIR : DESK_ARROW);
+
+    lv_obj_set_style_bg_color(d->tick, c->tick, LV_PART_MAIN);
+    lv_obj_set_style_text_color(d->lock, c->relative, LV_PART_MAIN);
+    show(d->tick, !v->locked);
+    show(d->lock, v->locked);
+}
 
 /* Most colours are re-stated by redraw_base() every pass anyway, but a handful
  * are written once at build time and never touched again: the ring tracks, the
- * bar tracks, and the two labels whose colour never depends on state. Those are
- * the ones a theme switch has to go back for.
+ * bar tracks, and the name label, whose colour never depends on state. Those
+ * are the ones a theme switch has to go back for. The desk strip is not one of
+ * them: it caches its colours and redraws itself when they change.
  *
  * Only on the edge -- roughly a dozen style writes when you change machine,
  * nothing per frame. */
@@ -586,7 +777,6 @@ static void apply_theme(uint8_t theme) {
     applied_theme = theme;
 
     lv_obj_set_style_text_color(name_label, COL_PRIMARY, LV_PART_MAIN);
-    lv_obj_set_style_text_color(chan_label, COL_SECONDARY, LV_PART_MAIN);
 
     for (uint8_t i = 0; i < SLOT_COUNT; i++) {
         lv_obj_set_style_arc_color(ring_bat[i], COL_TRACK, LV_PART_MAIN);
@@ -636,15 +826,25 @@ static void redraw_base(const struct screen_state *sp) {
 
     }
 
-    char chan[16];
-    snprintf(chan, sizeof(chan), "Ch %u", s.channel);
-    set_text(chan_label, chan);
+    const struct desk_colours desk_colours = {
+        .outline = COL_SECONDARY,
+        .tick = COL_BARS_TRACK,
+        .absolute = COL_PRIMARY,
+        .relative = COL_SIGNAL,
+    };
+    redraw_desk(&desk, &s.desk, &desk_colours);
 
     enum link_health health = link_health(&s);
 
-    set_text(health_label, health_text[health]);
-    lv_obj_set_style_text_color(health_label,
-                                health == HEALTH_OK ? COL_SECONDARY : COL_WARN, LV_PART_MAIN);
+    if (health == HEALTH_OK) {
+        char chan[16];
+        snprintf(chan, sizeof(chan), "Ch %u", s.channel);
+        set_text(health_label, chan);
+        lv_obj_set_style_text_color(health_label, COL_SECONDARY, LV_PART_MAIN);
+    } else {
+        set_text(health_label, health_text[health]);
+        lv_obj_set_style_text_color(health_label, COL_WARN, LV_PART_MAIN);
+    }
 }
 
 /* Last drawn state per meter, so a poll that changes nothing costs nothing.
@@ -658,16 +858,34 @@ static bool game_drawn_present[SLOT_COUNT];
 static bool game_drawn_valid[SLOT_COUNT];
 
 static void redraw_gaming(const struct screen_state *s) {
+    const struct desk_colours desk_colours = {
+        .outline = COL_SECONDARY,
+        .tick = COL_GAME_TRACK,
+        .absolute = COL_PRIMARY,
+        .relative = COL_GAME_GOOD,
+    };
+    redraw_desk(&desk, &s->desk, &desk_colours);
+
+    /* No "link stable": in a match the meters below already say so, and the
+     * header only speaks up when something is wrong. Recoloured on the edge
+     * only, like the meters; set_text() already skips an unchanged string. */
+    static int game_drawn_health = -1;
     enum link_health health = link_health(s);
 
-    set_text(game_head_label, game_health_text[health]);
-    lv_obj_set_style_text_color(game_head_label,
-                                health == HEALTH_OK ? COL_GAME_GOOD : COL_GAME_WARN,
-                                LV_PART_MAIN);
+    if (health == HEALTH_OK) {
+        char chan[16];
+        snprintf(chan, sizeof(chan), "CH %u", s->channel);
+        set_text(game_chan_label, chan);
+    } else {
+        set_text(game_chan_label, game_health_text[health]);
+    }
 
-    char chan[16];
-    snprintf(chan, sizeof(chan), "CH %u", s->channel);
-    set_text(game_chan_label, chan);
+    if (game_drawn_health != (int)health) {
+        lv_obj_set_style_text_color(game_chan_label,
+                                    health == HEALTH_OK ? COL_SECONDARY : COL_GAME_WARN,
+                                    LV_PART_MAIN);
+        game_drawn_health = (int)health;
+    }
 
     for (uint8_t i = 0; i < SLOT_COUNT; i++) {
         const struct slot_state *slot = &s->slots[i];
@@ -714,6 +932,21 @@ static void redraw_gaming(const struct screen_state *s) {
     }
 }
 
+/* Hand the strip to the tree that is about to show: the base footer's left
+ * slot, or the gaming header's. Only on the edge, so a steady mode costs one
+ * pointer compare. The colours differ between the trees, and redraw_desk()
+ * notices that by itself and repaints. */
+static void place_desk(bool gaming) {
+    lv_obj_t *parent = gaming ? game_root : base_root;
+
+    if (lv_obj_get_parent(desk.root) == parent) {
+        return;
+    }
+
+    lv_obj_set_parent(desk.root, parent);
+    lv_obj_set_pos(desk.root, gaming ? GAME_X : DESK_X, gaming ? GAME_HEAD_Y : DESK_Y);
+}
+
 static void redraw_fn(struct k_work *work) {
     ARG_UNUSED(work);
 
@@ -731,10 +964,12 @@ static void redraw_fn(struct k_work *work) {
     if (s.gaming) {
         lv_obj_add_flag(base_root, LV_OBJ_FLAG_HIDDEN);
         lv_obj_clear_flag(game_root, LV_OBJ_FLAG_HIDDEN);
+        place_desk(true);
         redraw_gaming(&s);
     } else {
         lv_obj_add_flag(game_root, LV_OBJ_FLAG_HIDDEN);
         lv_obj_clear_flag(base_root, LV_OBJ_FLAG_HIDDEN);
+        place_desk(false);
         redraw_base(&s);
     }
 }
@@ -751,6 +986,87 @@ static void request_redraw(void) {
 
 static void poll_fn(struct k_work *work);
 static K_WORK_DELAYABLE_DEFINE(poll_work, poll_fn);
+
+#if IS_ENABLED(CONFIG_ZMK_DESKHOP_SYNC_REPORT)
+
+/* Last v2 report from DeskHop. Cached from the event like edge_seen is, and
+ * for the same reason: it is sent only on change, so one that lands before
+ * the screen exists must not be lost. */
+static struct zmk_deskhop_state_changed deskhop;
+static bool deskhop_seen;
+
+static int deskhop_listener(const zmk_event_t *eh) {
+    const struct zmk_deskhop_state_changed *ev = as_zmk_deskhop_state_changed(eh);
+
+    if (ev == NULL) {
+        return ZMK_EV_EVENT_BUBBLE;
+    }
+
+    k_mutex_lock(&state_mutex, K_FOREVER);
+    deskhop = *ev;
+    deskhop_seen = true;
+    k_mutex_unlock(&state_mutex);
+
+    /* Poll now instead of at the next tick. This is the one thing on the
+     * screen that follows a hand movement, and up to 250 ms of lag reads as
+     * the marker chasing the pointer. Only once the screen has started the
+     * poll -- before that it is not this listener's to start. */
+    if (base_root != NULL) {
+        k_work_reschedule(&poll_work, K_NO_WAIT);
+    }
+
+    return ZMK_EV_EVENT_BUBBLE;
+}
+
+ZMK_LISTENER(roba_prospector_deskhop, deskhop_listener);
+ZMK_SUBSCRIPTION(roba_prospector_deskhop, zmk_deskhop_state_changed);
+
+/* Lay DeskHop's two outputs out left to right. Call with state_mutex held.
+ *
+ * DeskHop numbers each output's screens from the border outward -- index 1 is
+ * the screen next to the other machine -- so the left machine counts leftwards
+ * from the gap and the right one rightwards. Which machine is on the left is
+ * DeskHop's own pos, so nothing here assumes the Mac is. */
+static struct desk_view desk_view_get(void) {
+    struct desk_view v = {0};
+
+    if (!deskhop_seen) {
+        return v;
+    }
+
+    const struct zmk_deskhop_state_changed *d = &deskhop;
+
+    /* A is on the left unless only B says it is, so a pair that both claim
+     * one side still draws something sensible. */
+    uint8_t left = (d->outputs[1].pos == ZMK_DESKHOP_POS_LEFT &&
+                    d->outputs[0].pos != ZMK_DESKHOP_POS_LEFT)
+                       ? 1
+                       : 0;
+    uint8_t right = 1 - left;
+    uint8_t n_left = CLAMP(d->outputs[left].screen_count, 1, DESK_MAX - 1);
+    uint8_t n_right = CLAMP(d->outputs[right].screen_count, 1, DESK_MAX - n_left);
+    uint8_t active = d->active_output == 1 ? 1 : 0;
+
+    if (active == left) {
+        v.cursor = n_left - CLAMP(d->outputs[left].screen_index, 1, n_left);
+    } else {
+        v.cursor = n_left + CLAMP(d->outputs[right].screen_index, 1, n_right) - 1;
+    }
+
+    v.valid = true;
+    v.count = n_left + n_right;
+    v.border = n_left;
+    v.relative = d->relative;
+    v.locked = d->gaming || d->switch_lock;
+
+    return v;
+}
+
+#else
+
+static struct desk_view desk_view_get(void) { return (struct desk_view){0}; }
+
+#endif
 
 static void poll_fn(struct k_work *work) {
     ARG_UNUSED(work);
@@ -776,6 +1092,8 @@ static void poll_fn(struct k_work *work) {
      * nothing. The palette follows which machine you are driving, which the
      * momentary layers on top of it do not change. */
     state.theme = zmk_keymap_layer_active(LAYER_WINDOWS) ? THEME_WIN : THEME_MAC;
+
+    state.desk = desk_view_get();
 
     for (uint8_t i = 0; i < SLOT_COUNT; i++) {
         uint8_t battery = zmk_split_esb_peer_battery(i);
@@ -897,6 +1215,44 @@ static lv_obj_t *make_segment(lv_obj_t *parent, int16_t x, int16_t y) {
     return seg;
 }
 
+static lv_obj_t *make_box(lv_obj_t *parent, int16_t w, int16_t h) {
+    lv_obj_t *box = lv_obj_create(parent);
+
+    lv_obj_remove_style_all(box);
+    lv_obj_set_size(box, w, h);
+    lv_obj_clear_flag(box, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_bg_opa(box, LV_OPA_COVER, LV_PART_MAIN);
+
+    return box;
+}
+
+/* Every part DESK_MAX monitors could need, built once and hidden; redraw_desk()
+ * places and shows what DeskHop's layout uses. Built hidden as a whole until
+ * the first report, so a desk that has never been heard from draws nothing. */
+static void build_desk(struct desk_strip *d, lv_obj_t *parent, int16_t x, int16_t y) {
+    d->root = make_root(parent);
+    lv_obj_set_size(d->root, DESK_W, DESK_H);
+    lv_obj_set_pos(d->root, x, y);
+
+    for (uint8_t i = 0; i < DESK_MAX; i++) {
+        d->monitor[i] = make_box(d->root, DESK_MON_W, DESK_MON_H);
+        lv_obj_set_style_bg_opa(d->monitor[i], LV_OPA_TRANSP, LV_PART_MAIN);
+        lv_obj_set_style_border_width(d->monitor[i], DESK_STROKE, LV_PART_MAIN);
+        lv_obj_set_style_radius(d->monitor[i], 2, LV_PART_MAIN);
+
+        d->stand[i] = make_box(d->root, DESK_MON_W / 3, DESK_STAND_H);
+        lv_obj_set_style_radius(d->stand[i], 1, LV_PART_MAIN);
+    }
+
+    d->tick = make_box(d->root, 2, DESK_H);
+
+    /* After the monitors, so both draw on top of them. */
+    d->pointer = make_label(d->root, &desk_icons, COL_BG, 0, 0, DESK_ARROW);
+    d->lock = make_label(d->root, &desk_icons, COL_BG, 0, 0, DESK_PADLOCK);
+
+    lv_obj_add_flag(d->root, LV_OBJ_FLAG_HIDDEN);
+}
+
 static void build_base(lv_obj_t *root) {
     /* --- which machine --- */
     logo_label = make_label(root, &os_logos, COL_PRIMARY, LOGO_X, LOGO_Y, LOGO_APPLE);
@@ -917,20 +1273,14 @@ static void build_base(lv_obj_t *root) {
         bars_lit[i] = make_centred(root, &signal_bars, COL_SIGNAL, i, BARS_Y, bar_syms[0]);
     }
 
-    /* --- link --- */
-    chan_label = make_label(root, &FG_Medium_21, COL_SECONDARY, LOGO_X, FOOTER_Y, "Ch " EN_DASH);
-
-    health_label = make_label(root, &FG_Medium_21, COL_SECONDARY, 0, 0, "Connected");
+    /* --- link; the desk strip shares this row, see place_desk() --- */
+    health_label = make_label(root, &FG_Medium_21, COL_SECONDARY, 0, 0, "Ch " EN_DASH);
     lv_obj_set_width(health_label, SCREEN_W - (2 * LOGO_X));
     lv_obj_set_style_text_align(health_label, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
     lv_obj_set_pos(health_label, LOGO_X, FOOTER_Y);
 }
 
 static void build_gaming(lv_obj_t *root) {
-    game_head_label =
-        make_label(root, &DINishCondensed_SemiBold_22, COL_GAME_GOOD, GAME_X, GAME_HEAD_Y,
-                   game_health_text[HEALTH_OK]);
-
     game_chan_label = make_label(root, &DINishCondensed_SemiBold_22, COL_SECONDARY, 0, 0, "CH --");
     lv_obj_set_width(game_chan_label, GAME_BAR_W);
     lv_obj_set_style_text_align(game_chan_label, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
@@ -979,6 +1329,9 @@ lv_obj_t *zmk_display_status_screen(void) {
 
     game_root = make_root(screen);
     build_gaming(game_root);
+
+    /* Starts in the base tree, which is the one showing. */
+    build_desk(&desk, base_root, DESK_X, DESK_Y);
 
     /* Gaming starts hidden; the first poll decides within 250 ms. */
     lv_obj_add_flag(game_root, LV_OBJ_FLAG_HIDDEN);

@@ -11,7 +11,10 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE="${WORKSPACE:-$REPO_DIR}"
-ZMK_APP="$WORKSPACE/zmk/app"
+# The ZMK app to build. Override it, like ESB_MODULE below, to build against a
+# ZMK worktree without moving the shared workspace checkout, e.g.
+#   ZMK_APP=~/personal/zmk-deskhop-state/app ./local_build_roba_kesb.sh
+ZMK_APP="${ZMK_APP:-$WORKSPACE/zmk/app}"
 ZMK_CONFIG="$REPO_DIR/config"
 OUTPUT_DIR="$REPO_DIR/firmware"
 

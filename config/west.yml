@@ -18,9 +18,12 @@ manifest:
       url-base: https://github.com/carrefinho
 
   projects:
+    # feat/deskhop-state is feat/deskhop-sync plus the v2 DeskHop report: the
+    # full DeskHop state, raised as zmk_deskhop_state_changed for the
+    # Prospector desk strip. Point back at feat/deskhop-sync once it merges.
     - name: zmk
       remote: charlesmst
-      revision: feat/deskhop-sync
+      revision: feat/deskhop-state
       import: app/west.yml
 
     - name: zmk-pmw3610-driver

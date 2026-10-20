@@ -2,14 +2,16 @@
  * Keychron B1 Pro as a fourth ESB peripheral (pipe 3) of the roBakesb system.
  *
  * Board: keychron_b1_pro (boards/keychron/keychron_b1_pro). The board describes
- * the whole keyboard, matrix included, and on its own builds a standalone
- * upstream-ZMK keyboard (keychron-config). This shield keeps the board's matrix
- * kscan, drops what the standalone build adds on top of it (the slide switches,
- * their composite kscan and the board's own layout), and adds the ESB identity.
+ * the whole keyboard, matrix and slide switches included, and on its own builds
+ * a standalone upstream-ZMK keyboard (keychron-config). This shield keeps the
+ * board's composite kscan (matrix + switches), drops the board's own layout for
+ * the shared one, and adds the ESB identity.
  *
  * Positions come from roBakesb_keychron_transform.dtsi, which also turns the
- * pipe on. row-offset = 4 moves this matrix's row 0 onto shared row 4, clear of
- * the roBa halves and lariska in rows 0-3.
+ * pipe on. row-offset = 4 moves this kscan's row 0 onto shared row 4, clear of
+ * the roBa halves and lariska in rows 0-3; the switches' row 8 lands on shared
+ * row 12. Only the Mac/Win switch has a position there; the BT and 2.4G
+ * switches still scan but map to nothing, so their events are dropped here.
  */
 
 #include "roBa_matrix.dtsi"
@@ -18,18 +20,10 @@
 
 / {
     chosen {
-        zmk,kscan = &kscan_matrix;
+        zmk,kscan = &kscan_composite;
         zmk,physical-layout = &roba_physical_layout;
         zmk,esb-self = &esb_keychron;
     };
-};
-
-&kscan_composite {
-    status = "disabled";
-};
-
-&kscan_switches {
-    status = "disabled";
 };
 
 &keychron_b1_pro_layout {
@@ -41,5 +35,5 @@
 };
 
 &roba_physical_layout {
-    kscan = <&kscan_matrix>;
+    kscan = <&kscan_composite>;
 };

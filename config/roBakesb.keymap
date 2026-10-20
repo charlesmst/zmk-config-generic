@@ -150,6 +150,18 @@
     };
 
     behaviors {
+#ifdef ROBA_KEYCHRON
+        /* The Keychron's Mac/Win slide switch, bound first in every Keychron
+         * base macro (roBakesb_keychron.h). On Win, Windows comes up as Gaming,
+         * and keeps doing so across DeskHop switches: see
+         * src/behavior_switch_layer.c. */
+        kc_game_switch: kc_game_switch {
+            compatible = "roba,behavior-switch-layer";
+            #binding-cells = <0>;
+            if-layer = <WINDO>;
+            then-layer = <GAMIN>;
+        };
+#endif
         sk_forever: sk_forever {
             compatible = "zmk,behavior-sticky-key";
             #binding-cells = <1>;

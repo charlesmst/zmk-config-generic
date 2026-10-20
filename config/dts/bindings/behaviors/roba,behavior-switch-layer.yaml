@@ -1,0 +1,31 @@
+# Copyright (c) 2026 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+description: |
+  A slide switch read as a held key, keeping then-layer on whenever the switch
+  is on and if-layer is active.
+
+  Bind it to the switch's key position. Pressed means the switch is on,
+  released means it is off. The behavior remembers that itself rather than
+  holding a layer for it, so nothing that rewrites the layer stack (&to, a
+  DeskHop host switch, the dongle restarting) can forget the switch: on every
+  layer change it checks again, and turns then-layer back on if if-layer is
+  active and then-layer is not.
+
+  Turning the switch off turns then-layer off, but only if this behavior was
+  the one keeping it on. Leaving if-layer with the switch still on (another
+  host, or a &to elsewhere) leaves then-layer to whoever changed the layers.
+
+compatible: "roba,behavior-switch-layer"
+
+include: zero_param.yaml
+
+properties:
+  if-layer:
+    type: int
+    required: true
+    description: Layer that has to be active for the switch to apply.
+  then-layer:
+    type: int
+    required: true
+    description: Layer kept on while the switch is on and if-layer is active.

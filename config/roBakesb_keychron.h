@@ -1,8 +1,8 @@
 /*
- * Keychron B1 Pro (US) bindings for roBakesb.keymap -- positions 48-124.
+ * Keychron B1 Pro (US) bindings for roBakesb.keymap -- positions 48-125.
  *
  * The keymap is one file for every roBakesb target. A Keychron on the link adds
- * 77 positions after the roBa's 43 and the lariska's 5 (see
+ * 78 positions (its switch, then its 77 keys) after the roBa's 43 and the lariska's 5 (see
  * roBakesb_keychron_transform.dtsi), so each layer ends with one KEYCHRON_*
  * macro, the same way it already ends with a LARISKA_BTNS* one. When the
  * Keychron is not on the link (no roBakesb_keychron_link shield) ROBA_KEYCHRON
@@ -22,9 +22,12 @@
  *                    the lariska (tiling, fast scroll, ...) still lets the
  *                    Keychron type through to its base.
  *
- * Fn is `&mo SUPER` on every base layer. The slide switches (Mac/Win, BT, 2.4G)
- * are not positions: the mode follows the base layer, which DeskHop or the Fn+1/2/3
- * keys set.
+ * Fn is `&mo SUPER` on every base layer. The first position of each macro is
+ * the Mac/Win slide switch, "held" while it sits on Win. Every base layer binds
+ * it to `&kc_game_switch` (roBakesb.keymap): with the switch on Win, Windows
+ * comes up with Gaming on top, including every time DeskHop returns to the
+ * Windows machine; Mac ignores it. Mac or Windows itself still follows DeskHop
+ * or Fn+1/2/3. The BT and 2.4G switches are not positions.
  *
  * Only the US/ANSI board is mapped. ISO and JIS have their own shields in
  * Keychron/zmk (keychron_b1_uk, keychron_b1_jis) with extra keys and a
@@ -37,6 +40,8 @@
 
 /* Mac base */
 #define KEYCHRON_MAC \
+    /* Mac/Win switch, held while on Win */ \
+    &kc_game_switch \
     /* Esc, F1-F12, Del */ \
     &kp ESC       &kp F1        &kp F2        &kp F3        &kp F4        &kp F5        &kp F6        &kp F7        &kp F8        &kp F9        &kp F10       &kp F11       &kp F12       &kp DEL \
     /* number row */ \
@@ -52,6 +57,8 @@
 
 /* Windows base */
 #define KEYCHRON_WIN \
+    /* Mac/Win switch, held while on Win */ \
+    &kc_game_switch \
     /* Esc, F1-F12, Del */ \
     &kp ESC       &kp F1        &kp F2        &kp F3        &kp F4        &kp F5        &kp F6        &kp F7        &kp F8        &kp F9        &kp F10       &kp F11       &kp F12       &kp DEL \
     /* number row */ \
@@ -67,6 +74,8 @@
 
 /* Gaming base */
 #define KEYCHRON_GAME \
+    /* Mac/Win switch, held while on Win */ \
+    &kc_game_switch \
     /* Esc, F1-F12, Del */ \
     &kp ESC       &kp F1        &kp F2        &kp F3        &kp F4        &kp F5        &kp F6        &kp F7        &kp F8        &kp F9        &kp F10       &kp F11       &kp F12       &kp DEL \
     /* number row */ \
@@ -82,6 +91,8 @@
 
 /* Fn layer (System) */
 #define KEYCHRON_SYSTEM \
+    /* Mac/Win switch, held while on Win */ \
+    &trans        \
     /* Esc, F1-F12, Del */ \
     &trans        &kp C_BRI_DN  &kp C_BRI_UP  &trans        &trans        &trans        &trans        &kp C_PREV    &kp C_PP      &kp C_NEXT    &kp C_MUTE    &kp C_VOL_DN  &kp C_VOL_UP  &trans \
     /* number row */ \
@@ -97,6 +108,8 @@
 
 /* Every other layer */
 #define KEYCHRON_TRANS \
+    /* Mac/Win switch, held while on Win */ \
+    &trans        \
     /* Esc, F1-F12, Del */ \
     &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
     /* number row */ \

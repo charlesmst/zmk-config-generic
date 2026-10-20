@@ -6,9 +6,62 @@ stays the central: it owns the keymap, the layers and the USB connection, and
 the Keychron only sends key positions, like the roBa halves do. Keychron's own
 2.4 GHz dongle stops working once the keyboard runs this firmware.
 
-**Nothing here has been run on a B1 Pro.** Everything below was built and
-checked in the devicetree, not on the board. "Unverified" marks the parts that
-need the keyboard in hand.
+**Nothing here has been run on a B1 Pro yet.** The ESB setup below is a later
+step. The board port is checked first as a plain standalone keyboard on
+upstream ZMK (next section), so the Prospector and the halves stay as they are
+until the keyboard is known to work. "Unverified" marks the parts that need the
+keyboard in hand.
+
+## Step 1: standalone on upstream ZMK
+
+`keychron-config/` is a separate ZMK user config: its own `west.yml` (stock
+`zmkfirmware/zmk` pinned to a commit, none of the roBakesb modules), its own
+build matrix, and the `keychron` job in `.github/workflows/build.yml`. It builds
+the same `keychron_b1_pro` board the ESB shield uses, so whatever the keyboard
+proves about the board carries over.
+
+```bash
+./local_build_keychron.sh                  # firmware/keychron_b1_pro.uf2
+./local_build_keychron.sh keychron_b1_pro_settings_reset
+```
+
+The script keeps an upstream-ZMK west workspace at `~/personal/zmk-upstream-ws`
+(`KEYCHRON_WS`), created on first run with this workspace as its path cache.
+
+What it is: a normal USB + BLE keyboard, Mac layout at the bottom.
+
+| Input | Does |
+|---|---|
+| Mac/Win switch | Win holds the Win layer (Cmd/Opt become Win/Alt), as stock |
+| BT/2.4G/Cable switch | BT prefers BLE; Cable and 2.4G prefer USB and fall back to BLE |
+| Fn + F1/F2, F7-F12 | brightness, media |
+| Fn + 1/2/3, Fn + Backspace | BLE profile 1/2/3, forget the current profile |
+| Fn + U / Fn + B | force USB / BLE output |
+| Fn + `-` held 3 s | UF2 bootloader, the same combo as stock |
+
+What to check on the keyboard, in this order: it enumerates over USB and every
+key types (a wrong pin is a dead row or column; a wrong transform is the wrong
+character); the Mac/Win switch changes the bottom row; BLE pairs and types with
+the switch on BT; Fn + `-` brings up `NRF52BOOT`.
+
+## Flashing
+
+Confirmed on the retail unit (PID `0x0711`):
+
+- The stock bootloader is the Adafruit nRF52 UF2 bootloader. Its drive is
+  `NRF52BOOT`, and Keychron's own update files are UF2s for family
+  `0xADA52840` starting at `0x1000`, the same as this port's images.
+- On stock firmware, Fn + `-` held about 3 s enters it, but only with the
+  system switch on Win and the mode switch on Cable.
+- The reset button on the back, held with a pin while plugging in USB, enters it
+  regardless of the firmware. It is read by the bootloader, which runs before
+  the application, so a bad image cannot lock it out.
+- Going back to stock is dragging Keychron's UF2 onto `NRF52BOOT`
+  ([downloads](https://www.keychron.com/blogs/archived/how-to-use-the-launcher-web-app-or-manually-flash-firmware-for-your-b-pro-series-keyboard)).
+
+Keychron ships at least three ANSI revisions (`0x0711`, `0x071a`, `0x0714`;
+launcher.keychron.com, Settings, Device Info). This port is `0x0711` only;
+`0x071a` is `b1n` in Keychron's tree, with a different matrix.
 
 ## Why this is feasible
 
@@ -23,8 +76,8 @@ which is a Realtek chip and not this keyboard.
 
 | Path | What |
 |---|---|
-| `config/boards/arm/keychron_b1_pro/` | Board: nRF52840 QIAA, Keychron's flash layout (Adafruit bootloader at `0xf4000`, app at `0x1000`), battery divider on AIN7, red/green/blue LEDs, UF2 output |
-| `roBakesb_keychron.overlay/.conf` | The shield for the keyboard: 8x18 col2row matrix, `zmk,esb-self = &esb_keychron`, sleep, battery, low-battery LED |
+| `boards/keychron/keychron_b1_pro/` | Board: nRF52840 QIAA, Keychron's flash layout (Adafruit bootloader at `0xf4000`, app at `0x1000`), the 8x18 col2row matrix, the slide switches, battery divider on AIN7, red/green/blue LEDs, USB, UF2 output. At the repo root (the module's `board_root`) so both `config/` and `keychron-config` see it |
+| `roBakesb_keychron.overlay/.conf` | The shield for the keyboard: the board's matrix without the switches, `zmk,esb-self = &esb_keychron`, sleep, battery, low-battery LED |
 | `roBakesb_keychron_transform.dtsi` | 77 Keychron positions appended to the shared matrix as positions 48-124, with Studio geometry; enables the pipe; defines `ROBA_KEYCHRON` |
 | `roBakesb_keychron_link.overlay` | Add-on shield every *other* node on the link carries (see below) |
 | `roBakesb_addr.dtsi` | `esb_keychron`: pipe 3, prefix `0xE3`, disabled unless a shield above turns it on |
@@ -75,19 +128,12 @@ dongle, left, right and lariska all move to their `_keychron` images when the
 keyboard joins, and back to the plain images (the three-peripheral link) when it
 leaves. The plain targets are unchanged and still build.
 
-Keychron's own board README says to hold RESET while plugging in USB to get the
-UF2 drive. **Unverified** on the retail unit.
+The Keychron's ESB image has no bootloader key; use the reset button (see
+Flashing above).
 
 ## Limits
 
-**Needs the keyboard**
-- *Flashability.* The layout assumes the stock bootloader is the Adafruit UF2
-  bootloader at `0xf4000`, as in Keychron's tree. The retail unit's bootloader,
-  and how to enter it, are unconfirmed. If it takes only Keychron's signed images
-  the way in is SWD on the PCB. The image starts at `0x1000` and touches nothing
-  from `0xf4000` up, so it does not overwrite the bootloader.
-- *Getting back to stock* is Keychron's launcher, if the bootloader still
-  accepts it. Unverified; assume it needs an SWD probe until tried.
+**Needs the keyboard** (step 1 answers these)
 - *Pin map.* Copied from Keychron's source for the version it was written for.
   `GPIO_AS_PINRESET=n` and the RC 32 kHz clock are required: P0.18 is column 16
   and P0.00/P0.01 are columns 0/1. A wrong pin shows as a dead row or column.
@@ -124,8 +170,8 @@ UF2 drive. **Unverified** on the retail unit.
   retransmit pressure in the relay captures, so watch the per-pipe link cost on
   the dongle.
 - *Not wired:* Mac/Win, BT and 2.4G slide switches (the mode follows the base
-  layer instead), charge status, Caps/Num/2.4G indicator LEDs, backlight, USB
-  data. The USB-C port charges only. The red LED blinks on low battery
-  (`ROBA_SELF_BATTERY_LED`, 25%).
+  layer instead; the standalone build does read them), charge status,
+  Caps/Num/2.4G indicator LEDs, backlight, USB data. The USB-C port charges
+  only. The red LED blinks on low battery (`ROBA_SELF_BATTERY_LED`, 25%).
 - *Other layouts.* ISO and JIS B1 Pro have different matrices and extra keys:
   `keychron_b1_uk` and `keychron_b1_jis` in Keychron's tree.

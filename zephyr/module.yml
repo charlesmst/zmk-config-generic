@@ -2,3 +2,7 @@ name: roBa
 build:
   cmake: .
   kconfig: Kconfig
+  settings:
+    # boards/<vendor>/<board>: boards both config/ (roBakesb, ESB) and
+    # keychron-config (standalone, upstream ZMK) build for.
+    board_root: .

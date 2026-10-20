@@ -1,0 +1,11 @@
+# Standalone Keychron B1 Pro on upstream ZMK (keychron-config/west.yml). Built
+# by the `keychron` job in .github/workflows/build.yml, apart from the roBakesb
+# matrix in the top-level build.yaml, which builds against the ZMK fork.
+---
+include:
+  - board: keychron_b1_pro
+    artifact-name: keychron_b1_pro
+
+  - board: keychron_b1_pro
+    shield: settings_reset
+    artifact-name: keychron_b1_pro_settings_reset

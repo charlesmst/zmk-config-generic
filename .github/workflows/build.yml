@@ -4,3 +4,15 @@ on: [push, pull_request, workflow_dispatch]
 jobs:
   build:
     uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@main
+
+  # Standalone Keychron B1 Pro against upstream ZMK, with its own manifest and
+  # matrix (keychron-config/). The repo root is still loaded as a module, which
+  # is how it finds boards/keychron/keychron_b1_pro. config_path has to be one
+  # level deep: the workflow mkdirs it without -p and makes its parent the west
+  # workspace.
+  keychron:
+    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@main
+    with:
+      config_path: keychron-config
+      build_matrix_path: keychron-config/build.yaml
+      archive_name: keychron-b1-pro-firmware

@@ -1,0 +1,20 @@
+# Standalone Keychron B1 Pro on upstream ZMK, nothing else.
+#
+# Kept apart from config/west.yml on purpose: that manifest pulls the
+# charlesmst/zmk fork plus the ESB, Prospector and sensor modules. This one is
+# stock zmkfirmware/zmk, so a problem on the keyboard is the board port's and
+# not something the roBakesb stack brought in.
+#
+# Pinned to a commit rather than `main` so a local build and CI build the same
+# thing; local_build_keychron.sh reads the revision from here.
+manifest:
+  remotes:
+    - name: zmkfirmware
+      url-base: https://github.com/zmkfirmware
+  projects:
+    - name: zmk
+      remote: zmkfirmware
+      revision: 4dd95d7840eb3d5a3f59bb29fbf1ab054715ef85
+      import: app/west.yml
+  self:
+    path: keychron-config

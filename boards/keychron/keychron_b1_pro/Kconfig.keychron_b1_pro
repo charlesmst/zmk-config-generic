@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: MIT
+
+# HWMv2 reads Kconfig.<board>; this is where the board picks its SoC. The
+# retention drivers back &bootloader (nrf52840_uf2_boot_mode.dtsi), implied
+# rather than defaulted so their own dependencies still hold, as upstream
+# boards do.
+config BOARD_KEYCHRON_B1_PRO
+    select SOC_NRF52840_QIAA
+    select ZMK_BOARD_COMPAT
+    imply RETAINED_MEM
+    imply RETENTION
+    imply RETENTION_BOOT_MODE

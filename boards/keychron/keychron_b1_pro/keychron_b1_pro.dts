@@ -1,0 +1,319 @@
+/*
+ * Keychron B1 Pro, US/ANSI (stock USB PID 0x0711): nRF52840 QIAA.
+ *
+ * Pin map, flash layout and battery divider are taken from Keychron's own
+ * ZMK fork (github.com/Keychron/zmk, branch keychron_bpro,
+ * app/boards/arm/keychron/keychron.dts and
+ * app/boards/shields/keychron/b1/us/keychron_b1_us.overlay), which is what the
+ * retail firmware is built from.
+ *
+ * Built as is, this is a standalone keyboard on upstream ZMK: USB and BLE, the
+ * 77-key matrix, and the Mac/Win and BT/2.4G slide switches as three extra
+ * positions (keychron-config). The roBakesb_keychron shield reuses the matrix
+ * as an ESB peripheral and turns the switches and this layout off.
+ *
+ * The 2025 revision (PID 0x071a, "b1n" in Keychron's tree) has a different
+ * matrix and is not described here.
+ *
+ * Left out on purpose: the two CKLED2001 I2C LED drivers (P0.26/P0.27, which
+ * are matrix columns 2 and 3 on this board), the Num/Caps/2.4G indicator LEDs
+ * and the charge status pins (P0.21, P0.22).
+ */
+
+/dts-v1/;
+#include <nordic/nrf52840_qiaa.dtsi>
+#include <common/nordic/nrf52840_uf2_boot_mode.dtsi>
+#include <dt-bindings/zmk/matrix_transform.h>
+#include <physical_layouts.dtsi>
+
+/ {
+	model = "Keychron B1 Pro";
+	compatible = "keychron,b1-pro";
+
+	chosen {
+		zephyr,code-partition = &code_partition;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zmk,battery = &vbatt;
+		zmk,physical-layout = &keychron_b1_pro_layout;
+	};
+
+	/* led0 is what ROBA_SELF_BATTERY_LED blinks. All three are active-low. */
+	aliases {
+		led0 = &led_red;
+		led1 = &led_green;
+		led2 = &led_blue;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		led_red: led_red {
+			gpios = <&gpio0 28 GPIO_ACTIVE_LOW>;
+		};
+		led_green: led_green {
+			gpios = <&gpio0 30 GPIO_ACTIVE_LOW>;
+		};
+		led_blue: led_blue {
+			gpios = <&gpio0 29 GPIO_ACTIVE_LOW>;
+		};
+	};
+
+	/* Equal 510k / 510k divider on AIN7 (P0.31): the pin sees half of VBAT. */
+	vbatt: vbatt {
+		compatible = "zmk,battery-voltage-divider";
+		io-channels = <&adc 7>;
+		output-ohms = <510000>;
+		full-ohms = <(510000 + 510000)>;
+	};
+
+	/*
+	 * 8 rows x 18 columns, col2row, rows are the inputs. P0.18 (column 16) is
+	 * the chip's RESET pin and P0.00/P0.01 (columns 0/1) are the 32 kHz crystal
+	 * pins, hence GPIO_AS_PINRESET=n and the RC clock in the defconfig.
+	 * Debounce figures are Keychron's.
+	 */
+	kscan_matrix: kscan_matrix {
+		compatible = "zmk,kscan-gpio-matrix";
+		wakeup-source;
+		diode-direction = "col2row";
+		debounce-scan-period-ms = <4>;
+		debounce-press-ms = <8>;
+		debounce-release-ms = <8>;
+		row-gpios
+			= <&gpio1 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+			, <&gpio1 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+			, <&gpio1 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+			, <&gpio1 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+			, <&gpio1 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+			, <&gpio1 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+			, <&gpio1 10 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+			, <&gpio1 12 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+			;
+		col-gpios
+			= <&gpio0 0 GPIO_ACTIVE_HIGH>
+			, <&gpio0 1 GPIO_ACTIVE_HIGH>
+			, <&gpio0 26 GPIO_ACTIVE_HIGH>
+			, <&gpio0 27 GPIO_ACTIVE_HIGH>
+			, <&gpio0 4 GPIO_ACTIVE_HIGH>
+			, <&gpio0 5 GPIO_ACTIVE_HIGH>
+			, <&gpio0 6 GPIO_ACTIVE_HIGH>
+			, <&gpio0 7 GPIO_ACTIVE_HIGH>
+			, <&gpio0 8 GPIO_ACTIVE_HIGH>
+			, <&gpio0 11 GPIO_ACTIVE_HIGH>
+			, <&gpio0 12 GPIO_ACTIVE_HIGH>
+			, <&gpio0 13 GPIO_ACTIVE_HIGH>
+			, <&gpio0 14 GPIO_ACTIVE_HIGH>
+			, <&gpio0 15 GPIO_ACTIVE_HIGH>
+			, <&gpio0 16 GPIO_ACTIVE_HIGH>
+			, <&gpio0 17 GPIO_ACTIVE_HIGH>
+			, <&gpio0 18 GPIO_ACTIVE_HIGH>
+			, <&gpio0 20 GPIO_ACTIVE_HIGH>
+			;
+	};
+
+	/*
+	 * The slide switches, read as keys the way Keychron's firmware does: a
+	 * position is "held" while the switch sits on it. Mac/Win reads held on
+	 * Win; BT and 2.4G each read held on their own position, so Cable is
+	 * neither. No pull flags, as in Keychron's tree: the board has its own.
+	 */
+	kscan_switches: kscan_switches {
+		compatible = "zmk,kscan-gpio-direct";
+		wakeup-source;
+		input-gpios
+			= <&gpio0 24 GPIO_ACTIVE_LOW>
+			, <&gpio1 8 GPIO_ACTIVE_LOW>
+			, <&gpio1 9 GPIO_ACTIVE_LOW>
+			;
+	};
+
+	kscan_composite: kscan_composite {
+		compatible = "zmk,kscan-composite";
+		wakeup-source;
+		rows = <9>;
+		columns = <18>;
+
+		matrix {
+			kscan = <&kscan_matrix>;
+		};
+
+		switches {
+			kscan = <&kscan_switches>;
+			row-offset = <8>;
+		};
+	};
+
+	/*
+	 * Keychron's RC() numbers, reordered row by row as the keycaps read, with
+	 * the bottom row's arrows last as left, up, down, right. Positions 77-79
+	 * are the Mac/Win, BT and 2.4G switches.
+	 */
+	keychron_b1_pro_transform: keychron_b1_pro_transform {
+		compatible = "zmk,matrix-transform";
+		rows = <9>;
+		columns = <18>;
+		map = <
+			/* Esc, F1-F12, Del */
+			RC(3,1) RC(6,2) RC(6,3) RC(1,3) RC(3,3) RC(7,0) RC(3,6) RC(1,7) RC(6,7) RC(6,10) RC(7,10) RC(3,10) RC(5,10) RC(6,11)
+			/* number row */
+			RC(6,1) RC(7,1) RC(7,2) RC(7,3) RC(7,4) RC(6,4) RC(6,5) RC(7,5) RC(7,6) RC(7,7) RC(7,8) RC(6,8) RC(6,6) RC(1,10)
+			/* Tab row */
+			RC(1,1) RC(0,1) RC(0,2) RC(0,3) RC(0,4) RC(1,4) RC(1,5) RC(0,5) RC(0,6) RC(0,7) RC(0,8) RC(1,8) RC(1,6) RC(2,10)
+			/* home row */
+			RC(1,2) RC(2,1) RC(2,2) RC(2,3) RC(2,4) RC(3,4) RC(3,5) RC(2,5) RC(2,6) RC(2,7) RC(2,8) RC(3,8) RC(4,10)
+			/* shift row */
+			RC(1,15) RC(4,1) RC(4,2) RC(4,3) RC(4,4) RC(5,4) RC(5,5) RC(4,5) RC(4,6) RC(4,7) RC(5,8) RC(2,15)
+			/* bottom row */
+			RC(6,0) RC(1,16) RC(3,9) RC(3,11) RC(5,9) RC(2,9) RC(5,14) RC(3,14) RC(5,11) RC(5,12)
+			/* switches: Mac/Win, BT, 2.4G */
+			RC(8,0) RC(8,1) RC(8,2)
+		>;
+	};
+
+	keychron_b1_pro_layout: keychron_b1_pro_layout {
+		compatible = "zmk,physical-layout";
+		display-name = "B1 Pro ANSI";
+		kscan = <&kscan_composite>;
+		transform = <&keychron_b1_pro_transform>;
+		keys  //                     w   h    x    y rot   rx   ry
+			= <&key_physical_attrs 100 100    0    0   0    0    0>
+			, <&key_physical_attrs 100 100  100    0   0    0    0>
+			, <&key_physical_attrs 100 100  200    0   0    0    0>
+			, <&key_physical_attrs 100 100  300    0   0    0    0>
+			, <&key_physical_attrs 100 100  400    0   0    0    0>
+			, <&key_physical_attrs 100 100  500    0   0    0    0>
+			, <&key_physical_attrs 100 100  600    0   0    0    0>
+			, <&key_physical_attrs 100 100  700    0   0    0    0>
+			, <&key_physical_attrs 100 100  800    0   0    0    0>
+			, <&key_physical_attrs 100 100  900    0   0    0    0>
+			, <&key_physical_attrs 100 100 1000    0   0    0    0>
+			, <&key_physical_attrs 100 100 1100    0   0    0    0>
+			, <&key_physical_attrs 100 100 1200    0   0    0    0>
+			, <&key_physical_attrs 100 100 1300    0   0    0    0>
+			, <&key_physical_attrs 100 100    0  100   0    0    0>
+			, <&key_physical_attrs 100 100  100  100   0    0    0>
+			, <&key_physical_attrs 100 100  200  100   0    0    0>
+			, <&key_physical_attrs 100 100  300  100   0    0    0>
+			, <&key_physical_attrs 100 100  400  100   0    0    0>
+			, <&key_physical_attrs 100 100  500  100   0    0    0>
+			, <&key_physical_attrs 100 100  600  100   0    0    0>
+			, <&key_physical_attrs 100 100  700  100   0    0    0>
+			, <&key_physical_attrs 100 100  800  100   0    0    0>
+			, <&key_physical_attrs 100 100  900  100   0    0    0>
+			, <&key_physical_attrs 100 100 1000  100   0    0    0>
+			, <&key_physical_attrs 100 100 1100  100   0    0    0>
+			, <&key_physical_attrs 100 100 1200  100   0    0    0>
+			, <&key_physical_attrs 200 100 1300  100   0    0    0>
+			, <&key_physical_attrs 150 100    0  200   0    0    0>
+			, <&key_physical_attrs 100 100  150  200   0    0    0>
+			, <&key_physical_attrs 100 100  250  200   0    0    0>
+			, <&key_physical_attrs 100 100  350  200   0    0    0>
+			, <&key_physical_attrs 100 100  450  200   0    0    0>
+			, <&key_physical_attrs 100 100  550  200   0    0    0>
+			, <&key_physical_attrs 100 100  650  200   0    0    0>
+			, <&key_physical_attrs 100 100  750  200   0    0    0>
+			, <&key_physical_attrs 100 100  850  200   0    0    0>
+			, <&key_physical_attrs 100 100  950  200   0    0    0>
+			, <&key_physical_attrs 100 100 1050  200   0    0    0>
+			, <&key_physical_attrs 100 100 1150  200   0    0    0>
+			, <&key_physical_attrs 100 100 1250  200   0    0    0>
+			, <&key_physical_attrs 150 100 1350  200   0    0    0>
+			, <&key_physical_attrs 175 100    0  300   0    0    0>
+			, <&key_physical_attrs 100 100  175  300   0    0    0>
+			, <&key_physical_attrs 100 100  275  300   0    0    0>
+			, <&key_physical_attrs 100 100  375  300   0    0    0>
+			, <&key_physical_attrs 100 100  475  300   0    0    0>
+			, <&key_physical_attrs 100 100  575  300   0    0    0>
+			, <&key_physical_attrs 100 100  675  300   0    0    0>
+			, <&key_physical_attrs 100 100  775  300   0    0    0>
+			, <&key_physical_attrs 100 100  875  300   0    0    0>
+			, <&key_physical_attrs 100 100  975  300   0    0    0>
+			, <&key_physical_attrs 100 100 1075  300   0    0    0>
+			, <&key_physical_attrs 100 100 1175  300   0    0    0>
+			, <&key_physical_attrs 225 100 1275  300   0    0    0>
+			, <&key_physical_attrs 225 100    0  400   0    0    0>
+			, <&key_physical_attrs 100 100  225  400   0    0    0>
+			, <&key_physical_attrs 100 100  325  400   0    0    0>
+			, <&key_physical_attrs 100 100  425  400   0    0    0>
+			, <&key_physical_attrs 100 100  525  400   0    0    0>
+			, <&key_physical_attrs 100 100  625  400   0    0    0>
+			, <&key_physical_attrs 100 100  725  400   0    0    0>
+			, <&key_physical_attrs 100 100  825  400   0    0    0>
+			, <&key_physical_attrs 100 100  925  400   0    0    0>
+			, <&key_physical_attrs 100 100 1025  400   0    0    0>
+			, <&key_physical_attrs 100 100 1125  400   0    0    0>
+			, <&key_physical_attrs 175 100 1225  400   0    0    0>
+			, <&key_physical_attrs 125 100    0  500   0    0    0>
+			, <&key_physical_attrs 125 100  125  500   0    0    0>
+			, <&key_physical_attrs 125 100  250  500   0    0    0>
+			, <&key_physical_attrs 625 100  375  500   0    0    0>
+			, <&key_physical_attrs 100 100 1000  500   0    0    0>
+			, <&key_physical_attrs 100 100 1100  500   0    0    0>
+			, <&key_physical_attrs 100 100 1225  500   0    0    0>
+			, <&key_physical_attrs 100  50 1325  500   0    0    0>
+			, <&key_physical_attrs 100  50 1325  550   0    0    0>
+			, <&key_physical_attrs 100 100 1425  500   0    0    0>
+			, <&key_physical_attrs 100 100 1600    0   0    0    0>
+			, <&key_physical_attrs 100 100 1600  100   0    0    0>
+			, <&key_physical_attrs 100 100 1600  200   0    0    0>
+			;
+	};
+};
+
+&adc {
+	status = "okay";
+};
+
+&gpiote {
+	status = "okay";
+};
+
+&gpio0 {
+	status = "okay";
+};
+
+&gpio1 {
+	status = "okay";
+};
+
+&radio {
+	status = "okay";
+};
+
+zephyr_udc0: &usbd {
+	compatible = "nordic,nrf-usbd";
+	status = "okay";
+};
+
+/*
+ * Keychron's layout, kept as-is so the image is shaped the way the retail
+ * bootloader expects: Adafruit nRF52 bootloader at 0xf4000 with no SoftDevice,
+ * so the application starts right after the 4 KiB MBR.
+ */
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		sd_partition: partition@0 {
+			label = "mbr";
+			reg = <0x00000000 0x00001000>;
+		};
+
+		code_partition: partition@1000 {
+			label = "code_partition";
+			reg = <0x00001000 0x000d3000>;
+		};
+
+		storage_partition: partition@d4000 {
+			label = "storage";
+			reg = <0x000d4000 0x00020000>;
+		};
+
+		boot_partition: partition@f4000 {
+			label = "adafruit_boot";
+			reg = <0x000f4000 0x0000c000>;
+		};
+	};
+};

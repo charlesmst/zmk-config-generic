@@ -1,0 +1,11 @@
+file_format: "1"
+id: keychron_b1_pro
+name: Keychron B1 Pro
+type: board
+arch: arm
+features:
+  - keys
+outputs:
+  - usb
+  - ble
+url: https://www.keychron.com/products/keychron-b1-pro-ultra-slim-wireless-keyboard

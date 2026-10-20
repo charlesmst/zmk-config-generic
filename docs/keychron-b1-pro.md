@@ -6,11 +6,10 @@ stays the central: it owns the keymap, the layers and the USB connection, and
 the Keychron only sends key positions, like the roBa halves do. Keychron's own
 2.4 GHz dongle stops working once the keyboard runs this firmware.
 
-**Nothing here has been run on a B1 Pro yet.** The ESB setup below is a later
-step. The board port is checked first as a plain standalone keyboard on
-upstream ZMK (next section), so the Prospector and the halves stay as they are
-until the keyboard is known to work. "Unverified" marks the parts that need the
-keyboard in hand.
+The board port was brought up first as a plain standalone keyboard on upstream
+ZMK (next section) and runs on a retail B1 Pro (PID `0x071a`). The ESB setup
+after it builds on the same board files. "Unverified" marks what has not been
+tried on the keyboard yet.
 
 ## Step 1: standalone on upstream ZMK
 
@@ -41,12 +40,31 @@ What it is: a normal USB + BLE keyboard, Mac layout at the bottom.
 
 What to check on the keyboard, in this order: it enumerates over USB and every
 key types (a wrong pin is a dead row or column; a wrong transform is the wrong
-character); the Mac/Win switch changes the bottom row; BLE pairs and types with
-the switch on BT; Fn + `-` brings up `NRF52BOOT`.
+character); a modifier held with letters on its own row types cleanly (Left
+Shift and Q-T, A-F, Z-B are all row 0; chatter there means the columns are being
+driven while idle, see below); the Mac/Win switch changes the bottom row; BLE
+pairs and types with the switch on BT; Fn + `-` brings up `NRF52BOOT`.
+
+### What the retail board needed that Keychron's source does not say
+
+Read off the stock v1.0.1 image (`CURRENT.UF2` on `NRF52BOOT`) of a `0x071a`
+unit, and checked against what this port builds:
+
+- *Key positions* are Keychron's `b1n` map, not `b1`. The image holds the full
+  82-entry matrix-to-position table, and it matches `b1n` exactly.
+- *Polarity* is inverted from their tree: rows `ACTIVE_LOW | PULL_UP`, columns
+  `ACTIVE_LOW`. Their source, and their downloadable v1.00 image for the same
+  PID, are active-high with pull-downs, so the PCB changed within `0x071a`.
+- *No per-key diodes.* Keychron's matrix driver switches each column back to an
+  input after scanning it, and suppresses ghosts in software. Upstream ZMK keeps
+  idle columns driven, which made every key on Left Shift's row chatter with it
+  held. The columns are open-drain here instead (same effect, no driver
+  change), with Keychron's 8 us / 5 us settle times. Three keys on the corners
+  of a matrix rectangle can still ghost the fourth; nothing here hides that.
 
 ## Flashing
 
-Confirmed on the retail unit (PID `0x0711`):
+Confirmed on the retail unit (PID `0x071a`):
 
 - The stock bootloader is the Adafruit nRF52 UF2 bootloader. Its drive is
   `NRF52BOOT`, and Keychron's own update files are UF2s for family
@@ -56,20 +74,23 @@ Confirmed on the retail unit (PID `0x0711`):
 - The reset button on the back, held with a pin while plugging in USB, enters it
   regardless of the firmware. It is read by the bootloader, which runs before
   the application, so a bad image cannot lock it out.
-- Going back to stock is dragging Keychron's UF2 onto `NRF52BOOT`
-  ([downloads](https://www.keychron.com/blogs/archived/how-to-use-the-launcher-web-app-or-manually-flash-firmware-for-your-b-pro-series-keyboard)).
+- Going back to stock is dragging the unit's own `CURRENT.UF2`, saved before the
+  first flash, back onto `NRF52BOOT`. Not Keychron's
+  [download](https://www.keychron.com/blogs/archived/how-to-use-the-launcher-web-app-or-manually-flash-firmware-for-your-b-pro-series-keyboard)
+  for the same PID: it has the opposite matrix polarity (above).
 
 Keychron ships at least three ANSI revisions (`0x0711`, `0x071a`, `0x0714`;
-launcher.keychron.com, Settings, Device Info). This port is `0x0711` only;
-`0x071a` is `b1n` in Keychron's tree, with a different matrix.
+launcher.keychron.com, Settings, Device Info). This port is the `0x071a` board
+with active-low pins. `0x0711` uses Keychron's `b1` map and active-high pins.
 
 ## Why this is feasible
 
 The B1 Pro is an nRF52840, and Keychron publishes the ZMK tree it ships from:
 [Keychron/zmk](https://github.com/Keychron/zmk), branch `keychron_bpro`
-(`app/boards/arm/keychron/keychron.dts`, `app/boards/shields/keychron/b1/us`).
+(`app/boards/arm/keychron/keychron.dts`, `app/boards/shields/keychron/b1n/us`).
 The matrix pins, flash layout and battery divider in this port are copied from
-there rather than probed. The `rtl8762g` branch is the newer *Ultra* series,
+there rather than probed; the key positions and pin polarity were then checked
+against the keyboard's own stock image (Step 1). The `rtl8762g` branch is the newer *Ultra* series,
 which is a Realtek chip and not this keyboard.
 
 ## What was added
@@ -111,7 +132,11 @@ that too. Only the US layout is mapped.
 
 ## Building and flashing
 
+`config/west.yml` pins split-esb v0.8.11; point `ESB_MODULE` at a checkout of
+that tag so a local build matches CI:
+
 ```bash
+export ESB_MODULE=~/personal/split-esb-v0811
 ./local_build_roba_kesb.sh roBakesb_keychron_b1_pro
 ./local_build_roba_kesb.sh roBakesb_dongle_prospector_keychron
 ./local_build_roba_kesb.sh roBakesb_left_keychron
@@ -133,10 +158,13 @@ Flashing above).
 
 ## Limits
 
-**Needs the keyboard** (step 1 answers these)
-- *Pin map.* Copied from Keychron's source for the version it was written for.
+**On the board** (settled by step 1)
+- *Pin map.* Keychron's pins, with the polarity of the stock image.
   `GPIO_AS_PINRESET=n` and the RC 32 kHz clock are required: P0.18 is column 16
-  and P0.00/P0.01 are columns 0/1. A wrong pin shows as a dead row or column.
+  and P0.00/P0.01 are columns 0/1.
+- *Ghosting.* No per-key diodes, so three keys on the corners of a matrix
+  rectangle register the fourth. Q-T, A-F, Z-B, Left Shift, Space and Tab are
+  all on row 0, so combos among them cannot form one.
 - *DC/DC* is enabled because Keychron's board enables it; it needs the inductor
   to be fitted.
 - *Debounce* (8 ms press and release) is Keychron's figure.

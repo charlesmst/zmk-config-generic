@@ -455,4 +455,15 @@ config ROBA_BEHAVIOR_AUTOCLICK
       hands-free; pressing the same key again, or any other key, stops it.
       Only the central owns the keymap, so the clicker is built there.
 
+config ROBA_BEHAVIOR_SWITCH_LAYER
+    bool "Slide-switch layer behavior"
+    default y
+    depends on DT_HAS_ROBA_BEHAVIOR_SWITCH_LAYER_ENABLED
+    depends on !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
+    help
+      A slide switch read as a held key keeps one layer on while it is on and
+      another layer is active (the Keychron's Mac/Win switch keeping Gaming
+      on over Windows). The switch state is kept by the behavior, not in the
+      layer stack, so &to and DeskHop host switches cannot drop it.
+
 endmenu

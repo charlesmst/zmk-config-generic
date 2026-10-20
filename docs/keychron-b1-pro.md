@@ -115,8 +115,8 @@ and the dongle's devicetree is what it was; the only difference is the disabled
 Prospector build before and after: that node is the whole diff, and flash and
 RAM are identical).
 
-With it, the shared matrix grows from 48 to 125 positions and every layer gets
-77 more bindings.
+With it, the shared matrix grows from 48 to 126 positions and every layer gets
+78 more bindings: the Mac/Win switch at position 48, then the 77 keys.
 
 | Macro | On which layer | Does |
 |---|---|---|
@@ -129,6 +129,29 @@ With it, the shared matrix grows from 48 to 125 positions and every layer gets
 Fn is `&mo SUPER`. Caps is a plain `&kp CAPS`; the roBa's thumb key sends
 `LC(CAPS)`, so change position 'CAPS' in `roBakesb_keychron.h` if the Mac needs
 that too. Only the US layout is mapped.
+
+### The Mac/Win switch is a gaming switch
+
+The switch on the back no longer picks Mac or Windows; DeskHop does that. It
+says whether Windows means Gaming. With it on Win, whenever Windows is the
+active base, the Gaming layer is on top of it, the same as `&tog GAMIN` from
+Windows, and it comes back by itself every time DeskHop returns to the Windows
+machine. On Mac it does nothing. Flipping it back to Mac turns Gaming off again.
+
+It is a behavior, `&kc_game_switch` (`roba,behavior-switch-layer`,
+`src/behavior_switch_layer.c`), bound to position 48 on the three base layers.
+The behavior keeps the switch state itself instead of holding a layer for it,
+and re-checks on every layer change, so nothing that rewrites the layer stack
+loses it: not DeskHop's host switch (which clears Gaming on the way to Mac), not
+a `&to`, not the dongle restarting (position 48 is inside the keepalive bitmap,
+so the held switch is replayed). Two consequences of the switch being the
+source of truth:
+
+- With the switch on and Windows active, turning Gaming off by key (`&tog GAMIN`,
+  `&to WINDO`) does not stick; flip the switch instead.
+- Gaming turned on by key with the switch off is left alone by the switch.
+  Leaving Windows with the switch on (Fn+1 to Mac, `&to GAMIN`) leaves the layers
+  as that key set them.
 
 ## Building and flashing
 
@@ -197,8 +220,8 @@ Flashing above).
   light traffic next to the trackball, but the lariska already shows heavy
   retransmit pressure in the relay captures, so watch the per-pipe link cost on
   the dongle.
-- *Not wired:* Mac/Win, BT and 2.4G slide switches (the mode follows the base
-  layer instead; the standalone build does read them), charge status,
+- *Not wired:* BT and 2.4G slide switches (they still scan but map to no
+  position), charge status,
   Caps/Num/2.4G indicator LEDs, backlight, USB data. The USB-C port charges
   only. The red LED blinks on low battery (`ROBA_SELF_BATTERY_LED`, 25%).
 - *Other layouts.* ISO and JIS B1 Pro have different matrices and extra keys:

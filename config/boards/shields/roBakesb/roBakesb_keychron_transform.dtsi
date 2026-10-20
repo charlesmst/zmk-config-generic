@@ -1,7 +1,7 @@
 /*
  * Keychron B1 Pro (US/ANSI) as extra positions on the shared roBakesb matrix.
  *
- * Positions 48-124 of the global keymap: the 48 roBa + lariska positions from
+ * Positions 48-125 of the global keymap: the 48 roBa + lariska positions from
  * roBakesb_lariska_transform.dtsi come first and are untouched, so every
  * binding already written for them keeps its index. Include this file in the
  * dongle (via the roBakesb_keychron_link shield), in the other peripherals
@@ -16,9 +16,14 @@
  * peripheral sets row-offset = 4 and its kscan row r lands on shared row
  * r + 4. That is the only translation; the numbers below are Keychron's.
  *
- * Order. Row by row, left to right, same as the keycaps; the arrows are last
- * in the bottom row as left, up, down, right. The slide switches and charge pins
- * Keychron's firmware also exposes as "keys" are not positions here.
+ * Order. Position 48 is the Mac/Win slide switch (the board's composite kscan
+ * row 8, shared row 12), "held" while it sits on Win. It comes first so it is
+ * inside the split-esb keepalive's 64-position bitmap: the dongle replays it
+ * from every keepalive, so it learns the switch again after a reboot or a lost
+ * event instead of waiting for the next flip. Then the 77 keys row by row, left
+ * to right, same as the keycaps; the arrows are last in the bottom row as left,
+ * up, down, right. The BT and 2.4G switches and the charge pins are not
+ * positions.
  *
  * Also defines ROBA_KEYCHRON, which is what roBakesb.keymap tests to decide
  * whether each layer carries these positions' bindings. The keymap is
@@ -41,6 +46,8 @@
 
 #ifndef ROBA_KEYCHRON_MAP
 #define ROBA_KEYCHRON_MAP \
+    /* Mac/Win switch */ \
+    KC_RC(8,0) \
     /* Row 0: Esc, F1-F12, Del */ \
     KC_RC(7,5) KC_RC(1,2) KC_RC(3,4) KC_RC(1,14) KC_RC(1,4) KC_RC(2,2) KC_RC(4,2) KC_RC(2,5) KC_RC(2,6) KC_RC(2,7) KC_RC(2,10) KC_RC(2,8) KC_RC(3,7) KC_RC(5,8) \
     /* Row 1: number row */ \
@@ -57,6 +64,8 @@
 
 #ifndef ROBA_KEYCHRON_KEYS
 #define ROBA_KEYCHRON_KEYS \
+    /* Mac/Win switch, drawn off to the right of the F-row */ \
+    &key_physical_attrs 100 100 1600  600 0 0 0 \
     /* Row 0: Esc, F1-F12, Del */ \
     &key_physical_attrs 100 100    0  600 0 0 0 \
     &key_physical_attrs 100 100  100  600 0 0 0 \
@@ -143,7 +152,7 @@
 #endif
 
 &default_transform {
-    rows = <12>;
+    rows = <13>;
     columns = <18>;
     map = <ROBA_LARISKA_MAP ROBA_KEYCHRON_MAP>;
 };

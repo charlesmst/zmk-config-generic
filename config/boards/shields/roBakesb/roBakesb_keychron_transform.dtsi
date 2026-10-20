@@ -9,7 +9,9 @@
  * the matrix.
  *
  * Matrix. The keyboard's own 8 row x 18 column matrix is copied verbatim from
- * Keychron's shield (Keychron/zmk keychron_bpro, keychron_b1_us.overlay). The
+ * Keychron's 2025 shield (Keychron/zmk keychron_bpro, keychron_b1_usn.overlay),
+ * the same numbers as the board's own transform, which is where they were
+ * checked against a stock image (boards/keychron/keychron_b1_pro). The
  * roBa halves already own rows 0-3 of the shared matrix, so the Keychron
  * peripheral sets row-offset = 4 and its kscan row r lands on shared row
  * r + 4. That is the only translation; the numbers below are Keychron's.
@@ -40,17 +42,17 @@
 #ifndef ROBA_KEYCHRON_MAP
 #define ROBA_KEYCHRON_MAP \
     /* Row 0: Esc, F1-F12, Del */ \
-    KC_RC(3,1) KC_RC(6,2) KC_RC(6,3) KC_RC(1,3) KC_RC(3,3) KC_RC(7,0) KC_RC(3,6) KC_RC(1,7) KC_RC(6,7) KC_RC(6,10) KC_RC(7,10) KC_RC(3,10) KC_RC(5,10) KC_RC(6,11) \
+    KC_RC(7,5) KC_RC(1,2) KC_RC(3,4) KC_RC(1,14) KC_RC(1,4) KC_RC(2,2) KC_RC(4,2) KC_RC(2,5) KC_RC(2,6) KC_RC(2,7) KC_RC(2,10) KC_RC(2,8) KC_RC(3,7) KC_RC(5,8) \
     /* Row 1: number row */ \
-    KC_RC(6,1) KC_RC(7,1) KC_RC(7,2) KC_RC(7,3) KC_RC(7,4) KC_RC(6,4) KC_RC(6,5) KC_RC(7,5) KC_RC(7,6) KC_RC(7,7) KC_RC(7,8) KC_RC(6,8) KC_RC(6,6) KC_RC(1,10) \
+    KC_RC(0,17) KC_RC(1,0) KC_RC(1,15) KC_RC(1,1) KC_RC(3,6) KC_RC(1,12) KC_RC(1,13) KC_RC(5,5) KC_RC(5,6) KC_RC(5,7) KC_RC(5,10) KC_RC(1,6) KC_RC(1,7) KC_RC(1,8) \
     /* Row 2: Tab row */ \
-    KC_RC(1,1) KC_RC(0,1) KC_RC(0,2) KC_RC(0,3) KC_RC(0,4) KC_RC(1,4) KC_RC(1,5) KC_RC(0,5) KC_RC(0,6) KC_RC(0,7) KC_RC(0,8) KC_RC(1,8) KC_RC(1,6) KC_RC(2,10) \
+    KC_RC(0,5) KC_RC(0,10) KC_RC(0,8) KC_RC(0,9) KC_RC(0,13) KC_RC(0,14) KC_RC(3,5) KC_RC(3,1) KC_RC(1,3) KC_RC(2,4) KC_RC(1,11) KC_RC(4,6) KC_RC(4,7) KC_RC(4,10) \
     /* Row 3: home row */ \
-    KC_RC(1,2) KC_RC(2,1) KC_RC(2,2) KC_RC(2,3) KC_RC(2,4) KC_RC(3,4) KC_RC(3,5) KC_RC(2,5) KC_RC(2,6) KC_RC(2,7) KC_RC(2,8) KC_RC(3,8) KC_RC(4,10) \
+    KC_RC(5,17) KC_RC(0,4) KC_RC(0,6) KC_RC(0,7) KC_RC(0,2) KC_RC(1,17) KC_RC(6,8) KC_RC(1,10) KC_RC(3,2) KC_RC(1,9) KC_RC(6,5) KC_RC(6,7) KC_RC(2,1) \
     /* Row 4: shift row */ \
-    KC_RC(1,15) KC_RC(4,1) KC_RC(4,2) KC_RC(4,3) KC_RC(4,4) KC_RC(5,4) KC_RC(5,5) KC_RC(4,5) KC_RC(4,6) KC_RC(4,7) KC_RC(5,8) KC_RC(2,15) \
+    KC_RC(0,16) KC_RC(0,0) KC_RC(0,15) KC_RC(0,1) KC_RC(0,12) KC_RC(0,11) KC_RC(7,6) KC_RC(7,11) KC_RC(7,10) KC_RC(7,8) KC_RC(7,9) KC_RC(5,15) \
     /* Row 5: bottom row, arrows last (left, up, down, right) */ \
-    KC_RC(6,0) KC_RC(1,16) KC_RC(3,9) KC_RC(3,11) KC_RC(5,9) KC_RC(2,9) KC_RC(5,14) KC_RC(3,14) KC_RC(5,11) KC_RC(5,12)
+    KC_RC(1,5) KC_RC(3,10) KC_RC(6,17) KC_RC(0,3) KC_RC(4,0) KC_RC(2,9) KC_RC(3,17) KC_RC(2,17) KC_RC(4,17) KC_RC(7,17)
 #endif
 
 #ifndef ROBA_KEYCHRON_KEYS

@@ -120,8 +120,10 @@ With it, the shared matrix grows from 48 to 126 positions and every layer gets
 
 | Macro | On which layer | Does |
 |---|---|---|
-| `KEYCHRON_MAC` | Mac | Full 75% QWERTY. Win and Alt swap to Option and Command, as Keychron's own firmware does in Mac mode |
-| `KEYCHRON_WIN` | Windows | Same, unswapped |
+| `KEYCHRON_MAC` | Mac | Full 75% QWERTY. Win and Alt swap to Option and Command, as Keychron's own firmware does in Mac mode. Caps is Esc on tap and the Mac nav layer on hold (Ctrl+Caps stays a real Ctrl+Caps for DeskHop), `;` also holds the nav layer, and the key right of space is Ctrl |
+| `KEYCHRON_WIN` | Windows | Same, unswapped, holding the Windows nav layer |
+| `KEYCHRON_NAV_MAC` | Tile Mac | The Karabiner caps layer: 1-9 workspaces, W/S next/previous window, E R T window commands, HJKL arrows, N M , . Home/PgDn/PgUp/End, Tab Ctrl+Tab, Esc Ctrl+Caps |
+| `KEYCHRON_NAV_WIN` | Tile Win | Same keys: Win+1-9, W/S on the roBa's alt-tab swappers |
 | `KEYCHRON_GAME` | Gaming | Windows layout (`&to GAMIN` leaves no layer below for `&trans`) |
 | `KEYCHRON_SYSTEM` | System (the Fn layer) | The keycaps' Fn row, as stock: brightness, Mission Control / Task View, Launchpad / Explorer, Spotlight / Search, lock, media, volume. Fn + arrows = Home/PgUp/PgDn/End, Fn + I = Insert, Fn + \\ = screenshot, Fn + Right Shift = emoji. Fn+1/2/3 = `&to` Mac/Windows/Gaming |
 | `KEYCHRON_TRANS` | every other layer | `&trans`, so a roBa or lariska layer held while typing on the Keychron falls through to its base |

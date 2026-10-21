@@ -169,6 +169,27 @@
             #binding-cells = <2>;
             layer = <WINDO>;
         };
+
+        /* The Keychron's Caps: Esc on tap, the nav layer on hold. Hold-preferred
+         * with no idle guard, unlike &lm: Caps is never typed mid-word, and a
+         * nav chord should engage the moment a second key goes down. With Ctrl
+         * held the tap is a real Ctrl+Caps, which DeskHop takes as its switch;
+         * the morph drops the held Ctrl and sends LC(CAPS), so either Ctrl
+         * works. */
+        kc_esc_caps: kc_esc_caps {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp ESC>, <&kp LC(CAPS)>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+
+        kc_caps: kc_caps {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "hold-preferred";
+            tapping-term-ms = <200>;
+            bindings = <&mo>, <&kc_esc_caps>;
+        };
 #endif
         sk_forever: sk_forever {
             compatible = "zmk,behavior-sticky-key";
@@ -392,7 +413,7 @@
             hold-start;
             /* 23 = swap_rev; 43-45 = Lariska LCLK/RCLK/MCLK so a click doesn't
              * end the alt-tab hold. */
-            ignored-key-positions = <23 43 44 45>;
+            ignored-key-positions = <23 43 44 45 KEYCHRON_SWAP_IGNORE>;
         };
         /* Reverse alt-tab on the X-position key (pos 23). hold-start makes both
          * swap and swap_rev hold a ref-counted LALT, so either can start the
@@ -403,7 +424,7 @@
             #binding-cells = <0>;
             bindings = <&kp LALT>, <&kp LS(TAB)>, <&kp LALT>;
             hold-start;
-            ignored-key-positions = <11 43 44 45>;
+            ignored-key-positions = <11 43 44 45 KEYCHRON_SWAP_REV_IGNORE>;
         };
 
         swapmac: swappermac {
@@ -744,7 +765,7 @@
  &swapmac_rev                   &kp LS(LC(F4))                 &swapmac                       &trans                         &trans                         &trans  &trans     &trans                         &trans                         &trans                         &trans                         &trans
  &trans                         &trans                         &trans                         &trans                         &trans                         &kp LG(SPACE)        &trans                         &trans                         &trans
  LARISKA_BTNS_TILIN
- KEYCHRON_TRANS
+ KEYCHRON_NAV_MAC
             >;
             sensor-bindings = <&rot_kp LC(LEFT) LC(RIGHT) &lariska_ws>;
         };
@@ -758,7 +779,7 @@
  &kp LA(LS(D))        &swap_rev            &kp LA(LS(D))               &trans                      &trans                       &trans  &trans    &trans       &trans      &trans                      &trans                      &trans
  &trans               &trans               &trans               &trans                      &trans                         &kp LGUI     &trans                         &trans                         &trans
  LARISKA_BTNS_TILWI
- KEYCHRON_TRANS
+ KEYCHRON_NAV_WIN
             >;
             sensor-bindings = <&alt_tab_encoder_inv &alt_tab_encoder>;
         };

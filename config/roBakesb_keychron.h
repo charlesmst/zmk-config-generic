@@ -38,7 +38,18 @@
 
 #ifdef ROBA_KEYCHRON
 
-/* Mac base */
+/* Positions of the B1's W and S keys in the shared matrix (switch 48, then the
+ * keys row by row: Esc row 49-62, number row 63-76, Tab row 77-90, home row
+ * 91-103). The alt-tab swappers in roBakesb.keymap ignore each other's key so
+ * W and S can cycle back and forth while Alt stays held, as S and X do on the
+ * roBa. */
+#define KEYCHRON_SWAP_IGNORE     93 /* S, the reverse swapper */
+#define KEYCHRON_SWAP_REV_IGNORE 79 /* W, the forward swapper */
+
+/* Mac base. Caps is Esc on tap and the Mac nav layer (TILIN) on hold, with
+ * Ctrl held it is a real Ctrl+Caps for DeskHop (&kc_caps). ; also holds the
+ * nav layer, through the same flow-guarded &lm the roBa's ; uses. The key right
+ * of the space bar is Ctrl, as Karabiner makes it on the Mac. */
 #define KEYCHRON_MAC \
     /* Mac/Win switch, held while on Win */ \
     &kc_game_switch \
@@ -49,13 +60,14 @@
     /* Tab row */ \
     &kp TAB       &kp Q         &kp W         &kp E         &kp R         &kp T         &kp Y         &kp U         &kp I         &kp O         &kp P         &kp LBKT      &kp RBKT      &kp BSLH \
     /* home row */ \
-    &kp CAPS      &kp A         &kp S         &kp D         &kp F         &kp G         &kp H         &kp J         &kp K         &kp L         &kp SEMI      &kp SQT       &kp RET \
+    &kc_caps TILIN 0 \
+    &kp A         &kp S         &kp D         &kp F         &kp G         &kp H         &kp J         &kp K         &kp L         &lm TILIN SEMI &kp SQT      &kp RET \
     /* shift row */ \
     &kp LSHFT     &kp Z         &kp X         &kp C         &kp V         &kp B         &kp N         &kp M         &kp COMMA     &kp DOT       &kp FSLH      &kp RSHFT \
     /* bottom row; arrows last: left, up, down, right */ \
-    &kp LCTRL     &kp LALT      &kp LGUI      &kp SPACE     &kp RGUI      &mo SUPER     &kp LEFT      &kp UP        &kp DOWN      &kp RIGHT
+    &kp LCTRL     &kp LALT      &kp LGUI      &kp SPACE     &kp RCTRL     &mo SUPER     &kp LEFT      &kp UP        &kp DOWN      &kp RIGHT
 
-/* Windows base */
+/* Windows base. Same shape as the Mac, holding the Windows nav layer (TILWI). */
 #define KEYCHRON_WIN \
     /* Mac/Win switch, held while on Win */ \
     &kc_game_switch \
@@ -66,11 +78,12 @@
     /* Tab row */ \
     &kp TAB       &kp Q         &kp W         &kp E         &kp R         &kp T         &kp Y         &kp U         &kp I         &kp O         &kp P         &kp LBKT      &kp RBKT      &kp BSLH \
     /* home row */ \
-    &kp CAPS      &kp A         &kp S         &kp D         &kp F         &kp G         &kp H         &kp J         &kp K         &kp L         &kp SEMI      &kp SQT       &kp RET \
+    &kc_caps TILWI 0 \
+    &kp A         &kp S         &kp D         &kp F         &kp G         &kp H         &kp J         &kp K         &kp L         &lm TILWI SEMI &kp SQT      &kp RET \
     /* shift row */ \
     &kp LSHFT     &kp Z         &kp X         &kp C         &kp V         &kp B         &kp N         &kp M         &kp COMMA     &kp DOT       &kp FSLH      &kp RSHFT \
     /* bottom row; arrows last: left, up, down, right */ \
-    &kp LCTRL     &kp LGUI      &kp LALT      &kp SPACE     &kp RALT      &mo SUPER     &kp LEFT      &kp UP        &kp DOWN      &kp RIGHT
+    &kp LCTRL     &kp LGUI      &kp LALT      &kp SPACE     &kp RCTRL     &mo SUPER     &kp LEFT      &kp UP        &kp DOWN      &kp RIGHT
 
 /* Gaming base */
 #define KEYCHRON_GAME \
@@ -121,6 +134,57 @@
     /* bottom row; arrows last: left, up, down, right -> Home, PgUp, PgDn, End */ \
     &trans        &trans        &trans        &trans        &trans        &trans        &kp HOME      &kp PG_UP     &kp PG_DN     &kp END
 
+/* Mac nav layer (Tile Mac, held by Caps or ;). The Karabiner caps layer and the
+ * roBa's nav layers, on the B1's own keys:
+ *   1-9      workspace (tap Alt+Shift+N, hold Ctrl+Alt+Shift+N), as the roBa's
+ *            top row
+ *   W / S    next / previous window, Ctrl+F4 / Ctrl+Shift+F4
+ *   E R T    the roBa's E, R and T window commands
+ *   H J K L  arrows, N M , . Home, PgDn, PgUp, End, as the roBa Numbers layer
+ *   Tab      Ctrl+Tab, Esc Ctrl+Caps (the DeskHop switch), as Karabiner does */
+#define KEYCHRON_NAV_MAC \
+    /* Mac/Win switch */ \
+    &trans \
+    /* Esc, F1-F12, Del */ \
+    &kp LC(CAPS)  &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
+    /* number row */ \
+    &trans \
+    &hs LC(LA(LS(N1))) LA(LS(N1))  &hs LC(LA(LS(N2))) LA(LS(N2))  &hs LC(LA(LS(N3))) LA(LS(N3)) \
+    &hs LC(LA(LS(N4))) LA(LS(N4))  &hs LC(LA(LS(N5))) LA(LS(N5))  &hs LC(LA(LS(N6))) LA(LS(N6)) \
+    &hs LC(LA(LS(N7))) LA(LS(N7))  &hs LC(LA(LS(N8))) LA(LS(N8))  &hs LC(LA(LS(N9))) LA(LS(N9)) \
+    &trans        &trans        &trans        &trans \
+    /* Tab row */ \
+    &kp LC(TAB)   &trans        &kp LC(F4) \
+    &hs LC(LA(LS(E))) LA(LS(E))  &hs LC(LA(LS(R))) LA(LS(R))  &hs LC(LA(LS(T))) LA(LS(T)) \
+    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
+    /* home row */ \
+    &trans        &trans        &kp LS(LC(F4)) &trans       &trans        &trans        &kp LEFT      &kp DOWN      &kp UP        &kp RIGHT     &trans        &trans        &trans \
+    /* shift row */ \
+    &trans        &trans        &trans        &trans        &trans        &trans        &kp HOME      &kp PG_DN     &kp PG_UP     &kp END       &trans        &trans \
+    /* bottom row */ \
+    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans
+
+/* Windows nav layer (Tile Win), same keys: Win+N for workspaces through the
+ * roBa's &w1-&w9, and W / S on the roBa's alt-tab swappers, which hold Alt for
+ * as long as the layer is held so W and S keep cycling. */
+#define KEYCHRON_NAV_WIN \
+    /* Mac/Win switch */ \
+    &trans \
+    /* Esc, F1-F12, Del */ \
+    &kp LC(CAPS)  &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
+    /* number row */ \
+    &trans        &w1           &w2           &w3           &w4           &w5           &w6           &w7           &w8           &w9           &trans        &trans        &trans        &trans \
+    /* Tab row */ \
+    &kp LC(TAB)   &trans        &swap \
+    &hs LC(LA(LS(E))) LA(LS(E))  &hs LC(LA(LS(R))) LA(LS(R))  &hs LC(LA(LS(T))) LA(LS(T)) \
+    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
+    /* home row */ \
+    &trans        &trans        &swap_rev     &trans        &trans        &trans        &kp LEFT      &kp DOWN      &kp UP        &kp RIGHT     &trans        &trans        &trans \
+    /* shift row */ \
+    &trans        &trans        &trans        &trans        &trans        &trans        &kp HOME      &kp PG_DN     &kp PG_UP     &kp END       &trans        &trans \
+    /* bottom row */ \
+    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans
+
 /* Every other layer */
 #define KEYCHRON_TRANS \
     /* Mac/Win switch, held while on Win */ \
@@ -145,5 +209,9 @@
 #define KEYCHRON_GAME
 #define KEYCHRON_SYSTEM
 #define KEYCHRON_TRANS
+#define KEYCHRON_NAV_MAC
+#define KEYCHRON_NAV_WIN
+#define KEYCHRON_SWAP_IGNORE
+#define KEYCHRON_SWAP_REV_IGNORE
 
 #endif /* ROBA_KEYCHRON */

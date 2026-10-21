@@ -213,6 +213,15 @@ config ROBA_PROSPECTOR_SCREEN_RAW_FOOTER
       transport reports battery unknown, which distinguishes "no value on the
       wire" from "this screen is mishandling a value it was given".
 
+config ROBA_PROSPECTOR_SCREEN_B1_SWITCH_POSITION
+    int "Keychron B1 key position that does not move the keyboard focus"
+    default 48
+    help
+      The screen shows the roBa or the B1 depending on which one you last
+      typed on. The B1's Mac/Win slide switch is a key position as well
+      (position 48 in roBakesb_keychron_transform.dtsi), and the link replays
+      it after a restart, so it is left out of that decision.
+
 # --- macOS theme ---------------------------------------------------------
 #
 # iOS dark-mode system colours. The battery ring is semantic -- green, then
@@ -465,5 +474,14 @@ config ROBA_BEHAVIOR_SWITCH_LAYER
       another layer is active (the Keychron's Mac/Win switch keeping Gaming
       on over Windows). The switch state is kept by the behavior, not in the
       layer stack, so &to and DeskHop host switches cannot drop it.
+
+config ROBA_BEHAVIOR_LAYER_KEY_PRESS
+    bool "Key press that depends on a layer"
+    default y
+    depends on DT_HAS_ROBA_BEHAVIOR_LAYER_KEY_PRESS_ENABLED
+    depends on !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
+    help
+      &kp with two keycodes, the second sent while a layer is active, so one
+      Fn layer can send Mac shortcuts on the Mac and Windows ones on Windows.
 
 endmenu

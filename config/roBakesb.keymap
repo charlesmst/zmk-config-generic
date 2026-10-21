@@ -161,6 +161,14 @@
             if-layer = <WINDO>;
             then-layer = <GAMIN>;
         };
+
+        /* The Keychron's Fn row: the Mac key, or the Windows one while the
+         * Windows base is active (src/behavior_layer_key_press.c). */
+        os_kp: os_kp {
+            compatible = "roba,behavior-layer-key-press";
+            #binding-cells = <2>;
+            layer = <WINDO>;
+        };
 #endif
         sk_forever: sk_forever {
             compatible = "zmk,behavior-sticky-key";

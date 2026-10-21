@@ -22,7 +22,9 @@
  *                    the lariska (tiling, fast scroll, ...) still lets the
  *                    Keychron type through to its base.
  *
- * Fn is `&mo SUPER` on every base layer. The first position of each macro is
+ * Fn is `&kc_fn` on every base layer: Numbers + Symbols held, which tri_layer
+ * turns into System (see roBakesb.keymap for why not &mo SUPER). The first
+ * position of each macro is
  * the Mac/Win slide switch, "held" while it sits on Win. Every base layer binds
  * it to `&kc_game_switch` (roBakesb.keymap): with the switch on Win, Windows
  * comes up with Gaming on top, including every time DeskHop returns to the
@@ -65,7 +67,7 @@
     /* shift row */ \
     &kp LSHFT     &kp Z         &kp X         &kp C         &kp V         &kp B         &kp N         &kp M         &kp COMMA     &kp DOT       &kp FSLH      &kp RSHFT \
     /* bottom row; arrows last: left, up, down, right */ \
-    &kp LCTRL     &kp LALT      &kp LGUI      &kp SPACE     &kp RCTRL     &mo SUPER     &kp LEFT      &kp UP        &kp DOWN      &kp RIGHT
+    &kp LCTRL     &kp LALT      &kp LGUI      &kp SPACE     &kp RCTRL     &kc_fn        &kp LEFT      &kp UP        &kp DOWN      &kp RIGHT
 
 /* Windows base. Same shape as the Mac, holding the Windows nav layer (TILWI). */
 #define KEYCHRON_WIN \
@@ -83,7 +85,7 @@
     /* shift row */ \
     &kp LSHFT     &kp Z         &kp X         &kp C         &kp V         &kp B         &kp N         &kp M         &kp COMMA     &kp DOT       &kp FSLH      &kp RSHFT \
     /* bottom row; arrows last: left, up, down, right */ \
-    &kp LCTRL     &kp LGUI      &kp LALT      &kp SPACE     &kp RCTRL     &mo SUPER     &kp LEFT      &kp UP        &kp DOWN      &kp RIGHT
+    &kp LCTRL     &kp LGUI      &kp LALT      &kp SPACE     &kp RCTRL     &kc_fn        &kp LEFT      &kp UP        &kp DOWN      &kp RIGHT
 
 /* Gaming base */
 #define KEYCHRON_GAME \
@@ -100,7 +102,7 @@
     /* shift row */ \
     &kp LSHFT     &kp Z         &kp X         &kp C         &kp V         &kp B         &kp N         &kp M         &kp COMMA     &kp DOT       &kp FSLH      &kp RSHFT \
     /* bottom row; arrows last: left, up, down, right */ \
-    &kp LCTRL     &kp LGUI      &kp LALT      &kp SPACE     &kp RALT      &mo SUPER     &kp LEFT      &kp UP        &kp DOWN      &kp RIGHT
+    &kp LCTRL     &kp LGUI      &kp LALT      &kp SPACE     &kp RALT      &kc_fn        &kp LEFT      &kp UP        &kp DOWN      &kp RIGHT
 
 /* Fn layer (System). Fn + the F-row does what the B1's keycaps print, as the
  * stock firmware does: brightness, Mission Control / Task View, Launchpad /

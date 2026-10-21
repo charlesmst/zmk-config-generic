@@ -128,7 +128,7 @@ With it, the shared matrix grows from 48 to 126 positions and every layer gets
 | `KEYCHRON_SYSTEM` | System (the Fn layer) | The keycaps' Fn row, as stock: brightness, Mission Control / Task View, Launchpad / Explorer, Spotlight / Search, lock, media, volume. Fn + arrows = Home/PgUp/PgDn/End, Fn + I = Insert, Fn + \\ = screenshot, Fn + Right Shift = emoji. Fn+1/2/3 = `&to` Mac/Windows/Gaming |
 | `KEYCHRON_TRANS` | every other layer | `&trans`, so a roBa or lariska layer held while typing on the Keychron falls through to its base |
 
-Fn is `&mo SUPER`. Caps is a plain `&kp CAPS`; the roBa's thumb key sends
+Fn is `&kc_fn`, which holds Numbers and Symbols so `tri_layer` turns System on; a plain `&mo SUPER` does not stick, because a conditional layer's target is switched off whenever its if-layers are not all held. Caps is a plain `&kp CAPS`; the roBa's thumb key sends
 `LC(CAPS)`, so change position 'CAPS' in `roBakesb_keychron.h` if the Mac needs
 that too. Only the US layout is mapped.
 

@@ -67,6 +67,7 @@
 #include <zmk/display.h>
 #include <zmk/display/status_screen.h>
 #include <zmk/event_manager.h>
+#include <zmk/events/position_state_changed.h>
 #include <zmk/events/split_esb_peripheral_changed.h>
 #include <zmk/keymap.h>
 #include <zmk_split_esb.h>
@@ -126,9 +127,10 @@ static const char *const bar_syms[5] = {
 /* periph_icons.c, U+E030.. -- which device this ring belongs to. An icon in
  * place of a percentage: the arc already carries the level, and a figure in the
  * middle of it was saying the same thing twice in a face that was never
- * designed for this screen. */
-static const char *const periph_syms[3] = {
-    "\xEE\x80\xB0", "\xEE\x80\xB1", "\xEE\x80\xB2",
+ * designed for this screen. Indexed by ESB pipe, not by ring: which pipe a ring
+ * shows depends on the keyboard focus (see focus_layouts). */
+static const char *const periph_syms[] = {
+    "\xEE\x80\xB0", "\xEE\x80\xB1", "\xEE\x80\xB2", "\xEE\x80\xB3",
 };
 
 #define EN_DASH "\xE2\x80\x93"
@@ -153,10 +155,32 @@ static const struct base_identity bases[4] = {
     {LOGO_MOUSE, "Mouse"},
 };
 
-/* ESB pipes, fixed at build time by roBakesb_addr.dtsi -- pipe number is the
- * slot, and there is no pairing order to account for. Slot 0 is the left half,
- * 1 the right, 2 the lariska, which is the order periph_syms is drawn in. */
+/* ESB pipes, fixed at build time by roBakesb_addr.dtsi, with no pairing order
+ * to account for: 0 the left half, 1 the right, 2 the lariska, 3 the Keychron
+ * B1 Pro when it is on the link. */
+#define PIPE_COUNT 4
+#define PIPE_B1    3
+
+/* Rings (and gaming rows) on screen. Which pipe each one shows follows the
+ * keyboard in use: typing on the roBa shows left, right and the mouse as it
+ * always has; typing on the B1 shows the B1 and the mouse, and the third ring
+ * is hidden. The mouse stays in both because it is used with either keyboard.
+ * The widgets are the same objects in both, moved and re-pointed when the
+ * focus changes, so the B1 costs no extra LVGL memory. */
 #define SLOT_COUNT 3
+
+#define FOCUS_ROBA 0
+#define FOCUS_B1   1
+
+struct focus_layout {
+    uint8_t count;
+    uint8_t pipes[SLOT_COUNT];
+};
+
+static const struct focus_layout focus_layouts[] = {
+    [FOCUS_ROBA] = {.count = 3, .pipes = {0, 1, 2}},
+    [FOCUS_B1] = {.count = 2, .pipes = {PIPE_B1, 2}},
+};
 
 #define BATTERY_UNKNOWN 0xFF
 
@@ -223,6 +247,12 @@ static inline int ring_x(uint8_t slot) {
     return RING_X0 + slot * (RING_SIZE + RING_GAP);
 }
 
+/* Same rule for a row of fewer rings: centred as a group. */
+static inline int ring_x_of(uint8_t count, uint8_t slot) {
+    int row_w = (count * RING_SIZE) + ((count - 1) * RING_GAP);
+    return ((SCREEN_W - row_w) / 2) + slot * (RING_SIZE + RING_GAP);
+}
+
 /* ---- geometry, gaming mode --------------------------------------------- */
 
 /* Twelve segments of 17 with 4 px between them comes to 248, which centres on
@@ -259,6 +289,15 @@ static inline int ring_x(uint8_t slot) {
 
 static inline int game_row_y(uint8_t slot) {
     return GAME_ROW0_Y + slot * GAME_ROW_PITCH;
+}
+
+/* Fewer rows sit centred in the band three rows fill, between the rule's
+ * 16 px and the 19 px bottom margin, so two rows land at y 90 and 148. */
+static inline int game_row_y_of(uint8_t count, uint8_t slot) {
+    const int row_h = GAME_METER_DY + GAME_BAR_H;
+    const int band = SCREEN_H - 19 - GAME_ROW0_Y;
+    const int block = (count * row_h) + ((count - 1) * (GAME_ROW_PITCH - row_h));
+    return GAME_ROW0_Y + ((band - block) / 2) + slot * GAME_ROW_PITCH;
 }
 
 static inline int game_seg_x(uint8_t seg) {
@@ -344,7 +383,8 @@ struct slot_state {
 };
 
 struct screen_state {
-    struct slot_state slots[SLOT_COUNT];
+    struct slot_state slots[SLOT_COUNT]; /* per ring, already mapped from pipes */
+    uint8_t focus;                       /* FOCUS_ROBA / FOCUS_B1 */
     uint8_t base;
     uint8_t channel;
     bool searching;
@@ -355,6 +395,10 @@ struct screen_state {
 
 static K_MUTEX_DEFINE(state_mutex);
 static struct screen_state state;
+
+/* The keyboard you last typed on, FOCUS_ROBA until the B1 sends a key. Written
+ * by focus_listener, read by poll_fn; not saved anywhere. */
+static uint8_t focus = FOCUS_ROBA;
 
 /*
  * Liveness has to come from the transport's edge event, not from polling.
@@ -372,13 +416,13 @@ static struct screen_state state;
  * is a plain ZMK_LISTENER, so it observes edges whether or not the screen
  * exists yet and the cache means an early edge is not lost.
  */
-static bool edge_seen[SLOT_COUNT];
-static bool edge_connected[SLOT_COUNT];
+static bool edge_seen[PIPE_COUNT];
+static bool edge_connected[PIPE_COUNT];
 
 static int peripheral_changed_listener(const zmk_event_t *eh) {
     const struct zmk_split_esb_peripheral_changed *ev = as_zmk_split_esb_peripheral_changed(eh);
 
-    if (ev == NULL || ev->source >= SLOT_COUNT) {
+    if (ev == NULL || ev->source >= PIPE_COUNT) {
         return ZMK_EV_EVENT_BUBBLE;
     }
 
@@ -423,7 +467,8 @@ static lv_obj_t *game_name_label[SLOT_COUNT];
 static lv_obj_t *game_dbm_label[SLOT_COUNT];
 static lv_obj_t *game_seg[SLOT_COUNT][GAME_SEGMENTS];
 
-static const char *const game_names[SLOT_COUNT] = {"LEFT", "RIGHT", "MOUSE"};
+/* By pipe, like periph_syms. */
+static const char *const game_names[PIPE_COUNT] = {"LEFT", "RIGHT", "MOUSE", "B1 PRO"};
 
 /* ---- helpers ----------------------------------------------------------- */
 
@@ -556,12 +601,16 @@ enum link_health {
 };
 
 /* Worst thing first: a lost half matters more than a weak one, and a central
- * that is still sweeping matters more than either. */
+ * that is still sweeping matters more than either.
+ *
+ * Only the devices on screen count. While you type on the B1 the roBa halves
+ * may well go to sleep, and that is not a lost link anyone needs told about;
+ * the same goes for the B1 sleeping while you use the roBa. */
 static enum link_health link_health(const struct screen_state *s) {
     if (s->searching) {
         return HEALTH_SEARCHING;
     }
-    for (uint8_t i = 0; i < SLOT_COUNT; i++) {
+    for (uint8_t i = 0; i < focus_layouts[s->focus].count; i++) {
         if (!s->slots[i].present) {
             return HEALTH_LOST;
         }
@@ -612,7 +661,7 @@ static void redraw_base(const struct screen_state *sp) {
         lv_obj_set_style_text_color(sub_label, COL_SECONDARY, LV_PART_MAIN);
     }
 
-    for (uint8_t i = 0; i < SLOT_COUNT; i++) {
+    for (uint8_t i = 0; i < focus_layouts[s.focus].count; i++) {
         const struct slot_state *slot = &s.slots[i];
         bool known = slot->present && slot->battery != BATTERY_UNKNOWN;
 
@@ -669,7 +718,7 @@ static void redraw_gaming(const struct screen_state *s) {
     snprintf(chan, sizeof(chan), "CH %u", s->channel);
     set_text(game_chan_label, chan);
 
-    for (uint8_t i = 0; i < SLOT_COUNT; i++) {
+    for (uint8_t i = 0; i < focus_layouts[s->focus].count; i++) {
         const struct slot_state *slot = &s->slots[i];
         bool live = slot->present && slot->rssi != 0;
 
@@ -714,6 +763,66 @@ static void redraw_gaming(const struct screen_state *s) {
     }
 }
 
+/* Which focus the widgets are currently laid out for. */
+static uint8_t applied_focus = FOCUS_ROBA;
+
+static void show(lv_obj_t *obj, bool shown) {
+    if (shown) {
+        lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    }
+}
+
+/* Lay both trees out for a focus: which rings and rows are visible, where they
+ * sit, and which device's glyph and name they carry. Only on the edge, when
+ * you move from one keyboard to the other -- a handful of position and flag
+ * writes, nothing per frame and nothing allocated. */
+static void apply_focus(uint8_t focus) {
+    if (focus == applied_focus || name_label == NULL) {
+        return;
+    }
+    applied_focus = focus;
+
+    const struct focus_layout *fl = &focus_layouts[focus];
+
+    for (uint8_t i = 0; i < SLOT_COUNT; i++) {
+        bool shown = i < fl->count;
+
+        show(ring_bat[i], shown);
+        show(icon_label[i], shown);
+        show(bars_track[i], shown);
+        show(bars_lit[i], shown);
+        show(game_name_label[i], shown);
+        show(game_dbm_label[i], shown);
+        for (uint8_t seg = 0; seg < GAME_SEGMENTS; seg++) {
+            show(game_seg[i][seg], shown);
+        }
+
+        /* The row this slot drew last time described another device. */
+        game_drawn_valid[i] = false;
+
+        if (!shown) {
+            continue;
+        }
+
+        int x = ring_x_of(fl->count, i);
+        lv_obj_set_x(ring_bat[i], x);
+        lv_obj_set_x(icon_label[i], x);
+        lv_obj_set_x(bars_track[i], x);
+        lv_obj_set_x(bars_lit[i], x);
+        set_text(icon_label[i], periph_syms[fl->pipes[i]]);
+
+        int y = game_row_y_of(fl->count, i);
+        lv_obj_set_y(game_name_label[i], y);
+        lv_obj_set_y(game_dbm_label[i], y);
+        for (uint8_t seg = 0; seg < GAME_SEGMENTS; seg++) {
+            lv_obj_set_y(game_seg[i][seg], y + GAME_METER_DY);
+        }
+        set_text(game_name_label[i], game_names[fl->pipes[i]]);
+    }
+}
+
 static void redraw_fn(struct k_work *work) {
     ARG_UNUSED(work);
 
@@ -724,6 +833,8 @@ static void redraw_fn(struct k_work *work) {
     if (name_label == NULL || game_root == NULL) {
         return;
     }
+
+    apply_focus(s.focus);
 
     /* Only the visible tree is updated. Writing to a hidden one would dirty
      * objects the renderer then skips, and LVGL would still carry the
@@ -777,15 +888,24 @@ static void poll_fn(struct k_work *work) {
      * momentary layers on top of it do not change. */
     state.theme = zmk_keymap_layer_active(LAYER_WINDOWS) ? THEME_WIN : THEME_MAC;
 
+    state.focus = focus;
+    const struct focus_layout *fl = &focus_layouts[focus];
+
     for (uint8_t i = 0; i < SLOT_COUNT; i++) {
-        uint8_t battery = zmk_split_esb_peer_battery(i);
-        int8_t rssi = zmk_split_esb_peer_rssi_dbm(i);
+        if (i >= fl->count) {
+            state.slots[i] = (struct slot_state){.battery = BATTERY_UNKNOWN};
+            continue;
+        }
+
+        uint8_t pipe = fl->pipes[i];
+        uint8_t battery = zmk_split_esb_peer_battery(pipe);
+        int8_t rssi = zmk_split_esb_peer_rssi_dbm(pipe);
 
         /* The edge is authoritative once we have one. Until then, cached data
          * existing at all is evidence the pipe has been heard -- that only
          * covers the window before the first sweep, 500 ms. */
-        bool present = edge_seen[i] ? edge_connected[i]
-                                    : ((battery != BATTERY_UNKNOWN) || (rssi != 0));
+        bool present = edge_seen[pipe] ? edge_connected[pipe]
+                                       : ((battery != BATTERY_UNKNOWN) || (rssi != 0));
 
         /* Drop the cached values when the peripheral is gone. Without this the
          * rings keep drawing the last battery and signal indefinitely, which is
@@ -806,6 +926,58 @@ static void poll_fn(struct k_work *work) {
 
     k_work_reschedule(&poll_work, K_MSEC(CONFIG_ROBA_PROSPECTOR_SCREEN_POLL_MS));
 }
+
+/* ---- keyboard focus ---------------------------------------------------- */
+
+/*
+ * Every key press reaching the keymap carries the ESB pipe it came in on
+ * (split central sets zmk_position_state_changed.source to it), so which
+ * keyboard is in use falls out of one comparison per press. A roBa half moves
+ * focus to the roBa, the B1 to the B1. The lariska does not move it, because the
+ * mouse goes with either keyboard, and neither does pointer motion, which is
+ * not a key event at all.
+ *
+ * The B1's Mac/Win slide switch is a key position too, and the link replays it
+ * from every keepalive after a restart; it is skipped so the screen only moves
+ * when you actually type.
+ *
+ * On a change the poll is pulled forward rather than waiting out its 250 ms, so
+ * the screen follows within one redraw.
+ */
+static int focus_listener(const zmk_event_t *eh) {
+    const struct zmk_position_state_changed *ev = as_zmk_position_state_changed(eh);
+
+    if (ev == NULL || !ev->state) {
+        return ZMK_EV_EVENT_BUBBLE;
+    }
+
+    uint8_t want;
+    if (ev->source == PIPE_B1) {
+        if (ev->position == CONFIG_ROBA_PROSPECTOR_SCREEN_B1_SWITCH_POSITION) {
+            return ZMK_EV_EVENT_BUBBLE;
+        }
+        want = FOCUS_B1;
+    } else if (ev->source == 0 || ev->source == 1) {
+        want = FOCUS_ROBA;
+    } else {
+        return ZMK_EV_EVENT_BUBBLE;
+    }
+
+    if (want == focus) {
+        return ZMK_EV_EVENT_BUBBLE;
+    }
+
+    k_mutex_lock(&state_mutex, K_FOREVER);
+    focus = want;
+    k_mutex_unlock(&state_mutex);
+
+    k_work_reschedule(&poll_work, K_NO_WAIT);
+
+    return ZMK_EV_EVENT_BUBBLE;
+}
+
+ZMK_LISTENER(roba_prospector_focus, focus_listener);
+ZMK_SUBSCRIPTION(roba_prospector_focus, zmk_position_state_changed);
 
 /* ---- build ------------------------------------------------------------- */
 

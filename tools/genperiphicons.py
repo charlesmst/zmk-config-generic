@@ -15,6 +15,7 @@ know which corner to look at.
   U+E030  left half
   U+E031  right half
   U+E032  lariska (trackball mouse)
+  U+E033  Keychron B1 Pro
 
 Run:  python3 tools/genperiphicons.py
 """
@@ -144,11 +145,37 @@ def mouse():
     return g
 
 
+# ---------------- Keychron B1 Pro: a whole board ----------------
+# Same 2 px case as the halves so it reads as one of the set, but the full
+# 32 px width and lower, and with no chevron: it is one piece, not half of
+# anything. An F-row of short keys, a row of full ones, then a space bar with a
+# key either side, which is the B1's own top-to-bottom outline at this size.
+# Five keys of 4 px with 1 px gaps span x5..28, so every row clears the 2 px
+# walls (interior x3..30) by two pixels a side and never fuses with the case.
+def board():
+    g = blank()
+
+    # y9..24 centres the case in the 34 px box and leaves 1 px inside it
+    # above the F-row and below the space bar alike.
+    frame(g, 1, 9, 32, 24, t=2)
+
+    for i in range(5):
+        x = 5 + i * 5
+        rect(g, x, 12, x + 3, 13)
+        rect(g, x, 15, x + 3, 17)
+    rect(g, 5, 19, 8, 21)
+    rect(g, 10, 19, 23, 21)
+    rect(g, 25, 19, 28, 21)
+
+    return g
+
+
 left = half()
 right = mirror(half())
 lariska = mouse()
+b1 = board()
 
-glyphs = [("left", left), ("right", right), ("mouse", lariska)]
+glyphs = [("left", left), ("right", right), ("mouse", lariska), ("b1", b1)]
 
 
 def to_bytes(g):
@@ -197,6 +224,7 @@ out.append("""
  *   U+E030 "\\xEE\\x80\\xB0"  left half
  *   U+E031 "\\xEE\\x80\\xB1"  right half
  *   U+E032 "\\xEE\\x80\\xB2"  lariska (trackball mouse)
+ *   U+E033 "\\xEE\\x80\\xB3"  Keychron B1 Pro
  */""")
 
 out.append("static const uint8_t periph_icons_bitmap[] = {")

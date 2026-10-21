@@ -1,0 +1,21 @@
+# Copyright (c) 2026 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+description: |
+  A key press that sends param1, or param2 while `layer` is active. Written
+  for one Fn layer shared by Mac and Windows: `&os_kp C_AC_SEARCH LG(S)` is
+  Spotlight on the Mac and Search on Windows, keyed off the Windows base
+  layer that DeskHop turns on.
+
+  The key released is always the one that was pressed, even if the layer
+  changed while the key was held.
+
+compatible: "roba,behavior-layer-key-press"
+
+include: two_param.yaml
+
+properties:
+  layer:
+    type: int
+    required: true
+    description: Layer whose being active selects param2 over param1.

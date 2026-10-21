@@ -89,22 +89,37 @@
     /* bottom row; arrows last: left, up, down, right */ \
     &kp LCTRL     &kp LGUI      &kp LALT      &kp SPACE     &kp RALT      &mo SUPER     &kp LEFT      &kp UP        &kp DOWN      &kp RIGHT
 
-/* Fn layer (System) */
+/* Fn layer (System). Fn + the F-row does what the B1's keycaps print, as the
+ * stock firmware does: brightness, Mission Control / Task View, Launchpad /
+ * File Explorer, Spotlight / Search, lock screen, then media and volume. Where
+ * the two machines differ the key is &os_kp MAC WIN, chosen by whether Windows
+ * is the active base. Also from stock: Fn + arrows for Home, PgUp, PgDn, End;
+ * Fn + I for Insert; Fn + \ for a screenshot; Fn + Right Shift for the emoji
+ * picker. Fn + 1/2/3 still set the base to Mac, Windows or Gaming. */
 #define KEYCHRON_SYSTEM \
     /* Mac/Win switch, held while on Win */ \
-    &trans        \
+    &trans \
     /* Esc, F1-F12, Del */ \
-    &trans        &kp C_BRI_DN  &kp C_BRI_UP  &trans        &trans        &trans        &trans        &kp C_PREV    &kp C_PP      &kp C_NEXT    &kp C_MUTE    &kp C_VOL_DN  &kp C_VOL_UP  &trans \
+    &trans \
+    &kp C_BRI_DN \
+    &kp C_BRI_UP \
+    &os_kp C_AC_DESKTOP_SHOW_ALL_WINDOWS LG(TAB) \
+    &os_kp C_AC_DESKTOP_SHOW_ALL_APPLICATIONS LG(E) \
+    &os_kp C_AC_SEARCH LG(S) \
+    &os_kp LC(LG(Q)) LG(L) \
+    &kp C_PREV    &kp C_PP      &kp C_NEXT    &kp C_MUTE    &kp C_VOL_DN  &kp C_VOL_UP  &trans \
     /* number row */ \
     &trans        &to DEFAU     &to WINDO     &to GAMIN     &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
-    /* Tab row */ \
-    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
+    /* Tab row: I = Insert, \ = screenshot */ \
+    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &kp INS       &trans        &trans        &trans        &trans \
+    &os_kp LG(LS(N4)) LG(LS(S)) \
     /* home row */ \
     &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
-    /* shift row */ \
-    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
-    /* bottom row; arrows last: left, up, down, right */ \
-    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans
+    /* shift row: Right Shift = emoji picker */ \
+    &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans        &trans \
+    &os_kp LC(LG(SPACE)) LG(DOT) \
+    /* bottom row; arrows last: left, up, down, right -> Home, PgUp, PgDn, End */ \
+    &trans        &trans        &trans        &trans        &trans        &trans        &kp HOME      &kp PG_UP     &kp PG_DN     &kp END
 
 /* Every other layer */
 #define KEYCHRON_TRANS \

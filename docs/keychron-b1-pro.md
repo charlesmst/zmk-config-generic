@@ -123,7 +123,7 @@ With it, the shared matrix grows from 48 to 126 positions and every layer gets
 | `KEYCHRON_MAC` | Mac | Full 75% QWERTY. Win and Alt swap to Option and Command, as Keychron's own firmware does in Mac mode |
 | `KEYCHRON_WIN` | Windows | Same, unswapped |
 | `KEYCHRON_GAME` | Gaming | Windows layout (`&to GAMIN` leaves no layer below for `&trans`) |
-| `KEYCHRON_SYSTEM` | System (the Fn layer) | F1/F2 brightness, F7-F12 media, Fn+1/2/3 = `&to` Mac/Windows/Gaming |
+| `KEYCHRON_SYSTEM` | System (the Fn layer) | The keycaps' Fn row, as stock: brightness, Mission Control / Task View, Launchpad / Explorer, Spotlight / Search, lock, media, volume. Fn + arrows = Home/PgUp/PgDn/End, Fn + I = Insert, Fn + \\ = screenshot, Fn + Right Shift = emoji. Fn+1/2/3 = `&to` Mac/Windows/Gaming |
 | `KEYCHRON_TRANS` | every other layer | `&trans`, so a roBa or lariska layer held while typing on the Keychron falls through to its base |
 
 Fn is `&mo SUPER`. Caps is a plain `&kp CAPS`; the roBa's thumb key sends
@@ -212,10 +212,14 @@ Flashing above).
   `_keychron` dongle target therefore sets `CONFIG_ZMK_BEHAVIORS_QUEUE_SIZE=256`
   (512 entries, 14 KB, is far more than the 8-binding macros need), ending at
   97.6% with about 6 KB spare. Each further layer costs 2 KB.
-- *The Prospector screen shows three devices.* It draws rings for pipes 0-2 and
-  ignores anything at or above its `SLOT_COUNT` of 3, so the Keychron's battery
-  and signal are not shown. A fourth ring does not fit in the current row
-  (`RING_ROW_W`), so it is a layout change, not a constant.
+- *The Prospector screen follows the keyboard in use.* Three rings do not fit
+  a fourth, so the screen shows whichever keyboard you last typed on: left,
+  right and the mouse after a roBa key, the B1 and the mouse after a B1 key
+  (`focus_listener` in `src/prospector_status_screen.c`, reading
+  `zmk_position_state_changed.source`, which is the ESB pipe). The lariska and
+  the B1's Mac/Win switch do not move it. The same ring and meter widgets are
+  moved and re-pointed, so it costs no LVGL memory, and the footer's link health
+  only counts the devices on screen.
 - *Airtime.* A fourth transmitter on the same hopped channel set. A keyboard is
   light traffic next to the trackball, but the lariska already shows heavy
   retransmit pressure in the relay captures, so watch the per-pipe link cost on
